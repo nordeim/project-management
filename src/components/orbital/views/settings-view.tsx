@@ -36,7 +36,7 @@ const TONE_OPTIONS: Array<{ value: Tone; label: string }> = [
 ];
 
 const FIELD =
-  "h-11 rounded-[10px] border-0 bg-orb-well shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]";
+  "h-[38px] rounded-[10px] border-0 bg-orb-well text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]";
 const FIELD_LABEL = "text-[13px] font-medium text-orb-body";
 
 function hourOptions(): string[] {
@@ -68,8 +68,8 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
       <div className="mt-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_1fr]">
         {/* Left column: Workspace + Working Hours */}
         <div className="space-y-4">
-          <section className="orb-card p-6" aria-label="Workspace">
-            <h2 className="text-[15px] font-semibold text-orb-heading">Workspace</h2>
+          <section className="orb-panel p-[22px_24px]" aria-label="Workspace">
+            <h2 className="text-[13px] font-semibold text-orb-heading">Workspace</h2>
 
             <div className="mt-5 space-y-2">
               <Label htmlFor="workspace-name" className={FIELD_LABEL}>
@@ -86,14 +86,14 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
             </div>
           </section>
 
-          <section className="orb-card p-6" aria-label="Working hours">
-            <h2 className="text-[15px] font-semibold text-orb-heading">Working Hours</h2>
+          <section className="orb-panel p-[22px_24px]" aria-label="Working hours">
+            <h2 className="text-[13px] font-semibold text-orb-heading">Working Hours</h2>
 
             <div className="mt-5 space-y-4">
+              {/* Reference (v1.6, measured): the "Active Window" sub-header
+                  (12px/600, Title Case) sits ABOVE the description line. */}
+              <p className="text-[12px] font-semibold text-orb-muted">Active Window</p>
               <p className="text-[13px] leading-relaxed text-orb-muted">AI will only send pings during these hours</p>
-              {/* Reference (v1.5): the time selects sit under an
-                  "Active Window" sub-header. */}
-              <p className="orb-label">Active Window</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="work-start" className={FIELD_LABEL}>
@@ -135,8 +135,8 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
         </div>
 
         {/* Right column: AI Assistant */}
-        <section className="orb-card p-6" aria-label="AI assistant">
-          <h2 className="text-[15px] font-semibold text-orb-heading">AI Assistant</h2>
+        <section className="orb-panel p-[22px_24px]" aria-label="AI assistant">
+          <h2 className="text-[13px] font-semibold text-orb-heading">AI Assistant</h2>
 
           <div className="mt-5 space-y-5">
             <div className="space-y-2">
@@ -189,7 +189,7 @@ export function SettingsView() {
   const settings = useOrbital((s) => s.settings);
 
   return (
-    <div className="mx-auto w-full max-w-[1100px]">
+    <div className="w-full">
       <header>
         <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Settings</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Configure your AI assistant and workspace</p>

@@ -19,7 +19,7 @@ export function TeamView() {
   const agents = members.filter((m) => m.kind === "agent");
 
   return (
-    <div className="mx-auto w-full max-w-[1100px]">
+    <div className="w-full">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Team</h1>
@@ -49,7 +49,7 @@ export function TeamView() {
             action={
               <button
                 type="button"
-                className="orb-pill-round"
+                className="flex h-[38px] items-center gap-2 rounded-[12px] bg-orb-raised px-[18px] text-[13px] font-medium text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
                 onClick={() => {
                   setInviteKind("human");
                   setInviteOpen(true);
@@ -94,7 +94,10 @@ export function TeamView() {
         </div>
 
         {agents.length === 0 ? (
-          <div className="mt-4">
+          // Reference (v1.6, measured): the AI-Agents empty state sits in an
+          // inset well card (radius 16, p 32px 24px) — unlike the members
+          // empty state, which renders directly on the canvas.
+          <div className="mt-4 flex items-center justify-center rounded-2xl bg-orb-well px-6 py-8 shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.24)]">
             <EmptyState
               icon={<Bot size={22} />}
               title="No agents yet"
@@ -102,7 +105,7 @@ export function TeamView() {
               action={
                 <button
                   type="button"
-                  className="orb-pill-round"
+                  className="flex h-[38px] items-center gap-2 rounded-[12px] bg-orb-raised px-[18px] text-[13px] font-medium text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
                   onClick={() => {
                     setInviteKind("agent");
                     setInviteOpen(true);

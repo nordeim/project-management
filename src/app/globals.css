@@ -170,15 +170,41 @@
     @apply text-[11px] font-medium uppercase tracking-[0.08em] text-orb-muted;
   }
 
-  /* ---- Neumorphic primitive system (measured from the reference, v1.4) ----
+  /* ---- Neumorphic primitive system (measured from the reference, v1.4;
+        re-measured into THREE card tiers in v1.6) ----
      Raised surfaces (#EEEAE6) carry dual outer shadows; inset wells
-     (#EBE7E2) carry the same pair inverted. Shadow values were sampled
-     from the live app's computed styles. Plain CSS (not @apply of custom
-     classes) so Tailwind 4 can statically resolve every rule. */
+     (#EBE7E2) carry the same pair inverted. The reference ships three
+     card tiers (measured side-by-side on the live app, 2026-09-17):
+       standard  -5px/-5px/10px 0.78 + 5px/5px/12px 0.27  (buttons, small ui)
+       deeper    -5px/-5px/10px 0.92 + 5px/5px/12px 0.36  (row/list cards)
+       large     -8px/-8px/16px 0.78 + 8px/8px/18px 0.31  (view panels)
+     Plain CSS (not @apply of custom classes) so Tailwind 4 can statically
+     resolve every rule. */
   .orb-raised {
     border-radius: 16px;
     background-color: var(--orb-raised);
     box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+  }
+  /* Deeper row card (v1.6, measured): goal cards, task cards and the
+     activity feed card use the deeper shadow pair at radius 14-16. */
+  .orb-row-card {
+    border-radius: 14px;
+    background-color: var(--orb-raised);
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.92), 5px 5px 12px rgba(160, 143, 126, 0.36);
+  }
+  /* Deeper tier at radius 16 — the goals-view goal cards (measured). */
+  .orb-goal-card {
+    border-radius: 16px;
+    background-color: var(--orb-raised);
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.92), 5px 5px 12px rgba(160, 143, 126, 0.36);
+  }
+  /* Large panel card (v1.6, measured): the dashboard's four panels, the
+     settings cards and the goal-detail stat cards carry the big embossed
+     pair at radius 16 (the sidebar keeps .orb-raised-lg at radius 20). */
+  .orb-panel {
+    border-radius: 16px;
+    background-color: var(--orb-raised);
+    box-shadow: -8px -8px 16px rgba(255, 250, 244, 0.78), 8px 8px 18px rgba(160, 143, 126, 0.31);
   }
   /* Big raised panels (sidebar, dialogs, dashboard stat blocks) */
   .orb-raised-lg {
@@ -305,18 +331,20 @@
     box-shadow: inset -3px -3px 6px rgba(255, 250, 244, 0.68), inset 3px 3px 6px rgba(160, 143, 126, 0.24);
   }
 
-  /* Legacy aliases kept so the view migration stays mechanical:
-     every card becomes a neumorphic raised panel. */
+  /* Legacy alias kept so the view migration stays mechanical: the plain
+     standard-tier raised panel. New code should pick the measured tier:
+     .orb-panel (view panels), .orb-row-card / .orb-goal-card (row cards). */
   .orb-card {
     border-radius: 16px;
     background-color: var(--orb-raised);
     box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
   }
-  /* Blocked task card (measured from the reference): deeper raised pair
-     plus a soft coral inset ring. Declared AFTER .orb-card on purpose —
-     custom classes in this layer are emitted after Tailwind's generated
-     utilities, so an arbitrary shadow-[...] utility on the same element
-     would lose to .orb-card; this class wins by source order instead. */
+  /* Blocked task card (measured from the reference): since v1.6 task cards
+     carry the deeper pair via .orb-row-card, this class adds ONLY the soft
+     coral inset ring. Declared AFTER .orb-row-card on purpose — custom
+     classes in this layer are emitted after Tailwind's generated utilities,
+     so an arbitrary shadow-[...] utility on the same element would lose;
+     this class wins by source order instead. */
   .orb-task-blocked {
     box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.92), 5px 5px 12px rgba(160, 143, 126, 0.36), inset 0 0 0 1px rgba(255, 128, 119, 0.18);
   }
@@ -386,17 +414,19 @@
   /* Round pill variant (reference, v1.5): the Team view's Invite Member /
      New Agent buttons are fully-rounded raised pills. Dedicated class —
      a rounded-full utility would lose to .orb-pill's radius in the cascade. */
+  /* Team view action button (v1.6, re-measured): NOT a round pill — a
+     radius-12 rectangle, 35px tall, 11px/600 uppercase with a Plus icon. */
   .orb-pill-round {
     display: inline-flex;
-    height: 40px;
+    height: 35px;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border-radius: 999px;
-    padding: 11px 20px;
+    border-radius: 12px;
+    padding: 9px 18px;
     background-color: var(--orb-raised);
     color: var(--orb-heading);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;

@@ -83,10 +83,13 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
       />
       <div className="relative z-[1] flex min-h-[calc(100vh-3rem)] gap-6">
         {/* Desktop sidebar: a raised neumorphic panel on the canvas
-            (reference layout, v1.4), collapsible to a 64px icon rail. */}
+            (reference layout, v1.4), collapsible to a 64px icon rail.
+            Reference (v1.6, measured): the sidebar is STICKY — top 0, height
+            = viewport minus the page padding — so the clock / TASKS STATUS
+            / collapse control stay pinned while the main content scrolls. */}
         <aside
           className={cn(
-            "hidden shrink-0 flex-col pt-7 pb-4 lg:flex",
+            "hidden shrink-0 flex-col pb-4 pt-7 lg:sticky lg:top-6 lg:flex lg:h-[calc(100vh-3rem)]",
             collapsed ? "w-16" : "w-[240px]",
           )}
         >
@@ -115,7 +118,26 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="orb-scroll relative z-[1] min-w-0 flex-1 overflow-y-auto px-4 pb-28 pt-5 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-7">
+          {/* Mobile app bar (reference, v1.6, measured): below lg the desktop
+              greeting header is REPLACED by a full-bleed raised bar holding
+              the ORBITAL logo (left) and the user pill (right) — sticky top,
+              bottom drop shadow, 62px tall, p 14px 20px. */}
+          <header
+            className="sticky top-0 z-50 -mx-6 -mt-6 mb-2 flex h-[62px] items-center justify-between rounded-none bg-orb-raised px-5 shadow-[0_4px_16px_rgba(160,143,126,0.18)] lg:hidden"
+            aria-label="App bar"
+          >
+            <button
+              type="button"
+              onClick={() => navigate("dashboard")}
+              className="flex items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+              aria-label="Orbital home"
+            >
+              <LogoMark size={24} />
+              <span className="text-[15px] font-bold uppercase tracking-[0.18em] text-orb-heading">Orbital</span>
+            </button>
+            <UserMenuOrLogin compact />
+          </header>
+          <main className="orb-scroll relative z-[1] min-w-0 flex-1 overflow-y-auto px-4 pb-28 pt-5 sm:px-7 sm:pt-6 lg:px-7 lg:pb-3 lg:pt-6">
             {/* Content clamp (reference, v1.5): every view renders inside a
                 max-width 1200px column — the main area itself stays fluid. */}
             <div className="mx-auto w-full max-w-[1200px]">
@@ -129,9 +151,12 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             </div>
           </main>
 
-          {/* Mobile bottom tab bar */}
+          {/* Mobile bottom tab bar (reference, v1.6, measured): a FLOATING
+              pill — rounded ~24, raised surface with a drop shadow, inset
+              margins from the screen edges; the active tab carries a gray
+              inset highlight behind the icon + label. */}
           <nav
-            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-black/[0.06] bg-orb-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+            className="fixed inset-x-3 bottom-3 z-40 flex items-stretch justify-around gap-1 rounded-[24px] bg-orb-raised py-1.5 shadow-[0_8px_24px_rgba(160,143,126,0.25),-2px_-2px_6px_rgba(255,250,244,0.5)] pb-[calc(env(safe-area-inset-bottom)+0.375rem)] lg:hidden"
             aria-label="Primary"
           >
             {TABS.map((tab) => {
@@ -143,8 +168,8 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                   onClick={() => go(tab.view)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-[62px] flex-1 flex-col items-center justify-center gap-1 pt-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] transition-colors",
-                    active ? "text-orb-heading" : "text-orb-muted",
+                    "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 pt-1 text-[10.5px] font-semibold uppercase tracking-[0.06em] transition-colors",
+                    active ? "bg-orb-well text-orb-heading shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.68),inset_2px_2px_5px_rgba(160,143,126,0.24)]" : "text-orb-muted",
                   )}
                 >
                   {tab.icon}
@@ -158,8 +183,8 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               aria-expanded={moreOpen}
               aria-current={moreActive ? "page" : undefined}
               className={cn(
-                "flex min-h-[62px] flex-1 flex-col items-center justify-center gap-1 pt-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] transition-colors",
-                moreActive ? "text-orb-heading" : "text-orb-muted",
+                "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 pt-1 text-[10.5px] font-semibold uppercase tracking-[0.06em] transition-colors",
+                moreActive ? "bg-orb-well text-orb-heading shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.68),inset_2px_2px_5px_rgba(160,143,126,0.24)]" : "text-orb-muted",
               )}
             >
               <Menu size={19} strokeWidth={1.8} />

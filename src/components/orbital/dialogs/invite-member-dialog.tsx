@@ -110,7 +110,7 @@ export function InviteMemberDialog({
                   placeholder="e.g. Project Manager"
                   required
                   maxLength={100}
-                  className=" h-11"
+                  className=""
                 />
               </div>
               <div className="space-y-2">
@@ -123,7 +123,7 @@ export function InviteMemberDialog({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What does this agent do?"
                   maxLength={200}
-                  className=" h-11"
+                  className=""
                 />
               </div>
               <div className="space-y-2">
@@ -155,7 +155,7 @@ export function InviteMemberDialog({
                   placeholder="colleague@company.com"
                   required
                   maxLength={200}
-                  className=" h-11"
+                  className=""
                 />
               </div>
               <div className="space-y-2">

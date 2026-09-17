@@ -54,105 +54,106 @@ function GoalCard({
   }
 
   return (
-    <div className="orb-card px-5 py-[18px] transition-transform hover:-translate-y-0.5">
-      <div className="flex w-full items-start justify-between gap-4 text-left">
-        <button
-          type="button"
-          onClick={() => navigate("goal-detail", goal.id)}
-          className="min-w-0 flex-1 text-left"
-          aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
-        >
-          {/* Status chip (reference, v1.5): inset well pill — gray label,
-              a light-purple pip for EVERY status, an inline red blocked
-              count, and a trailing chevron. */}
-          <div className="mb-3">
-            <span className="orb-well-pill inline-flex items-center gap-[5px] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#C9B3F5]" aria-hidden="true" />
-              {meta.label}
-              {goal.blockedCount > 0 && goal.status === "active" ? (
-                <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
-              ) : null}
-              <span className="text-[11px] text-[#767676]" aria-hidden="true">
-                ›
-              </span>
-            </span>
-          </div>
-          <p className="mb-3.5 truncate text-[20px] font-medium leading-[1.2] text-orb-heading">{goal.title}</p>
-
-          {/* Horizontal progress bar on the inset track (reference pattern;
-              track reads as pressed-in — 6px with the standard inset pair) */}
-          <div
-            className="h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
-            role="progressbar"
-            aria-valuenow={pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`${goal.title} progress`}
-          >
-            <div
-              className="h-full rounded-full bg-orb-green transition-[width] duration-700"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-
-          {/* Meta (reference, v1.5): task fraction on line 1, date on line 2. */}
-          <p className="mb-1 text-[12px] text-orb-muted">
-            {goal.doneCount}/{goal.taskCount} tasks · {pct}%
+    // Reference (v1.6, measured): deeper-tier card (radius 16) with NO outer
+    // padding — the content splits into a left column (p 18px 20px) and a
+    // 120px right column (p 18px 16px) holding the 42px percentage.
+    <div className="orb-goal-card flex w-full items-stretch text-left transition-transform hover:-translate-y-0.5">
+      <button
+        type="button"
+        onClick={() => navigate("goal-detail", goal.id)}
+        className="min-w-0 flex-1 p-[18px_20px] text-left"
+        aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
+      >
+        {/* Status chip (reference, v1.5): inset well pill — gray label,
+            a light-purple pip for EVERY status, an inline red blocked
+            count, and a trailing chevron. */}
+        <div className="mb-1.5">
+          <span className="orb-well-pill inline-flex items-center gap-[5px] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#C9B3F5]" aria-hidden="true" />
+            {meta.label}
             {goal.blockedCount > 0 && goal.status === "active" ? (
-              <span className="sm:hidden"> · {goal.blockedCount} blocked</span>
+              <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
             ) : null}
-          </p>
-          {goal.targetDate ? <p className="text-[12px] text-[#767676]">{formatDate(goal.targetDate)}</p> : null}
-        </button>
-
-        {/* Right column: big percentage, fraction, then actions
-            (reference: buttons sit under the fraction; deleting swaps them
-            for the inline confirmation) */}
-        <div className="flex shrink-0 flex-col items-end pt-4">
-          <span className="text-[30px] font-normal leading-none text-orb-heading">{pct}%</span>
-          <span className="mt-1.5 text-[13px] text-orb-muted">
-            {goal.doneCount}/{goal.taskCount}
+            <span className="text-[11px] text-[#767676]" aria-hidden="true">
+              ›
+            </span>
           </span>
-          {confirming ? (
-            <div className="mt-2.5 flex items-center gap-2" role="group" aria-label={`Confirm delete ${goal.title}`}>
-              <button
-                type="button"
-                onClick={() => void confirmDelete()}
-                disabled={deleting}
-                className="h-8 rounded-full bg-orb-coral-deep px-4 text-[12.5px] font-semibold text-white transition-colors hover:bg-orb-coral-deep/90 disabled:opacity-50"
-              >
-                {deleting ? "…" : "Delete"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirming(false)}
-                disabled={deleting}
-                className="h-8 px-1 text-[12.5px] font-medium text-orb-muted transition-colors hover:text-orb-heading disabled:opacity-50"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <div className="mt-2.5 flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => onEdit(goal)}
-                className="orb-well flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:text-orb-heading"
-                aria-label={`Edit goal ${goal.title}`}
-              >
-                <Pencil size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirming(true)}
-                className="orb-well flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:text-orb-coral-deep"
-                aria-label={`Delete goal ${goal.title}`}
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          )}
         </div>
+        <p className="mb-2 truncate text-[20px] font-medium leading-[1.2] text-orb-heading">{goal.title}</p>
+
+        {/* Horizontal progress bar on the inset track (reference pattern;
+            track reads as pressed-in — 6px with the standard inset pair) */}
+        <div
+          className="h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${goal.title} progress`}
+        >
+          <div
+            className="h-full rounded-full bg-orb-green transition-[width] duration-700"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+
+        {/* Meta (reference, v1.5): task fraction on line 1, date on line 2. */}
+        <p className="mb-1 mt-2.5 text-[12px] text-orb-muted">
+          {goal.doneCount}/{goal.taskCount} tasks · {pct}%
+          {goal.blockedCount > 0 && goal.status === "active" ? (
+            <span className="sm:hidden"> · {goal.blockedCount} blocked</span>
+          ) : null}
+        </p>
+        {goal.targetDate ? <p className="text-[12px] text-[#767676]">{formatDate(goal.targetDate)}</p> : null}
+      </button>
+
+      {/* Right column (reference, v1.6): a fixed 120px stats strip — the
+          big 42px percentage over the 12px task fraction, with the
+          edit/delete actions (flat gray squares, no well) beneath. */}
+      <div className="flex w-[120px] shrink-0 flex-col items-end p-[18px_16px]">
+        <span className="text-[42px] font-medium leading-none tracking-[-0.02em] text-orb-heading">{pct}%</span>
+        <span className="mt-1.5 text-[12px] text-orb-muted">
+          {goal.doneCount}/{goal.taskCount}
+        </span>
+        {confirming ? (
+          <div className="mt-auto flex items-center gap-2" role="group" aria-label={`Confirm delete ${goal.title}`}>
+            <button
+              type="button"
+              onClick={() => void confirmDelete()}
+              disabled={deleting}
+              className="h-7 rounded-full bg-orb-coral-deep px-3 text-[12px] font-semibold text-white transition-colors hover:bg-orb-coral-deep/90 disabled:opacity-50"
+            >
+              {deleting ? "…" : "Delete"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              disabled={deleting}
+              className="h-7 px-1 text-[12px] font-medium text-orb-muted transition-colors hover:text-orb-heading disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="mt-auto flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onEdit(goal)}
+              className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-heading"
+              aria-label={`Edit goal ${goal.title}`}
+            >
+              <Pencil size={13} strokeWidth={1.8} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirming(true)}
+              className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-coral-deep"
+              aria-label={`Delete goal ${goal.title}`}
+            >
+              <Trash2 size={13} strokeWidth={1.8} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

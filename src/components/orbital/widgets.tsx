@@ -34,21 +34,14 @@ export function AvatarBubble({
 
 export function AiBadge({ className }: { className?: string }) {
   return (
+    // Reference (v1.6, measured): a SOLID #EEEAE6 chip — radius 6,
+    // p 1px 5px, 10px/500 #996CE4 text "AI", no sparkle icon.
     <span
       className={cn(
-        "inline-flex h-5 items-center gap-1 rounded-full bg-orb-purple/15 px-2 text-[10px] font-bold uppercase tracking-[0.08em] text-orb-purple-deep",
+        "inline-flex items-center rounded-[6px] bg-orb-raised px-[5px] py-px text-[10px] font-medium text-orb-purple-deep",
         className,
       )}
     >
-      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-        <path
-          d="M6 1v2M6 9v2M1 6h2M9 6h2M2.5 2.5l1.4 1.4M8.1 8.1l1.4 1.4M9.5 2.5L8.1 3.9M3.9 8.1L2.5 9.5"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-        <circle cx="6" cy="6" r="1.6" fill="currentColor" />
-      </svg>
       AI
     </span>
   );

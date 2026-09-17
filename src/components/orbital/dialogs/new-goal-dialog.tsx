@@ -140,7 +140,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                   placeholder="e.g., Launch new landing page by end of month"
                   required
                   maxLength={200}
-                  className=" h-11"
+                  className=""
                 />
               </div>
               <div className="space-y-2">

@@ -13,7 +13,7 @@ import { useOrbital } from "@/components/orbital/store";
 import { AvatarBubble } from "@/components/orbital/widgets";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-export function UserMenuOrLogin() {
+export function UserMenuOrLogin({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const user = useOrbital((s) => s.user);
   const signOut = useOrbital((s) => s.signOut);
@@ -26,7 +26,11 @@ export function UserMenuOrLogin() {
           const from = window.location.pathname + window.location.search;
           router.push(`/login?from_url=${encodeURIComponent(from)}`);
         }}
-        className="inline-flex h-10 items-center justify-center rounded-xl bg-orb-raised px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+        className={
+          compact
+            ? "inline-flex h-[34px] items-center justify-center rounded-xl bg-orb-raised px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+            : "inline-flex h-10 items-center justify-center rounded-xl bg-orb-raised px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+        }
         aria-label="Log in"
       >
         Log In
@@ -41,11 +45,17 @@ export function UserMenuOrLogin() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-11 items-center gap-2.5 rounded-xl bg-orb-well px-4 py-2.5 shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
+          className={
+            compact
+              ? "flex h-[34px] items-center gap-2 rounded-xl bg-orb-well px-3 shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
+              : "flex h-11 items-center gap-2.5 rounded-xl bg-orb-well px-4 py-2.5 shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
+          }
           aria-label={`Account menu for ${user.name || emailPrefix}`}
         >
-          <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={22} />
-          <span className="max-w-[140px] truncate text-[13px] font-medium text-orb-heading">{emailPrefix}</span>
+          <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={compact ? 20 : 22} />
+          <span className={compact ? "max-w-[110px] truncate text-[12px] font-medium text-orb-heading" : "max-w-[140px] truncate text-[13px] font-medium text-orb-heading"}>
+            {emailPrefix}
+          </span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[160px] rounded-xl border-0 bg-orb-raised p-0 shadow-[-6px_-6px_12px_rgba(255,250,244,0.78),6px_6px_14px_rgba(160,143,126,0.31)]">

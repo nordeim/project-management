@@ -77,7 +77,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={200}
-              className=" h-11"
+              className=""
             />
           </div>
 
@@ -99,7 +99,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
             <div className="space-y-2">
               <Label className="orb-label">Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as GoalStatus)}>
-                <SelectTrigger className=" h-11">
+                <SelectTrigger className="">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -120,7 +120,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
                 type="date"
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
-                className=" h-11"
+                className=""
               />
             </div>
           </div>

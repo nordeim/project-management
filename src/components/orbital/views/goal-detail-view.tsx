@@ -119,7 +119,7 @@ export function GoalDetailView() {
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-orb-raised px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#bd3228] shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-coral-deep"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-orb-raised px-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#bd3228] shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-coral-deep"
             >
               <Trash2 size={13} aria-hidden="true" />
               Delete
@@ -128,10 +128,11 @@ export function GoalDetailView() {
         </div>
       </header>
 
-      {/* Two stat cards (reference layout); the task total lives in the
-          TASKS header row below. */}
-      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[1.4fr_0.8fr]" aria-label="Goal statistics">
-        <div className="orb-card p-5">
+      {/* Two stat cards (reference, v1.6 measured): large panel tier,
+          709:347 ratio (≈2:1), Progress p 20/24 and Blocked p 20/16, pct at
+          24px/400 and the blocked count at 26px/400 in #FF7043. */}
+      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]" aria-label="Goal statistics">
+        <div className="orb-panel p-[20px_24px]">
           <div className="flex items-baseline justify-between">
             <p className="orb-label">Progress</p>
             <p className="text-[12.5px] text-orb-muted">
@@ -144,21 +145,24 @@ export function GoalDetailView() {
               style={{ width: `${pct}%` }}
             />
           </div>
-          <p className="mt-3 text-[30px] font-normal leading-none text-orb-heading">{pct}%</p>
+          <p className="mt-3 text-[24px] font-normal leading-none tracking-[-0.02em] text-orb-heading">{pct}%</p>
         </div>
-        <div className="orb-card flex flex-col justify-between p-5">
+        <div className="orb-panel flex flex-col justify-between p-[20px_16px]">
           <p className="orb-label">Blocked</p>
-          <p className="text-[30px] font-normal leading-none" style={{ color: goal.blockedCount > 0 ? "#C9574E" : "#3A3A3A" }}>
+          <p className="text-[26px] font-normal leading-none tracking-[-0.02em]" style={{ color: goal.blockedCount > 0 ? "#FF7043" : "#3A3A3A" }}>
             {goal.blockedCount}
           </p>
         </div>
       </section>
 
       <div className="mt-8 flex items-center justify-between">
-        <h2 className="orb-label">Tasks · {goal.taskCount} total</h2>
+        <h2 className="flex items-baseline gap-2">
+          <span className="orb-label !tracking-[0.1em]">Tasks</span>
+          <span className="text-[13px] font-normal text-orb-muted">{goal.taskCount} total</span>
+        </h2>
         <button
           type="button"
-          className="inline-flex h-9 items-center gap-2 rounded-xl bg-orb-raised px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+          className="inline-flex h-[31px] items-center gap-2 rounded-xl bg-orb-raised px-[14px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
           onClick={() => setAddOpen(true)}
         >
           <Plus size={13} aria-hidden="true" />
