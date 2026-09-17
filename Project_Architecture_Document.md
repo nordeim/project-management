@@ -1,0 +1,619 @@
+# ORBITAL — Master Project Architecture Document (PAD) v1.0
+
+**Classification:** Internal Engineering Reference
+**Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
+**Companion Documents:** `README.md` (user-facing), `CLAUDE.md` (agent contract), `AGENTS.md` (operator notes)
+**Last Updated:** 2026-09-17
+**Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
+**Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v1.0
+
+- `[SYN]` Initial PAD authored from the shipped v1.0 codebase, grounded in source inspection and an 18-check end-to-end smoke run against the production build.
+- `[SR]` Stack versions verified against `package.json` / `bun.lock` and the live build log (Next.js 16.1.3, Prisma Client 6.19.2, React 19, Zustand 5.0.10).
+- `[SR]` Line counts in §11 measured with `wc -l` on the committed tree.
+
+---
+
+## Table of Contents
+
+1. [System Overview & Decisions](#1-system-overview--decisions)
+2. [High-Level System Topology](#2-high-level-system-topology)
+3. [Application Architecture](#3-application-architecture)
+4. [Data Architecture](#4-data-architecture)
+5. [Design System Reference](#5-design-system-reference)
+6. [Security Architecture](#6-security-architecture)
+7. [Testing Strategy](#7-testing-strategy)
+8. [Build & Deployment](#8-build--deployment)
+9. [Developer Handbook](#9-developer-handbook)
+10. [Known Issues & Outstanding Tasks](#10-known-issues--outstanding-tasks)
+11. [Key Files Reference](#11-key-files-reference)
+12. [Glossary](#12-glossary)
+
+*(Worker / background-service architecture is not applicable: the system runs no queues, cron jobs, or async workers. The AI planner executes inline within a request; see ADR-005.)*
+
+---
+
+## 1. System Overview & Decisions
+
+### 1.1 Document Metadata & Purpose
+
+ORBITAL is a self-hosted AI project management workspace — a functional clone of the reference Base44 application, rebuilt as a single deployable Next.js unit. Teams describe **goals** in natural language; a server-side AI planner drafts a **task plan** (assigned across people, spread over the timeline); execution is tracked through status **check-ins**; and every mutation is narrated in an **agent activity feed**. This PAD is the engineering source of truth for onboarding, debugging, and replication. New engineers should read §3 first; DevOps should start at §8; anyone touching authentication or the AI planner must read §6 before changing anything.
+
+### 1.2 Technology Stack Summary
+
+| Layer | Technology | Version | Key Rationale |
+|-------|-----------|---------|---------------|
+| Web framework | Next.js (App Router) | 16.1.1 (resolved 16.1.3) | One deployable unit for page shell + API routes; standalone output yields a portable production artifact |
+| UI runtime | React | 19.x | Required by Next 16; the client store model fits React 19 fine-grained re-renders |
+| Language | TypeScript | 5.x, `strict: true` (`noImplicitAny: false`) | End-to-end typing from Prisma models through DTOs to the client store |
+| Styling | Tailwind CSS | 4.x (CSS-first tokens) | `--orb-*` design tokens declared in `globals.css` and mapped via `@theme inline`; no runtime CSS cost |
+| Components | shadcn/ui on Radix | vendored, `src/components/ui/` | Accessible primitives (dialog, select, radio-group, sheet, toast…) owned as source, not a versioned dependency |
+| Client state | Zustand | 5.0.6 (resolved 5.0.10) | One store for all server state with explicit refresh composition; no cache-heuristics layer to tune |
+| ORM | Prisma | 6.11.1 (client resolved 6.19.2) | Typed, schema-first modeling; `db push` matches SQLite's no-migration workflow |
+| Database | SQLite | file-based, `db/custom.db` | Zero-config persistence; single gitignored file; trivially reseeded to a canonical demo state |
+| Auth | Node `crypto` | built-in (scrypt, HMAC-SHA256) | Stateless verifiable cookie sessions with no external auth dependency |
+| AI planner | z-ai-web-dev-sdk | 0.0.18 | Server-side chat completion for task-plan generation; deterministic fallback keeps the feature alive without it |
+| Icons | lucide-react | 0.525.x | Tree-shakeable; 35 component files import from it |
+| Fonts | next/font | DM Sans, DM Mono | Self-hosted, zero layout shift, matches the reference typography |
+| Runtime | Bun ≥ 1.1 / Node ≥ 20 | — | Bun runs TS scripts (seed) directly; the standalone server runs on either runtime |
+
+### 1.3 Architecture Decision Records (ADRs)
+
+**ADR-001: Single-route SPA instead of per-view Next.js routes**
+
+- **Context:** The reference app is a browser SPA — sidebar navigation, view switches without page reloads, deep-linkable URLs. A conventional multi-page Next.js app would change the UX contract and add route transitions the original does not have.
+- **Decision:** One route (`src/app/page.tsx`, `force-dynamic`) resolves the session server-side, then renders the client shell. Views switch via a Zustand `view` field synced to URL search params (`?view=goals&goal=<id>`) through `history.replaceState`.
+- **Rationale:** Preserves the reference UX exactly while keeping a server-rendered auth gate; URLs stay shareable because view state is encoded in the query string and restored on boot.
+- **Consequences:** No route-transition machinery; deep links restore state. Trade-off: the whole app ships as one client bundle — no per-view code splitting.
+- **Alternatives Rejected:** Next.js pages per view (breaks SPA feel, duplicates the store's navigation); react-router inside Next (duplicates the router Next already provides).
+
+**ADR-002: Prisma + SQLite with `db push` (no migrations)**
+
+- **Context:** A fresh checkout must reach a running demo with no database server and no migration history to replay.
+- **Decision:** Prisma ORM over a gitignored SQLite file; schema applied with `prisma db push`; canonical demo data via an idempotent TS seed (`bun run db:seed` wipes and reseeds domain tables).
+- **Rationale:** Zero-config bootstrap; typed queries, cascades, and indexes from the Prisma schema; moving to Postgres later is a `datasource` block change, not a rewrite.
+- **Consequences:** No production schema-history artifacts; SQLite's single-writer model caps write concurrency (acceptable for a team workspace).
+- **Alternatives Rejected:** Drizzle (same benefit, fewer generated conveniences at this scale); Postgres (breaks the zero-config story); in-memory store (not production-grade).
+
+**ADR-003: Hand-rolled cookie sessions (scrypt + HMAC-SHA256)**
+
+- **Context:** Email/password auth is required; external auth services, JWT libraries, and NextAuth's OAuth machinery are not.
+- **Decision:** `src/lib/auth.ts` (91 lines) implements scrypt password hashing (`salt:hash`, 64-byte key), stateless session tokens `userId.expiry.signature` signed with HMAC-SHA256, delivered as an httpOnly `orbital_session` cookie (7-day TTL, `SameSite=Lax`, `Secure` in production).
+- **Rationale:** Auditable crypto code using Node built-ins; tokens verify without a session store; `timingSafeEqual` on both password and signature comparisons closes timing oracles.
+- **Consequences:** No MFA/OAuth/social flows; rotating `AUTH_SECRET` invalidates every session (documented in README troubleshooting).
+- **Alternatives Rejected:** NextAuth v4 (present in `package.json` from the template but unused — heavy for email/password only); JWT libraries (unnecessary for cookie-carried claims); server-side session table (adds state for no benefit).
+
+**ADR-004: Zustand as the single client-state container**
+
+- **Context:** All server data (goals, tasks, team, activity, settings, stats) is shared across views and must refresh coherently after each mutation.
+- **Decision:** One store (`store.ts`, 341 lines) holds every DTO collection plus `view`/`goalId`. Actions call the API through a `call()` envelope-unwrapper, then `Promise.all` the exact refresh set the mutation touches.
+- **Rationale:** A single source of client truth; post-mutation consistency is explicit (each action lists which slices it refreshes); nothing to invalidate heuristically.
+- **Consequences:** Slight over-fetching (collections refresh whole); every new endpoint must wire its refresh calls into the relevant actions.
+- **Alternatives Rejected:** React Query (in `package.json`, unused — cache semantics unnecessary at this scale); React Context (coarser re-renders, more boilerplate).
+
+**ADR-005: AI task generation that degrades, never fails**
+
+- **Context:** The product's differentiator is "describe a goal, get a planned task list." The LLM dependency must not be able to take the feature down.
+- **Decision:** `POST /api/goals/[id]/generate-tasks` calls `z-ai-web-dev-sdk` server-side, sanitizes its JSON (≤10 tasks, 160-char titles, 1–40h clamp), and on any failure — SDK unavailable, malformed output, fewer than 4 usable tasks — substitutes a deterministic 8-step template plan. Generated tasks are round-robin assigned across people and spread between "now" and the goal's target date (or +45 days).
+- **Rationale:** Degrade-not-fail keeps the core workflow usable in any environment; sanitization bounds what prompt-injected LLM output can write to the database.
+- **Consequences:** Environments without SDK access get generic (still useful) plans; the fallback path is exercised and covered by the smoke suite's task pipeline indirectly.
+- **Alternatives Rejected:** Hard SDK dependency (breaks self-hosting); client-side generation (exposes prompting and validation to the browser).
+
+**ADR-006: Uniform API envelope `{ ok, data } | { ok, error }`**
+
+- **Context:** Fifteen route handlers must return predictable, typed JSON that one client helper can unwrap.
+- **Decision:** `src/lib/api.ts` exports `ok(data, status)` / `fail(code, message, status)`; every handler returns one of these. The store's `call()` unwraps success data or surfaces a destructive toast and returns `null`.
+- **Rationale:** One response contract for all endpoints; errors carry a machine code plus a human message; the client never throws across render.
+- **Consequences:** Handlers must be disciplined about using the helpers; the contract is enforced by convention (and the smoke suite asserts the envelope).
+- **Alternatives Rejected:** HTTP-status-only error signalling (loses the code/message pair); throwing and catching centrally (Next route handlers have no error boundary to rely on).
+
+**ADR-007: Standalone output with pinned file-tracing root**
+
+- **Context:** Production must run from a portable artifact; Next's standalone tracing rewrites output paths when a parent workspace lockfile exists (observed: server landing at `.next/standalone/<nested-path>/server.js`).
+- **Decision:** `output: "standalone"` with `outputFileTracingRoot` pinned to the project directory in `next.config.ts`; the build script copies `.next/static` and `public/` into `.next/standalone/`; `start` runs `server.js` from the repo root.
+- **Rationale:** Guarantees the canonical `.next/standalone/server.js` layout regardless of where the repo is cloned; the artifact carries only traced runtime deps.
+- **Consequences:** The server must start from the project root (npm scripts guarantee it; see also the SQLite path normalization in §3.3); `.env` is not auto-copied into the standalone tree.
+- **Alternatives Rejected:** `next start` (requires the full framework in production); Docker-only packaging (adds operational weight this clone does not need — Dockerfile listed in §10 as an open item).
+
+---
+
+## 2. High-Level System Topology
+
+```mermaid
+flowchart TB
+    subgraph Client
+        B["Browser<br/>single-route SPA<br/>(Zustand store)"]
+    end
+    subgraph Edge
+        C["CDN / reverse proxy<br/>(static chunks, images)"]
+    end
+    subgraph App["Next.js standalone server (:3000)"]
+        P["GET / — server component<br/>session check"]
+        A["API route handlers ×15<br/>/api/*"]
+    end
+    subgraph Data
+        D[("SQLite<br/>db/custom.db<br/>via Prisma Client")]
+    end
+    subgraph External
+        Z["z-ai-web-dev-sdk<br/>(LLM chat completion)<br/>server-side only"]
+    end
+    B -->|"HTML + JS bundle"| C
+    B -->|"fetch JSON, cookie auth"| A
+    C --> B
+    P --> B
+    A --> D
+    A -->|"generate-tasks only"| Z
+```
+
+- **Client layer** — a standard browser; no PWA/service worker. All interactivity is client-side after the initial server-rendered shell.
+- **Edge layer** — optional; any static file server or CDN in front of the Node process. The app itself has no edge middleware.
+- **Application layer** — one Node process serving the page and 15 API routes. Stateless between requests (sessions are cookie-carried), so horizontal scaling is trivial behind a load balancer.
+- **Data layer** — a single SQLite file on local disk. Write concurrency is serialized by SQLite; this is the layer to swap (Postgres) if the workspace outgrows a single team.
+- **External services** — only the AI planner call, invoked inline during `generate-tasks` with a deterministic fallback; its absence never blocks a request.
+
+---
+
+## 3. Application Architecture
+
+### 3.1 The Layer Model
+
+```
+Layer 0: Prisma schema (prisma/schema.prisma) — the source of truth for the domain.
+         Rule: every entity starts here; regenerate the client after any change.
+
+Layer 1: Route handlers (src/app/api/**/route.ts) — validation, persistence,
+         activity logging. Rule: business logic lives here and only here;
+         no handler exports anything shared with the client bundle.
+
+Layer 2: Domain types & DTOs (src/lib/orbital.ts) — the shared vocabulary
+         (GoalDTO, TaskDTO, status metadata, labels, colors).
+         Rule: views never import Prisma types; DTOs are the contract.
+
+Layer 3: Client store (src/components/orbital/store.ts) — the ONLY client
+         that talks to the API. Rule: actions fetch, then refresh affected
+         slices; components never fetch directly.
+
+Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
+         presentation over store state. Rule: read the store, call actions,
+         render; no fetch, no direct DB concepts.
+```
+
+**Golden Rule:** dependencies point downward only. A change flows schema → handler → DTO → store action → view. A view never reaches past the store; a handler never imports a component.
+
+### 3.2 Annotated Directory Structure
+
+```
+├── prisma/
+│   ├── schema.prisma              ← 8 models; status vocabularies in comments
+│   └── seed.ts                    ← idempotent demo workspace (wipes + reseeds)
+├── public/
+│   ├── orbital-logo.svg           ← brand mark (sidebar, login)
+│   ├── logo.svg                   ← favicon
+│   ├── dusk-hills.jpg             ← login/dashboard photographic backdrop
+│   └── robots.txt
+├── scripts/
+│   └── smoke-test.sh              ← 18-check E2E suite; boots the prod server
+├── src/
+│   ├── app/
+│   │   ├── page.tsx               ← the single route: session → shell | login
+│   │   ├── layout.tsx             ← DM Sans/Mono via next/font; global styles
+│   │   ├── globals.css            ← Tailwind 4 @theme tokens + --orb-* palette
+│   │   └── api/
+│   │       ├── health/route.ts            ← liveness probe (public)
+│   │       ├── auth/{register,login,logout,me}/route.ts
+│   │       ├── goals/route.ts             ← list / create
+│   │       ├── goals/[id]/route.ts        ← detail(+tasks) / patch / delete
+│   │       ├── goals/[id]/generate-tasks/route.ts  ← the AI planner (ADR-005)
+│   │       ├── tasks/route.ts             ← list (assignee/status/goal filters) / create
+│   │       ├── tasks/[id]/route.ts        ← detail / patch / delete
+│   │       ├── tasks/[id]/updates/route.ts ← post check-in; flips task status
+│   │       ├── team/route.ts              ← people + members / invite
+│   │       ├── activity/route.ts          ← feed, latest 50
+│   │       ├── stats/route.ts             ← dashboard aggregates
+│   │       └── settings/route.ts          ← workspace singleton get/patch
+│   ├── components/
+│   │   ├── orbital/
+│   │   │   ├── orbital-app.tsx    ← authenticated shell; desktop + mobile nav
+│   │   │   ├── login-screen.tsx   ← sign-in / sign-up
+│   │   │   ├── store.ts           ← THE Zustand store (Layer 3)
+│   │   │   ├── sidebar.tsx        ← nav: Dashboard, Goals, My Tasks | Agent
+│   │   │   │                        Activity, Team, Settings
+│   │   │   ├── task-card.tsx      ← status dot, AI badge, assignee, deadline
+│   │   │   ├── progress-ring.tsx  ← SVG completion ring
+│   │   │   ├── widgets.tsx        ← stat cards, tasks-status panel
+│   │   │   ├── empty-state.tsx    ← illustrated empty screens
+│   │   │   ├── logo.tsx
+│   │   │   ├── views/             ← dashboard, goals, goal-detail, my-tasks,
+│   │   │   │                        activity, team, settings (7 views)
+│   │   │   └── dialogs/           ← new-goal (wizard), goal-edit, add-task,
+│   │   │                            task-edit, task-detail, invite-member
+│   │   └── ui/                    ← shadcn/ui primitives (vendored)
+│   ├── hooks/                     ← use-toast, use-mobile
+│   └── lib/
+│       ├── orbital.ts             ← domain types, DTOs, status metadata
+│       ├── api.ts                 ← ok()/fail() envelope + requireSession()
+│       ├── auth.ts                ← scrypt + HMAC sessions (ADR-003)
+│       ├── db.ts                  ← Prisma singleton + URL normalization
+│       └── utils.ts               ← cn() class merge
+├── docs/
+│   ├── screenshots/               ← app screenshots used by README
+│   ├── ssh_git_wrapper_v3.py      ← operator SSH push tool
+│   └── how-to-git-push-using-ssh-wrapper_SKILL.md ← its runbook
+└── skills/                        ← operator skill catalog (not app code;
+                                    eslint-ignored, do not import from src/)
+```
+
+### 3.3 Critical Code Patterns
+
+**Pattern A — The response envelope and its single client-side consumer**
+
+```typescript
+// src/lib/api.ts — every handler returns one of these two shapes.
+export function ok<T>(data: T, init?: number) {
+  return NextResponse.json({ ok: true as const, data }, { status: init ?? 200 });
+}
+export function fail(code: string, message: string, status: number) {
+  return NextResponse.json({ ok: false as const, error: { code, message } }, { status });
+}
+
+// src/components/orbital/store.ts — the ONLY sanctioned API client.
+async function call<T>(url: string, init?: RequestInit): Promise<T | null> {
+  const response = await fetch(url, { ...init, /* JSON headers when body */ });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload?.ok) {
+    toast({ title: "Something went wrong", description: /* server message */ });
+    return null;                     // actions treat null as "abort silently"
+  }
+  return payload.data ?? null;
+}
+```
+
+*Why this pattern:* one contract for 15 endpoints; failures degrade to a toast and a `null` return, so a network or validation error can never throw into React render. The smoke suite asserts the envelope on every endpoint it touches.
+
+**Pattern B — SQLite URL normalization (the two-anchor problem)**
+
+```typescript
+// src/lib/db.ts — the Prisma CLI resolves relative file: URLs against
+// prisma/schema.prisma; the runtime engine anchors them against CWD.
+// Normalize to an absolute path BEFORE the first client is constructed.
+function resolveDatabaseUrl(): string {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) return `file:${path.resolve(process.cwd(), 'prisma', '../db/custom.db')}`;
+  if (/^file:/i.test(url)) {
+    const raw = url.replace(/^file:/i, '');
+    if (path.isAbsolute(raw) || /^[A-Za-z]:[\\/]/.test(raw)) return `file:${raw}`;
+    return `file:${path.resolve(process.cwd(), 'prisma', raw)}`; // CLI rule
+  }
+  return url; // non-SQLite URLs pass through untouched
+}
+process.env.DATABASE_URL = resolveDatabaseUrl();
+```
+
+*Why this pattern:* without it, `db:push`/`db:seed` (CLI anchor) and the standalone server (CWD anchor) can open *different* database files — the exact failure observed during delivery verification (`Error code 14: Unable to open the database file`). Centralizing the fix in the module that owns the client means no other code needs to care.
+
+**Pattern C — Degrade-not-fail AI generation**
+
+```typescript
+// src/app/api/goals/[id]/generate-tasks/route.ts (abridged)
+const generated = (await generateWithSdk(goal.title, goal.description))
+  ?? templatePlan(goal.title);          // deterministic 8-step fallback
+// generateWithSdk() returns null on: SDK import failure, empty completion,
+// malformed JSON, or fewer than 4 sanitized tasks — never throws.
+```
+
+*Why this pattern:* the feature must work in every environment the app can be cloned into. The sanitizer also clamps titles to 160 chars, descriptions to 500, hours to 1–40, and caps the plan at 10 tasks — bounding what untrusted LLM output can persist.
+
+**Pattern D — Mutations narrate themselves**
+
+```typescript
+// Every mutating handler ends with an activity write, e.g. tasks/[id]/updates:
+await db.activityLog.create({
+  data: {
+    type: "status_update",
+    message: `${session.name} set "${task.title}" to ${status.replace("_", " ")}`,
+    detail: `...full sentence for the feed's expanded view...`,
+    taskId: task.id, goalId: task.goalId,
+  },
+});
+```
+
+*Why this pattern:* the activity feed is a product surface (the "agent activity" panel), not a debug log. Omitting the write in a new endpoint silently degrades the UX contract — hence its status as an architectural invariant, enforced in review and visible in the smoke suite's task pipeline.
+
+---
+
+## 4. Data Architecture
+
+### 4.1 Database Schema
+
+```mermaid
+erDiagram
+    User ||--o| Person : "linked login identity"
+    Person ||--o{ Task : assigns
+    Goal ||--{ Task : contains
+    Task ||--{ TaskUpdate : "check-in history"
+    Task ||--o{ ActivityLog : references
+    Goal ||--o{ ActivityLog : references
+    TeamMember {
+        string kind "human | agent"
+    }
+    WorkspaceSetting {
+        string id "singleton row"
+    }
+```
+
+| Model | Rows (seeded demo) | Purpose |
+|-------|--------------------|---------|
+| `User` | 1 | Login identity: email (unique), name, scrypt hash, avatar color |
+| `Person` | 10 | Assignable entity; seeded demo people + 1 row linked to the login user via `userId` (drives "My Tasks") |
+| `TeamMember` | 0 | Starts empty (fresh workspace, like the reference app); humans (`kind: "human"`) and AI agents (`kind: "agent"`, with `agentRole`) accrue through invites |
+| `Goal` | 3 | title, description, status (2 active + 1 done), targetDate, sortOrder |
+| `Task` | 31 | title, description, status (26 done, 2 blocked, 3 pending), deadline, assigneeId, estimatedHours, `createdByAi`, sortOrder |
+| `TaskUpdate` | 0 | Check-ins: status + optional note, newest first. The seed sets task statuses directly rather than synthesizing history; rows accrue through real use |
+| `ActivityLog` | 22 | The feed: type, message, detail, task/goal refs, createdAt |
+| `WorkspaceSetting` | 1 | Fixed `singleton` id: name, workStart/workEnd, pingFrequency, aiTone |
+
+### 4.2 Data Models — Status Vocabularies
+
+Three distinct, non-interchangeable vocabularies (canonical metadata: `TASK_STATUS_META` / `GOAL_STATUS_META` / `UPDATE_STATUS_META` in `src/lib/orbital.ts`):
+
+| Vocabulary | Values | Set by |
+|------------|--------|--------|
+| Task status | `pending` `in_progress` `blocked` `need_help` `done` | Task create/patch; also flipped by check-ins |
+| Goal status | `active` `done` `draft` `paused` | Goal create/patch |
+| Check-in status | `on_track` `blocked` `need_help` `done` | `POST /api/tasks/[id]/updates` |
+
+Posting a check-in syncs the task's workflow status: `done`/`blocked`/`need_help` map identity onto the task, while `on_track` keeps the current status and only un-blocks (`blocked`/`need_help` → `in_progress`; a check-in is not work starting, so `pending` stays `pending`). Completing the **last open task** in an active goal auto-completes the goal and logs `goal_completed` — one API call can update the update history, the task, the goal, and the feed.
+
+### 4.3 Persistence Strategy
+
+- **Client singleton:** exactly one `PrismaClient` per process, memoized on `globalThis` in dev to survive HMR (§ Pattern B covers URL normalization).
+- **Schema evolution:** `prisma db push` (no `migrations/` folder by design — ADR-002). The seed is idempotent: it wipes all domain tables then reinserts the canonical demo workspace.
+- **Referential actions:** `Task.goal` → `Cascade` (deleting a goal deletes its tasks); `Task.assignee` → `SetNull` (deleting a person orphans tasks, never blocks); `TaskUpdate.task` → `Cascade`.
+- **Indexes:** `Person.name`; `Goal.status`; `Task.{goalId, assigneeId, status}`; `TaskUpdate.taskId`; `ActivityLog.createdAt` — matching the list endpoints' filter and sort shapes.
+- **Query logging:** Prisma logs queries in development, errors only in production (`src/lib/db.ts`).
+
+---
+
+## 5. Design System Reference
+
+### 5.1 Typographic System
+
+| Face | Weights | Usage |
+|------|---------|-------|
+| **DM Sans** | variable | All UI text; loaded via `next/font` (`--font-dm-sans`), mapped to Tailwind `font-sans` |
+| **DM Mono** | variable | Numeric and date accents (`--font-dm-mono`, `font-mono`) |
+
+Both are self-hosted by `next/font` at build time — no runtime Google Fonts request, no layout shift.
+
+### 5.2 Color Tokens
+
+Declared as CSS variables in `src/app/globals.css`, exposed to Tailwind 4 via `@theme inline` (`orb-*` utilities):
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `--orb-canvas` | `#EBE7E2` | Page canvas behind the app panel |
+| `--orb-surface` | `#F0EDE8` | App panel background |
+| `--orb-card` | `#F8F5F1` | Elevated cards |
+| `--orb-body` | `#2F2823` | Primary text |
+| `--orb-muted` | `#6E6E6E` | Secondary text |
+| `--orb-green` / `-deep` | `#2ECC8A` / `#1F8F5F` | Done / active / success; deep for text on light |
+| `--orb-purple` / `-deep` | `#996CE4` / `#6B4BBF` | In-progress, AI accents |
+| `--orb-coral` / `-deep` | `#FF8077` / `#C9574E` | Blocked / destructive |
+| `--orb-amber` | `#F5B841` | Pending status dot |
+| `--orb-pink` | `#FFCBDE` | Need-help status dot |
+| `--orb-sand` | `#C4996A` | Paused goal |
+
+Status → color binding is centralized in `TASK_STATUS_META` (dot + text colors per status), so a status never renders with an ad-hoc color. The legacy `tailwind.config.ts` carries only shadcn/ui HSL tokens and `tailwindcss-animate`.
+
+### 5.3 Component Primitives
+
+shadcn/ui (Radix-based), vendored under `src/components/ui/` — the app leans on: `dialog` (all modals, including the conversational New Goal wizard), `select` (assignee/status pickers), `radio-group` (check-in radios), `dropdown-menu` (row actions), `progress`, `avatar`, `badge`, `tabs`, `separator`, `sheet`, `toast` (via `use-toast`), `scroll-area`. Bespoke ORBITAL components (`task-card`, `progress-ring`, `widgets`, `empty-state`) are built on these primitives, not around them.
+
+### 5.4 Motion / Animation
+
+Deliberately restrained, all CSS-based: the mobile sidebar slide-over (`translate-x` + opacity, 300 ms), dialog enter/exit from Radix primitives, toast slide-ins, and hover transitions on cards/buttons. `framer-motion` is **not** used (present in `package.json` from the template, unreferenced). No `prefers-reduced-motion` overrides exist yet — tracked in §10.
+
+---
+
+## 6. Security Architecture
+
+### 6.1 Security Rules
+
+| # | Rule | Enforcement |
+|---|------|-------------|
+| 1 | Every API route (except `/api/health` and `/api/auth/*`) requires a valid session | `requireSession()` first line of each handler; 401 envelope otherwise |
+| 2 | Passwords are never stored or logged in plaintext | scrypt with per-user 16-byte salt, 64-byte key (`src/lib/auth.ts`) |
+| 3 | Session tokens cannot be forged or altered | HMAC-SHA256 over `userId.expiry` with `AUTH_SECRET`; verified with `timingSafeEqual` |
+| 4 | Cookies are invisible to scripts and scoped | `httpOnly`, `SameSite=Lax`, `Secure` in production, `path=/`, 7-day TTL |
+| 5 | All input is validated server-side | Manual guards in every handler: trim, length caps, enum membership, referential existence |
+| 6 | SQL injection is structurally impossible | All queries through Prisma's parameterized client |
+| 7 | No secrets in the repository | `.gitignore` rejects `.env`, `*.key`, `ssh-key.txt`; keys supplied out-of-band per the SSH-wrapper runbook |
+| 8 | LLM output is treated as untrusted | `sanitizeTasks()` clamps count/lengths/hours in `generate-tasks` |
+
+### 6.2 Security Utilities
+
+| Utility | Location | Responsibility |
+|---------|----------|----------------|
+| `hashPassword` / `verifyPassword` | `src/lib/auth.ts` | scrypt hash + timing-safe verification |
+| `createSessionToken` / `parseSessionToken` | `src/lib/auth.ts` | HMAC sign/verify of stateless tokens |
+| `setSessionCookie` / `clearSessionCookie` | `src/lib/auth.ts` | Cookie lifecycle with hardening flags |
+| `requireSession` | `src/lib/api.ts` | Route-handler guard returning the session user |
+| `sanitizeTasks` | `generate-tasks/route.ts` | Bounds LLM-generated data before persistence |
+| `resolveDatabaseUrl` | `src/lib/db.ts` | Path normalization (prevents accidental cross-location DB access) |
+
+### 6.3 Authentication & Authorization
+
+Single-workspace model with no RBAC: any authenticated user has full read/write access to all goals, tasks, team, and settings — mirroring the reference app. Registration (`/api/auth/register`) is open; email is unique, password minimum length enforced (8). "My Tasks" resolves through the `Person` row linked to the login user (`Person.userId`), not through a role. Adding RBAC would mean a role column on `User` plus a check in `requireSession` — deliberately out of scope for v1.0 (see §10).
+
+### 6.4 Threat Model
+
+| Vector | Mitigation | Residual risk |
+|--------|------------|---------------|
+| Session forgery | HMAC-SHA256 + timing-safe compare; 64-hex signatures | Weak `AUTH_SECRET` in prod if operator ignores the README warning |
+| Password brute force | scrypt (memory-hard) per attempt | **No rate limiting** — open item in §10 |
+| CSRF | `SameSite=Lax` + JSON-only bodies (no form-encoded mutations) | Lax allows top-level GET navigations only; all mutations are POST/PATCH/DELETE with JSON |
+| XSS | React auto-escaping; no `dangerouslySetInnerHTML` anywhere in `src/` | None known |
+| SQLi | Prisma parameterization throughout | None known |
+| Prompt-injected LLM output | Sanitizer clamps (≤10 tasks, 160-char titles, 1–40 h) | Malicious-but-well-formed content can still appear as task text (user-deletable) |
+| Open registration | By design (demo parity) | Any visitor can create an account — §10 lists gating options |
+
+---
+
+## 7. Testing Strategy
+
+### 7.1 Test Distribution
+
+| Category | Files | Checks | Location | Framework |
+|----------|-------|--------|----------|-----------|
+| End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 18 | `scripts/` | Bash + curl + python3 (no test framework needed) |
+| Unit / component | 0 | — | — | — (open item, §10) |
+
+### 7.2 Test Patterns
+
+The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, and page render. Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
+
+### 7.3 Coverage Thresholds
+
+- **Gate (mandatory before push):** `bun run lint` → `bun run build` → `./scripts/smoke-test.sh` with **18/18 PASS**. There is no hosted CI; this local gate is the only gate.
+- Line/branch coverage is not measured — no unit layer exists yet.
+
+### 7.4 Pre-Push Checklist
+
+- [ ] `bun run lint` exits 0
+- [ ] `bun run build` compiles clean
+- [ ] `./scripts/smoke-test.sh` → 18/18 PASS
+- [ ] New/changed endpoints write their `ActivityLog` entries (Pattern D)
+- [ ] Schema changes regenerated (`bunx prisma generate`) and reseeded (`db:push` + `db:seed`)
+- [ ] No `.env`, keys, or `db/*.db` staged (`git status` review)
+- [ ] Commit message follows `:art: feat:` / `:memo: docs:` / `:bug: fix:` convention on `main`
+
+---
+
+## 8. Build & Deployment
+
+### 8.1 Production Build
+
+```bash
+bun run build
+# = next build
+#   && cp -r .next/static .next/standalone/.next/
+#   && cp -r public .next/standalone/
+bun run start    # NODE_ENV=production bun .next/standalone/server.js  (port 3000)
+```
+
+The standalone tree contains the traced `node_modules`, the static chunks, and `public/` — a self-sufficient artifact. `outputFileTracingRoot` (ADR-007) pins the layout; the server **must** start from the repo root so the SQLite path normalization (Pattern B) resolves.
+
+### 8.2 Environment Variables
+
+| Name | Required | Description | Default |
+|------|----------|-------------|---------|
+| `DATABASE_URL` | Yes | SQLite file. Relative `file:` paths resolve against `prisma/` (CLI rule), normalized to absolute at runtime by `src/lib/db.ts`. | `file:../db/custom.db` |
+| `AUTH_SECRET` | Production | HMAC secret for session tokens (`openssl rand -hex 32`). Unset ⇒ insecure dev-only constant is used (by design, loudly documented). | — |
+
+### 8.3 Docker Configuration
+
+None — no `Dockerfile` or compose file ships with v1.0. The standalone artifact is Docker-ready (single Node entrypoint, no build tools needed at runtime); containerization is tracked in §10.
+
+### 8.4 CI/CD Pipeline
+
+No hosted CI (no `.github/workflows`). The pipeline is the local gate (§7.3) followed by an authenticated push: `python3 docs/ssh_git_wrapper_v3.py --key-file <key outside the repo> --remote git@github.com:nordeim/project-management.git`. The wrapper materializes the key into a 0600 temp file, preflights auth with `ls-remote`, pushes `HEAD:refs/heads/main`, verifies the remote ref equals local HEAD, syncs the origin tracking ref, then shreds the key. Full runbook: `docs/how-to-git-push-using-ssh-wrapper_SKILL.md`.
+
+---
+
+## 9. Developer Handbook
+
+### 9.1 Local Setup
+
+```bash
+git clone https://github.com/nordeim/project-management.git && cd project-management
+bun install                # or: npm install
+cp .env.example .env       # defaults are correct for local use
+bun run db:push            # create db/custom.db from the schema
+bun run db:seed            # canonical demo workspace
+bun run dev                # http://localhost:3000
+```
+
+Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 18/18 PASS).
+
+### 9.2 Common Commands
+
+| Command | Purpose |
+|---------|---------|
+| `bun run dev` | Dev server on :3000, logs to `dev.log` |
+| `bun run build` | Production build + standalone assembly |
+| `bun run start` | Serve the standalone build (from repo root only) |
+| `bun run lint` | ESLint (flat config; `skills/`, `docs/` build dirs ignored) |
+| `bunx prisma generate` | Regenerate the client after schema edits |
+| `bun run db:push` | Apply schema changes to SQLite |
+| `bun run db:seed` | Idempotent reset to demo data |
+| `bunx prisma studio` | Inspect data in a browser (optional convenience) |
+| `./scripts/smoke-test.sh` | 18-check E2E suite against the production build |
+
+### 9.3 Code Style Rules
+
+- TypeScript strict (with the deliberate `noImplicitAny: false`); ESLint flat config extends `eslint-config-next` core-web-vitals + TS presets.
+- Enforcement: the §7.3 gate — nothing merges or pushes without lint+build+smoke green.
+- Conventions that matter in review: the layer model (§3.1), the envelope (Pattern A), the activity invariant (Pattern D), centralized status metadata (`src/lib/orbital.ts`).
+
+### 9.4 Git Workflow
+
+- **`main` only** — no feature branches (operator contract).
+- **Commits:** Conventional Commits with emoji prefixes: `:art: feat: …`, `:memo: docs: …`, `:bug: fix: …`. Identity: `Pete A <pete@pop-os>`.
+- **Push:** via `docs/ssh_git_wrapper_v3.py` with an externally supplied key (§8.4) — never a resident `~/.ssh` dependency.
+- **Never committed:** `.env`, `*.key`, `db/*.db`, `node_modules/`, `dev.log`/`server.log` (all gitignored).
+
+---
+
+## 10. Known Issues & Outstanding Tasks
+
+| Priority | Issue | Impact | Status |
+|----------|-------|--------|--------|
+| HIGH | No rate limiting on `/api/auth/login` / `/api/auth/register` | Online brute-force surface | Open — add per-IP throttling middleware |
+| MEDIUM | Open registration (any visitor can create an account) | Workspace open to the public internet once deployed | Open — gate behind invite codes or an `ALLOW_REGISTRATION` env flag |
+| MEDIUM | No unit/component test layer | Regression risk concentrated in the E2E gate | Open — store actions and `sanitizeTasks` are the first candidates |
+| LOW | Template dependencies unused in `package.json` (zod, framer-motion, React Query, dnd-kit, react-hook-form beyond one dialog, next-auth, recharts beyond one chart, …) | Larger install footprint; misleading stack claims | Open — prune on next dependency pass |
+| LOW | `tsconfig.json` sets `noImplicitAny: false` | Weaker inference checks than full strict | Accepted (template default); tighten when convenient |
+| LOW | No `prefers-reduced-motion` handling | Accessibility gap in animations | Open |
+| LOW | No Dockerfile / hosted CI | Deployment and gate rely on the operator machine | Open — standalone artifact is Docker-ready; a lint+build+smoke workflow mirrors §7.3 |
+| INFO | AI generation falls back to the 8-step template when the SDK is unavailable | Generic (but usable) plans offline | By design (ADR-005) |
+| INFO | `AUTH_SECRET` dev fallback constant | Insecure sessions if deployed without setting it | By design; README + §8.2 warn loudly |
+
+---
+
+## 11. Key Files Reference
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/components/orbital/store.ts` | 341 | The Zustand store: all server state, `call()` envelope client, every action + refresh set |
+| `prisma/seed.ts` | 265 | Idempotent demo workspace: user, 10 people, 3 goals, 31 tasks, 22 activity rows |
+| `src/components/orbital/views/dashboard-view.tsx` | 258 | Dashboard: greeting card, progress ring, stats, tasks-status panel, activity preview |
+| `src/lib/orbital.ts` | 152 | Domain types, DTOs, status metadata (labels + colors), overdue helper |
+| `src/app/api/goals/[id]/generate-tasks/route.ts` | 154 | AI planner: SDK call, sanitizer, template fallback, assignment + scheduling |
+| `src/app/globals.css` | 198 | Tailwind 4 `@theme` tokens, `--orb-*` palette, base styles |
+| `scripts/smoke-test.sh` | 112 | 18-check E2E suite against the production server |
+| `prisma/schema.prisma` | 121 | 8 models, relations, indexes, referential actions |
+| `src/lib/auth.ts` | 91 | scrypt hashing, HMAC session tokens, cookie lifecycle |
+| `src/components/orbital/orbital-app.tsx` | 89 | Authenticated shell: desktop sidebar + mobile slide-over, view switcher |
+| `src/lib/db.ts` | 51 | Prisma singleton + SQLite URL normalization (Pattern B) |
+| `src/lib/api.ts` | 30 | `ok()` / `fail()` envelope + `requireSession()` guard |
+| `src/app/page.tsx` | 19 | The single route: session check → shell or login |
+
+---
+
+## 12. Glossary
+
+| Term | Definition |
+|------|------------|
+| **Goal** | A dated outcome a team commits to; container and scheduler for its task plan |
+| **Task** | A unit of work inside a goal, with status, deadline, assignee, estimated hours, and an AI-attribution flag (`createdByAi`) |
+| **Check-in (TaskUpdate)** | A status report posted on a task (`on_track` / `blocked` / `need_help` / `done`, optional note); also flips the task's live status |
+| **Person** | An assignable entity — seeded demo people plus one linked to each login user (`userId`), which powers "My Tasks" |
+| **TeamMember** | An invited human or a configured AI agent (`kind`, `agentRole`) shown on the Team page |
+| **ActivityLog** | The append-only feed narrating every mutation (create/assign/status/invite/settings) |
+| **Envelope** | The uniform API response `{ ok, data }` or `{ ok, error: { code, message } }` |
+| **The planner** | `POST /api/goals/[id]/generate-tasks` — LLM-backed task-plan generation with deterministic fallback |
+| **Deep link** | A shareable URL encoding view state (`?view=goal-detail&goal=<id>`), restored on boot |
+| **Smoke suite** | `scripts/smoke-test.sh` — the 18-check production-server verification gate |
+| **SSH wrapper** | `docs/ssh_git_wrapper_v3.py` — key-materializing authenticated push tool with post-push remote verification |
+
