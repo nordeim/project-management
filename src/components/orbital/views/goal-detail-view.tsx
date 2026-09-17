@@ -40,7 +40,7 @@ export function GoalDetailView() {
     return (
       <div className="w-full">
         <EmptyState
-          icon={<ArrowLeft size={22} />}
+          icon={<ArrowLeft size={22} color="#B3B3B3" />}
           title="Goal not found"
           description="This goal may have been deleted."
           action={
@@ -61,21 +61,20 @@ export function GoalDetailView() {
       <button
         type="button"
         onClick={() => navigate("goals")}
-        className="flex items-center gap-2 text-[13.5px] font-medium text-orb-muted hover:text-orb-heading"
+        className="flex items-center gap-2 text-[13px] font-normal text-orb-muted hover:text-orb-heading"
       >
         <ArrowLeft size={15} /> Back to Goals
       </button>
 
       <header className="mt-5 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <span
-            className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
-            style={{ color: meta.color }}
-          >
-            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: meta.color }} aria-hidden="true" />
+          {/* v1.7 (measured): the status chip text is GRAY (the dot keeps the
+              status color, 7px) — not painted in the status color. */}
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-orb-muted">
+            <span className="h-[7px] w-[7px] rounded-full" style={{ backgroundColor: meta.color }} aria-hidden="true" />
             {meta.label}
           </span>
-          <h1 className="mt-2 text-[28px] font-normal leading-tight tracking-tight text-orb-heading">{goal.title}</h1>
+          <h1 className="mt-2 text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">{goal.title}</h1>
           {goal.description ? <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-orb-muted">{goal.description}</p> : null}
           {goal.targetDate ? (
             <p className="mt-3 flex items-center gap-1.5 text-[13.5px] text-orb-muted">
@@ -119,7 +118,7 @@ export function GoalDetailView() {
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-orb-raised px-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#bd3228] shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-coral-deep"
+              className="inline-flex h-10 items-center gap-2 rounded-[12px] bg-orb-raised px-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#BD3228] shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-coral-deep"
             >
               <Trash2 size={13} aria-hidden="true" />
               Delete
@@ -147,22 +146,28 @@ export function GoalDetailView() {
           </div>
           <p className="mt-3 text-[24px] font-normal leading-none tracking-[-0.02em] text-orb-heading">{pct}%</p>
         </div>
-        <div className="orb-panel flex flex-col justify-between p-[20px_16px]">
-          <p className="orb-label">Blocked</p>
-          <p className="text-[26px] font-normal leading-none tracking-[-0.02em]" style={{ color: goal.blockedCount > 0 ? "#FF7043" : "#3A3A3A" }}>
-            {goal.blockedCount}
-          </p>
+        <div className="orb-panel flex flex-col items-center justify-center p-[20px_16px]">
+          {/* v1.7 (measured): the blocked count block is CENTERED — label
+              above a 64px number wrapper (the count's line box is 39px). */}
+          <div className="flex flex-col items-center">
+            <p className="orb-label">Blocked</p>
+            <div className="mt-[6px] flex h-[64px] items-center">
+              <p className="text-[26px] font-normal leading-[1.5] tracking-[-0.02em]" style={{ color: goal.blockedCount > 0 ? "#FF7043" : "#3A3A3A" }}>
+                {goal.blockedCount}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="flex items-baseline gap-2">
-          <span className="orb-label !tracking-[0.1em]">Tasks</span>
+          <span className="orb-label">Tasks</span>
           <span className="text-[13px] font-normal text-orb-muted">{goal.taskCount} total</span>
         </h2>
         <button
           type="button"
-          className="inline-flex h-[31px] items-center gap-2 rounded-xl bg-orb-raised px-[14px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+          className="inline-flex h-[31px] items-center gap-2 rounded-[12px] bg-orb-raised px-[14px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
           onClick={() => setAddOpen(true)}
         >
           <Plus size={13} aria-hidden="true" />
@@ -173,7 +178,7 @@ export function GoalDetailView() {
       <div className="mt-4 space-y-3">
         {tasks.length === 0 ? (
           <EmptyState
-            icon={<Plus size={22} />}
+            icon={<Plus size={22} color="#B3B3B3" />}
             title="No tasks yet"
             description="Add tasks manually or let the AI assistant draft a plan when you create a goal."
             action={

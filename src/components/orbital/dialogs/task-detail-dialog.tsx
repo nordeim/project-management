@@ -39,10 +39,11 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
           panel — smaller than the 500px form dialogs. */}
       <DialogContent className="sm:max-w-[448px] rounded-[16px]">
         <DialogHeader>
-          <DialogTitle className="text-left text-[17px] leading-snug text-orb-heading">{task.title}</DialogTitle>
+          {/* v1.7 (measured): 16px/500 — quieter than 17px/600. */}
+          <DialogTitle className="text-left text-[16px] font-medium leading-snug text-orb-heading">{task.title}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-1.5 text-[13.5px] text-orb-muted">
+        <div className="space-y-1 text-[13.5px] text-orb-muted">
           {task.assignee ? <p>Assigned to: {task.assignee.name}</p> : <p>Unassigned</p>}
         </div>
 
@@ -52,7 +53,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
           </p>
         ) : null}
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <p className="orb-label">Post Status Update</p>
           {/* Reference (v1.5): plain radio labels in a 2-col grid — no card
               wrappers, no borders; 14px fw 500 charcoal text. */}
@@ -89,15 +90,15 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
           />
 
           {/* Reference (v1.5): dark primary pill — #2F2823 bg, white text,
-              radius 14, 32px tall, Send icon, literal Title Case label
-              (.orb-btn-post is the dedicated class for this variant). */}
+              radius 14, 32px tall, 16px Send icon (v1.7), literal Title Case
+              label (.orb-btn-post is the dedicated class). */}
           <button
             type="button"
             className="orb-btn-post"
             disabled={!status || busy}
             onClick={() => void submit()}
           >
-            {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} aria-hidden="true" />}
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} aria-hidden="true" />}
             Post Update
           </button>
         </div>

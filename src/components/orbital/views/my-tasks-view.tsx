@@ -45,7 +45,7 @@ export function MyTasksView() {
   return (
     <div className="w-full">
       <header>
-        <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">My Tasks</h1>
+        <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">My Tasks</h1>
         <p className="mt-1 text-[14px] text-orb-muted">
           {myTasks.length} task{myTasks.length === 1 ? "" : "s"} assigned to you
         </p>
@@ -62,9 +62,11 @@ export function MyTasksView() {
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
               className={cn(
-                "h-8 rounded-full px-4 text-[12px] font-medium transition-colors",
+                // v1.7 (measured): ls 0.72px, 600 weight on every state,
+                // py 7px px 14px; the active chip keeps the inset well.
+                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] transition-colors",
                 active
-                  ? "orb-well-pill font-semibold text-orb-heading"
+                  ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
                   : "text-orb-muted hover:text-orb-heading",
               )}
             >
@@ -77,7 +79,7 @@ export function MyTasksView() {
       <div className="mt-5 space-y-3">
         {visible.length === 0 ? (
           <EmptyState
-            icon={<CheckSquare size={22} />}
+            icon={<CheckSquare size={28} color="#B3B3B3" />}
             title="No tasks assigned"
             description="Tasks will show up here once goals are created and assigned."
           />

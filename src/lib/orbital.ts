@@ -98,7 +98,7 @@ export interface SessionUserDTO {
 export const TASK_STATUS_META: Record<TaskStatus, { label: string; dot: string; text: string }> = {
   pending: { label: "Pending", dot: "#F5B841", text: "#8A6A1F" },
   in_progress: { label: "In Progress", dot: "#996CE4", text: "#6B4BBF" },
-  blocked: { label: "Blocked", dot: "#FF8077", text: "#C9574E" },
+  blocked: { label: "Blocked", dot: "#FF8077", text: "#BD3228" },
   need_help: { label: "Need Help", dot: "#FFCBDE", text: "#B06A85" },
   done: { label: "Done", dot: "#2ECC8A", text: "#1F8F5F" },
 };

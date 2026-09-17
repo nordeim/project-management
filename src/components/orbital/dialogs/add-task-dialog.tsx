@@ -114,7 +114,7 @@ export function AddTaskDialog({
               placeholder="Optional description"
               rows={3}
               maxLength={1000}
-              className=""
+              className="min-h-[72px] text-[13px]"
             />
           </div>
 

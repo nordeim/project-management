@@ -64,12 +64,13 @@ function GoalCard({
         className="min-w-0 flex-1 p-[18px_20px] text-left"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
-        {/* Status chip (reference, v1.5): inset well pill — gray label,
-            a light-purple pip for EVERY status, an inline red blocked
-            count, and a trailing chevron. */}
-        <div className="mb-1.5">
-          <span className="orb-well-pill inline-flex items-center gap-[5px] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#C9B3F5]" aria-hidden="true" />
+        {/* Status chip (reference, v1.5; inset pair re-measured v1.7):
+            inset well pill — gray label, a light-purple pip for EVERY
+            status, an inline red blocked count, and a trailing chevron.
+            v1.7: pip 7px, softer inset pair (-2px/-2px/5px 0.8/0.24). */}
+        <div className="mb-[11px]">
+          <span className="inline-flex items-center gap-[5px] rounded-full bg-orb-well px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.8),inset_2px_2px_5px_rgba(160,143,126,0.24)]">
+            <span className="h-[7px] w-[7px] rounded-full bg-[#C9B3F5]" aria-hidden="true" />
             {meta.label}
             {goal.blockedCount > 0 && goal.status === "active" ? (
               <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
@@ -79,7 +80,7 @@ function GoalCard({
             </span>
           </span>
         </div>
-        <p className="mb-2 truncate text-[20px] font-medium leading-[1.2] text-orb-heading">{goal.title}</p>
+        <p className="mb-3.5 truncate text-[20px] font-medium leading-[1.2] text-orb-heading">{goal.title}</p>
 
         {/* Horizontal progress bar on the inset track (reference pattern;
             track reads as pressed-in — 6px with the standard inset pair) */}
@@ -107,16 +108,17 @@ function GoalCard({
         {goal.targetDate ? <p className="text-[12px] text-[#767676]">{formatDate(goal.targetDate)}</p> : null}
       </button>
 
-      {/* Right column (reference, v1.6): a fixed 120px stats strip — the
-          big 42px percentage over the 12px task fraction, with the
-          edit/delete actions (flat gray squares, no well) beneath. */}
-      <div className="flex w-[120px] shrink-0 flex-col items-end p-[18px_16px]">
+      {/* Right column (reference, v1.6/v1.7): a fixed 120px stats strip —
+          the big 42px percentage over the 12px task fraction with the
+          edit/delete actions (flat gray squares) beneath; v1.7: content
+          vertically CENTERED as a group (8px gaps, centered fraction). */}
+      <div className="flex w-[120px] shrink-0 flex-col items-center justify-center gap-2 p-[18px_16px]">
         <span className="text-[42px] font-medium leading-none tracking-[-0.02em] text-orb-heading">{pct}%</span>
-        <span className="mt-1.5 text-[12px] text-orb-muted">
+        <span className="text-[12px] text-orb-muted">
           {goal.doneCount}/{goal.taskCount}
         </span>
         {confirming ? (
-          <div className="mt-auto flex items-center gap-2" role="group" aria-label={`Confirm delete ${goal.title}`}>
+          <div className="flex items-center gap-2" role="group" aria-label={`Confirm delete ${goal.title}`}>
             <button
               type="button"
               onClick={() => void confirmDelete()}
@@ -135,7 +137,7 @@ function GoalCard({
             </button>
           </div>
         ) : (
-          <div className="mt-auto flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => onEdit(goal)}
@@ -181,12 +183,19 @@ export function GoalsView() {
     <div className="w-full">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Goals</h1>
+          <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">Goals</h1>
           <p className="mt-1 text-[14px] text-orb-muted">Manage your team objectives</p>
         </div>
-        <button type="button" className="orb-pill-outline" onClick={() => setNewGoalOpen(true)}>
+        {/* v1.7 (measured): on mobile the label shortens to "New" and the
+            pill drops to 35px (40px on desktop). */}
+        <button
+          type="button"
+          className="orb-pill-outline orb-pill-outline-sm"
+          onClick={() => setNewGoalOpen(true)}
+        >
           <Plus size={14} aria-hidden="true" />
-          New Goal
+          <span className="hidden sm:inline">New Goal</span>
+          <span className="sm:hidden">New</span>
         </button>
       </header>
 
@@ -201,9 +210,11 @@ export function GoalsView() {
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
               className={cn(
-                "h-8 rounded-full px-4 text-[12px] font-medium transition-colors",
+                // v1.7 (measured): ls 0.72px, 600 weight on every state,
+                // py 7px px 14px; the active chip keeps the inset well.
+                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] transition-colors",
                 active
-                  ? "orb-well-pill font-semibold text-orb-heading"
+                  ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
                   : "text-orb-muted hover:text-orb-heading",
               )}
             >
@@ -216,7 +227,7 @@ export function GoalsView() {
       <div className="mt-5 space-y-3">
         {visible.length === 0 ? (
           <EmptyState
-            icon={<Plus size={22} />}
+            icon={<Plus size={22} color="#B3B3B3" />}
             title={filter === "all" ? "No goals yet" : `No ${FILTERS.find((f) => f.id === filter)?.label.toLowerCase()} goals`}
             description="Create your first goal and the AI assistant will draft a task plan for it."
             action={

@@ -37,7 +37,11 @@ const TONE_OPTIONS: Array<{ value: Tone; label: string }> = [
 
 const FIELD =
   "h-[38px] rounded-[10px] border-0 bg-orb-well text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]";
-const FIELD_LABEL = "text-[13px] font-medium text-orb-body";
+/* v1.7 (measured): field labels are 12px/600 #6E6E6E; helper text under
+   them renders 11px/400 #9A9A9A. */
+const FIELD_LABEL = "text-[12px] font-semibold text-orb-muted";
+const FIELD_HINT = "text-[11px] font-normal text-[#9A9A9A]";
+const FIELD_SUB_LABEL = "text-[11px] font-medium text-[#9A9A9A]";
 
 function hourOptions(): string[] {
   return Array.from({ length: 25 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
@@ -93,10 +97,10 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
               {/* Reference (v1.6, measured): the "Active Window" sub-header
                   (12px/600, Title Case) sits ABOVE the description line. */}
               <p className="text-[12px] font-semibold text-orb-muted">Active Window</p>
-              <p className="text-[13px] leading-relaxed text-orb-muted">AI will only send pings during these hours</p>
+              <p className={FIELD_HINT}>AI will only send pings during these hours</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="work-start" className={FIELD_LABEL}>
+                  <Label htmlFor="work-start" className={FIELD_SUB_LABEL}>
                     Start
                   </Label>
                   <Select value={workStart} onValueChange={setWorkStart}>
@@ -113,7 +117,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="work-end" className={FIELD_LABEL}>
+                  <Label htmlFor="work-end" className={FIELD_SUB_LABEL}>
                     End
                   </Label>
                   <Select value={workEnd} onValueChange={setWorkEnd}>
@@ -141,7 +145,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
           <div className="mt-5 space-y-5">
             <div className="space-y-2">
               <Label className={FIELD_LABEL}>Ping Frequency</Label>
-              <p className="text-[13px] leading-relaxed text-orb-muted">How often the AI checks in with team members</p>
+              <p className={FIELD_HINT}>How often the AI checks in with team members</p>
               <Select value={pingFrequency} onValueChange={(v) => setPingFrequency(v as Frequency)}>
                 <SelectTrigger className={`${FIELD} w-full`}>
                   <SelectValue />
@@ -191,7 +195,7 @@ export function SettingsView() {
   return (
     <div className="w-full">
       <header>
-        <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Settings</h1>
+        <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">Settings</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Configure your AI assistant and workspace</p>
       </header>
 

@@ -94,11 +94,11 @@ export function TaskCard({
         </div>
       </button>
 
-      {/* Direct actions (v1.6, measured): 26px radius-7 raised squares with
-          11px icons, pinned to the row's top-right — OUTSIDE the shadowed
-          card so they float over the row. While deleting, they swap for the
-          inline confirmation. */}
-      <div className="absolute right-0 top-0 flex translate-y-[14px] items-center gap-2 pr-[9px]">
+      {/* Direct actions (v1.6, measured; v1.7 spacing): 26px radius-7 raised
+          squares with 11px icons, pinned to the row's top-right — OUTSIDE the
+          shadowed card, 2px apart (live measurement). While deleting, they
+          swap for the inline confirmation. */}
+      <div className="absolute right-0 top-0 flex translate-y-[14px] items-center gap-[2px] pr-[9px]">
         {confirming ? (
           <div
             className="flex items-center gap-2 rounded-[10px] bg-orb-raised px-2 py-1"

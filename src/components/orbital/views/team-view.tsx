@@ -22,7 +22,7 @@ export function TeamView() {
     <div className="w-full">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Team</h1>
+          <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">Team</h1>
           <p className="mt-1 text-[14px] text-orb-muted">
             {humans.length} team member{humans.length === 1 ? "" : "s"}
           </p>
@@ -43,7 +43,7 @@ export function TeamView() {
       {humans.length === 0 ? (
         <div className="mt-6">
           <EmptyState
-            icon={<Users size={22} />}
+            icon={<Users size={22} color="#B3B3B3" />}
             title="No team members yet"
             description="Invite your team to get started."
             action={
@@ -77,7 +77,8 @@ export function TeamView() {
       <section className="mt-10" aria-label="AI agents">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-[18px] font-semibold text-orb-heading">AI Agents</h2>
+            {/* v1.7 (measured): 16px/500 — quieter than the v1.6 18px/600. */}
+            <h2 className="text-[16px] font-medium text-orb-heading">AI Agents</h2>
             <p className="mt-0.5 text-[13.5px] text-orb-muted">Autonomous assistants that help manage your project</p>
           </div>
           <button
@@ -94,27 +95,15 @@ export function TeamView() {
         </div>
 
         {agents.length === 0 ? (
-          // Reference (v1.6, measured): the AI-Agents empty state sits in an
-          // inset well card (radius 16, p 32px 24px) — unlike the members
-          // empty state, which renders directly on the canvas.
-          <div className="mt-4 flex items-center justify-center rounded-2xl bg-orb-well px-6 py-8 shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.24)]">
-            <EmptyState
-              icon={<Bot size={22} />}
-              title="No agents yet"
-              description="Create an AI agent to automate project tasks."
-              action={
-                <button
-                  type="button"
-                  className="flex h-[38px] items-center gap-2 rounded-[12px] bg-orb-raised px-[18px] text-[13px] font-medium text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
-                  onClick={() => {
-                    setInviteKind("agent");
-                    setInviteOpen(true);
-                  }}
-                >
-                  <Plus size={14} aria-hidden="true" /> New Agent
-                </button>
-              }
-            />
+          // Reference (v1.6, measured; v1.7 re-measured): the AI-Agents empty
+          // state sits in an inset well card (radius 16, p 32px 24px) holding
+          // ONLY the icon and two compact text lines — no action button (the
+          // NEW AGENT action lives in the section header above) and no extra
+          // inner padding beyond the well's own.
+          <div className="mt-4 flex flex-col items-center justify-center rounded-2xl bg-orb-well px-6 py-8 shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.24)]">
+            <Bot size={22} color="#B3B3B3" aria-hidden="true" />
+            <p className="mt-2.5 text-[14px] font-normal text-orb-heading">No agents yet</p>
+            <p className="mt-1 text-[12px] font-normal text-[#767676]">Create an AI agent to automate project tasks.</p>
           </div>
         ) : (
           <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">

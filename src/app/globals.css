@@ -88,7 +88,7 @@
   --orb-amber: #f5b841;
   --orb-green-deep: #1f8f5f;
   --orb-purple-deep: #6b4bbf;
-  --orb-coral-deep: #c9574e;
+  --orb-coral-deep: #bd3228; /* v1.7: measured on live — darker than the v1.4 #C9574E */
 
   --background: var(--orb-canvas);
   --foreground: var(--orb-body);
@@ -165,9 +165,17 @@
 }
 
 @layer utilities {
-  /* Uppercase micro-label used across the ORBITAL UI */
+  /* Uppercase micro-label used across the ORBITAL UI (v1.7, measured on the
+     live app): panel/field labels are 11px / 600 / ls 1.1px in #6E6E6E. */
   .orb-label {
-    @apply text-[11px] font-medium uppercase tracking-[0.08em] text-orb-muted;
+    @apply text-[11px] font-semibold uppercase tracking-[0.1em] text-orb-muted;
+  }
+
+  /* Small label tier (v1.7, measured): 10px / 600 / ls 1.2px in #767676 —
+     sidebar section headers, the NPA label, activity date labels, the
+     sidebar TASKS STATUS caption. */
+  .orb-label-sm {
+    @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-[#767676];
   }
 
   /* ---- Neumorphic primitive system (measured from the reference, v1.4;
@@ -446,6 +454,17 @@
   .orb-pill-outline:disabled {
     pointer-events: none;
     opacity: 0.4;
+  }
+  /* v1.7 (measured): the goals-view NEW GOAL button drops to 35px on
+     mobile (label shortens to "New"). Dedicated class — an h-* utility
+     would lose to .orb-pill-outline's height in the cascade. */
+  .orb-pill-outline-sm {
+    height: 35px;
+  }
+  @media (min-width: 640px) {
+    .orb-pill-outline-sm {
+      height: 40px;
+    }
   }
 }
 

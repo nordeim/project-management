@@ -65,11 +65,13 @@ export function Sidebar({
         title={collapsed ? item.label : undefined}
         aria-label={collapsed ? item.label : undefined}
         className={cn(
-          "flex min-h-11 w-full items-center rounded-[10px] transition-colors",
+          // v1.7 (measured): live nav rows are 39px tall; inactive items
+          // are 14px/400 (not 500) — the active row keeps the well + 500.
+          "flex min-h-[39px] w-full items-center rounded-[10px] transition-colors",
           collapsed ? "justify-center px-0" : "gap-3 px-3 text-[14px]",
           active
             ? "bg-orb-well font-medium text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
-            : "font-medium text-orb-muted hover:bg-black/[0.03] hover:text-orb-heading",
+            : "font-normal text-orb-muted hover:bg-black/[0.03] hover:text-orb-heading",
         )}
       >
         <span className={cn(active ? "text-orb-heading" : "text-orb-muted")} aria-hidden="true">
@@ -109,15 +111,18 @@ export function Sidebar({
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="flex items-center justify-between px-5 pt-5 pb-2">
+      {/* v1.7 (measured): the brand row sits flush at the panel's top
+          padding — a compact ~16px six-dot mark beside "ORBITAL" at
+          13px/600/ls 2.34px (0.18em) in #2F2823. */}
+      <div className="flex items-center justify-between px-4 pb-2 pt-0">
         <button
           type="button"
           onClick={() => navigate("dashboard")}
-          className="flex items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+          className="flex items-center gap-2 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
           aria-label="Orbital home"
         >
-          <LogoMark size={30} />
-          <span className="text-[15px] font-bold uppercase tracking-[0.18em] text-orb-heading">Orbital</span>
+          <LogoMark size={16} />
+          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-orb-body">Orbital</span>
         </button>
         {onCollapse ? (
           <button
@@ -131,17 +136,21 @@ export function Sidebar({
         ) : null}
       </div>
 
-      <p className="orb-label px-5 pt-6 pb-2">Workspace</p>
+      <p className="orb-label-sm px-5 pt-6 pb-2">Workspace</p>
       <nav className="flex flex-col gap-0.5 px-3" aria-label="Workspace">
         {workspaceItems.map(renderNavItem)}
       </nav>
 
-      <p className="orb-label px-5 pt-6 pb-2">Management</p>
+      <p className="orb-label-sm px-5 pt-6 pb-2">Management</p>
       <nav className="flex flex-col gap-0.5 px-3" aria-label="Management">
         {managementItems.map(renderNavItem)}
       </nav>
 
-      <div className="mt-auto flex items-center gap-3 px-2 pb-3">
+      {/* v1.7 (measured): the Tasks Status block is a PLAIN link (no well) —
+          10px/600 label, 11px/700 numbers, 11px/400 #767676 captions —
+          sitting beside the 80px clock with a 10px gap, at the panel's own
+          16px horizontal padding. */}
+      <div className="mt-auto flex items-center gap-[10px] px-4 pb-3">
         <SidebarClock size={80} />
         <button
           type="button"
@@ -149,20 +158,20 @@ export function Sidebar({
             navigate("my-tasks");
             onCollapse?.();
           }}
-          className="orb-well min-w-0 flex-1 rounded-xl p-3.5 text-left transition-transform hover:-translate-y-0.5"
+          className="min-w-0 flex-1 text-left"
           aria-label={`Tasks status: ${blocked} blocked, ${overdue} overdue. Open My Tasks.`}
         >
-          <p className="orb-label whitespace-nowrap text-[10.5px]">Tasks Status</p>
-          <div className="mt-2.5 space-y-1.5">
+          <p className="orb-label-sm whitespace-nowrap">Tasks Status</p>
+          <div className="mt-2 space-y-2">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-coral" aria-hidden="true" />
-              <span className="text-[18px] font-normal leading-none text-orb-heading">{blocked}</span>
-              <span className="text-[12.5px] text-orb-muted">Blocked</span>
+              <span className="text-[11px] font-bold leading-none text-orb-heading">{blocked}</span>
+              <span className="text-[11px] font-normal text-[#767676]">Blocked</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-tan" aria-hidden="true" />
-              <span className="text-[18px] font-normal leading-none text-orb-heading">{overdue}</span>
-              <span className="text-[12.5px] text-orb-muted">Overdue</span>
+              <span className="text-[11px] font-bold leading-none text-orb-heading">{overdue}</span>
+              <span className="text-[11px] font-normal text-[#767676]">Overdue</span>
             </div>
           </div>
         </button>
