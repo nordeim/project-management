@@ -167,14 +167,13 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <div className="flex items-center justify-between pt-2">
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="h-10 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-muted"
+                  className="orb-btn-cancel"
                   onClick={() => onOpenChange(false)}
                   disabled={busy}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="orb-pill" disabled={busy || !title.trim()}>
+                <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
                   {busy ? <Loader2 size={14} className="animate-spin" /> : null}
                   Continue
                 </Button>
@@ -220,8 +219,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <div className="flex items-center justify-between pt-2">
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="h-10 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-muted"
+                  className="orb-btn-cancel"
                   onClick={backToDetails}
                   disabled={busy}
                 >
@@ -230,7 +228,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 </Button>
                 <Button
                   type="button"
-                  className="orb-pill"
+                  className="orb-btn-dark"
                   onClick={() => void generate()}
                   disabled={busy}
                 >

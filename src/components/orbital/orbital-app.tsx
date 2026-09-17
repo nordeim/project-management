@@ -70,7 +70,18 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
 
   return (
     <div className="min-h-screen bg-orb-canvas p-6">
-      <div className="flex min-h-[calc(100vh-3rem)] gap-6">
+      {/* Decorative canvas glow (reference, v1.5): a fixed purple radial
+          gradient over the bottom-right of the page — pointer-events none,
+          under the content. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background:
+            "radial-gradient(600px at 87.4359% 95.3791%, rgba(201, 179, 245, 0.35) 0%, transparent 70%)",
+        }}
+      />
+      <div className="relative z-[1] flex min-h-[calc(100vh-3rem)] gap-6">
         {/* Desktop sidebar: a raised neumorphic panel on the canvas
             (reference layout, v1.4), collapsible to a 64px icon rail. */}
         <aside
@@ -104,14 +115,18 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="orb-scroll min-w-0 flex-1 overflow-y-auto px-4 pb-28 pt-5 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-7">
-            {view === "dashboard" ? <DashboardView /> : null}
-            {view === "goals" ? <GoalsView /> : null}
-            {view === "goal-detail" ? <GoalDetailView /> : null}
-            {view === "my-tasks" ? <MyTasksView /> : null}
-            {view === "activity" ? <ActivityView /> : null}
-            {view === "team" ? <TeamView /> : null}
-            {view === "settings" ? <SettingsView /> : null}
+          <main className="orb-scroll relative z-[1] min-w-0 flex-1 overflow-y-auto px-4 pb-28 pt-5 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-7">
+            {/* Content clamp (reference, v1.5): every view renders inside a
+                max-width 1200px column — the main area itself stays fluid. */}
+            <div className="mx-auto w-full max-w-[1200px]">
+              {view === "dashboard" ? <DashboardView /> : null}
+              {view === "goals" ? <GoalsView /> : null}
+              {view === "goal-detail" ? <GoalDetailView /> : null}
+              {view === "my-tasks" ? <MyTasksView /> : null}
+              {view === "activity" ? <ActivityView /> : null}
+              {view === "team" ? <TeamView /> : null}
+              {view === "settings" ? <SettingsView /> : null}
+            </div>
           </main>
 
           {/* Mobile bottom tab bar */}

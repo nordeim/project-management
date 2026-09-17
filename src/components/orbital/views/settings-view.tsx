@@ -91,6 +91,9 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
 
             <div className="mt-5 space-y-4">
               <p className="text-[13px] leading-relaxed text-orb-muted">AI will only send pings during these hours</p>
+              {/* Reference (v1.5): the time selects sit under an
+                  "Active Window" sub-header. */}
+              <p className="orb-label">Active Window</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="work-start" className={FIELD_LABEL}>

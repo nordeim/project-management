@@ -7,7 +7,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
-import { FaintRing, ProgressRing } from "@/components/orbital/progress-ring";
+import { ProgressRing } from "@/components/orbital/progress-ring";
 import { UserMenuOrLogin } from "@/components/orbital/user-menu";
 import { greetingFor, relativeTime, type ActivityDTO } from "@/lib/orbital";
 import { nextPlannedAction } from "@/lib/next-action";
@@ -43,20 +43,24 @@ function DateCard() {
   const year = now.getFullYear();
   return (
     <div
-      className="orb-card relative min-h-[210px] flex-1 overflow-hidden rounded-3xl"
+      className="orb-card relative h-[180px] flex-1 overflow-hidden"
       role="img"
       aria-label={`Today is ${month} ${day}, ${year}`}
     >
-      {/* Soft dusk landscape (bundled asset, OSS-sourced) */}
+      {/* Bright day landscape — the reference's date-card photo (v1.5,
+          extracted from the live app as day-hills.jpg, shown at 0.8 opacity). */}
       <img
-        src="/dusk-hills.jpg"
+        src="/day-hills.jpg"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover opacity-80"
       />
-      <div className="absolute bottom-4 left-4 rounded-2xl bg-white/95 px-4 py-3 shadow-[0_8px_24px_-10px_rgba(47,40,35,0.35)]">
-        <p className="text-[34px] font-medium leading-none text-orb-heading">{day}</p>
-        <p className="orb-label mt-1">
+      {/* Date square: raised panel pinned bottom-left (reference spec:
+          radius 12 — bg color utility + shadow utility, no custom class,
+          per the cascade rule). */}
+      <div className="absolute bottom-2.5 left-3 flex flex-col items-center rounded-[12px] bg-orb-raised px-3 py-2 shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)]">
+        <p className="text-[clamp(28px,3.5vw,52px)] font-light leading-none tracking-[-0.02em] text-[#2E2A26]">{day}</p>
+        <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#7A7470]">
           {month} {year}
         </p>
       </div>
@@ -133,8 +137,9 @@ export function DashboardView() {
     <div className="w-full">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-normal tracking-tight text-orb-heading sm:text-[32px]">{greeting}</h1>
-          <p className="mt-1 text-[14px] text-orb-muted">Here&apos;s what&apos;s happening across your projects today.</p>
+          {/* Reference (v1.5): the greeting is 28px at every breakpoint. */}
+          <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">{greeting}</h1>
+          <p className="mt-1.5 text-[14px] text-orb-muted">Here&apos;s what&apos;s happening across your projects today.</p>
         </div>
         <div className="flex items-center gap-3">
           <UserMenuOrLogin />
@@ -147,28 +152,33 @@ export function DashboardView() {
         </div>
       </header>
 
-      <section className="mt-7 flex flex-col gap-4 md:flex-row" aria-label="Overview">
-        <DateCard />
-        <button
-          type="button"
-          onClick={() => navigate("goals")}
-          className="orb-card flex min-h-[210px] w-full flex-col items-center justify-center gap-1 p-5 transition-transform hover:-translate-y-0.5 md:w-[280px]"
-          aria-label={`${stats?.completionRate ?? 0}% of all tasks done. Open goals.`}
-        >
-          {/* 156px inset neumorphic circle (measured from the reference) */}
-          <div
-            className="flex items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.8),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
-            style={{ width: 156, height: 156 }}
+      {/* Hero row (reference, v1.5): a 2×2 grid — top-left cell holds the
+          date card + 180px ring card side by side, top-right holds the stats
+          panel; bottom row = Agent Activity + Goals at equal widths. */}
+      <section className="mt-7 grid grid-cols-1 gap-4 lg:grid-cols-2" aria-label="Overview">
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <DateCard />
+          <button
+            type="button"
+            onClick={() => navigate("goals")}
+            className="orb-card flex h-[180px] w-full shrink-0 items-center justify-center sm:w-[180px]"
+            aria-label={`${stats?.completionRate ?? 0}% of all tasks done. Open goals.`}
           >
-            <FaintRing value={stats?.completionRate ?? 0} size={118} thickness={10}>
-              <span className="text-[30px] font-normal leading-none text-orb-heading">{stats?.completionRate ?? 0}%</span>
-              <span className="orb-label mt-1">done</span>
-            </FaintRing>
-          </div>
-        </button>
+            {/* Inset neumorphic circle (reference, v1.5): a plain CSS well —
+                no SVG progress ring; big light numerals inside. */}
+            <div
+              className="flex h-[calc(100%-12px)] w-[calc(100%-12px)] flex-col items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.8),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
+            >
+              <span className="text-[clamp(28px,3.5vw,52px)] font-light leading-none tracking-[-0.03em] text-orb-heading">
+                {stats?.completionRate ?? 0}%
+              </span>
+              <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted">done</span>
+            </div>
+          </button>
+        </div>
         {/* One unified stats card with three columns (reference layout:
-            whitespace between columns, no divider lines) */}
-        <div className="orb-card flex min-h-[210px] flex-1 items-stretch gap-1 p-1" aria-label="Statistics">
+            whitespace between columns, no divider lines). */}
+        <div className="orb-card flex min-h-[180px] flex-1 items-stretch gap-1 p-1" aria-label="Statistics">
           <StatColumn
             label="Active Goals"
             labelShort="Active Goals"
@@ -196,14 +206,13 @@ export function DashboardView() {
         </div>
       </section>
 
-      <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]" aria-label="Activity and goals">
+      <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2" aria-label="Activity and goals">
         <div className="orb-card p-5 sm:p-6">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-[15px] font-semibold text-orb-heading">
-              <span className="relative flex h-2 w-2" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orb-green opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-orb-green" />
-              </span>
+              {/* Reference (v1.5): a single 7px green dot with a gentle
+                  pulse — not Tailwind's expanding ping ring. */}
+              <span className="orb-live-dot" aria-hidden="true" />
               <span className="orb-label !text-[12px] !font-semibold">Agent Activity</span>
             </h2>
             <button

@@ -6,7 +6,6 @@
 import { useState } from "react";
 import { Loader2, Send } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -36,7 +35,9 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
 
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent>
+      {/* Reference spec (v1.5): the check-in modal is a 448px / radius-16
+          panel — smaller than the 500px form dialogs. */}
+      <DialogContent className="sm:max-w-[448px] rounded-[16px]">
         <DialogHeader>
           <DialogTitle className="text-left text-[17px] leading-snug text-orb-heading">{task.title}</DialogTitle>
         </DialogHeader>
@@ -53,47 +54,52 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
 
         <div className="space-y-3">
           <p className="orb-label">Post Status Update</p>
+          {/* Reference (v1.5): plain radio labels in a 2-col grid — no card
+              wrappers, no borders; 14px fw 500 charcoal text. */}
           <RadioGroup
             value={status ?? undefined}
             onValueChange={(v) => setStatus(v as UpdateStatus)}
-            className="grid grid-cols-2 gap-2"
+            className="grid grid-cols-2 gap-x-3 gap-y-2"
           >
             {OPTIONS.map((option) => (
               <Label
                 key={option}
                 htmlFor={`update-${option}`}
                 className={cn(
-                  "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-2xl border px-4 text-[13.5px] font-medium transition-colors",
-                  status === option
-                    ? "border-orb-purple/50 bg-orb-purple/10 text-orb-heading"
-                    : "border-black/[0.07] bg-orb-inset/40 text-orb-muted hover:bg-orb-inset/70",
+                  "flex cursor-pointer items-center gap-2.5 text-[14px] font-medium transition-colors",
+                  status === option ? "text-orb-heading" : "text-orb-body",
                 )}
               >
-                <RadioGroupItem id={`update-${option}`} value={option} className="border-black/20" />
+                <RadioGroupItem id={`update-${option}`} value={option} className="border-black/25" />
                 {UPDATE_STATUS_META[option].label}
               </Label>
             ))}
           </RadioGroup>
 
+          {/* Reference (v1.5): bordered transparent textarea — 1px
+              #D8D4CF, radius 14, 80px tall (not a well). */}
           <Textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add a note (optional)..."
-            rows={2}
+            rows={3}
             maxLength={1000}
-            className=""
+            className="h-20 rounded-[14px] border border-[#D8D4CF] bg-transparent px-3 py-2 text-[14px] text-orb-body placeholder:text-orb-muted focus-visible:border-orb-purple/60 focus-visible:ring-0"
             aria-label="Status update note"
           />
 
-          <Button
+          {/* Reference (v1.5): dark primary pill — #2F2823 bg, white text,
+              radius 14, 32px tall, Send icon, literal Title Case label
+              (.orb-btn-post is the dedicated class for this variant). */}
+          <button
             type="button"
-            className="orb-pill w-full"
+            className="orb-btn-post"
             disabled={!status || busy}
             onClick={() => void submit()}
           >
-            {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={13} />}
+            {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} aria-hidden="true" />}
             Post Update
-          </Button>
+          </button>
         </div>
 
         {task.updates.length > 0 ? (

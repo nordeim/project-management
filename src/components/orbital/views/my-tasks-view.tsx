@@ -1,7 +1,10 @@
 "use client";
 
 // My Tasks: tasks assigned to the signed-in user, filterable by status.
-// Deletes confirm inline on the task card (reference pattern).
+// Reference (v1.5): the filter row ships five tabs — All / Pending /
+// In Progress / Blocked / Done (no "Need Help" tab, though the status
+// itself stays in the vocabulary). Deletes confirm inline on the task
+// card (reference pattern).
 
 import { useMemo, useState } from "react";
 import { CheckSquare } from "lucide-react";
@@ -18,7 +21,6 @@ const FILTERS: Array<{ id: "all" | TaskStatus; label: string }> = [
   { id: "pending", label: "Pending" },
   { id: "in_progress", label: "In Progress" },
   { id: "blocked", label: "Blocked" },
-  { id: "need_help", label: "Need Help" },
   { id: "done", label: "Done" },
 ];
 

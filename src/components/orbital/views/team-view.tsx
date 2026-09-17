@@ -4,7 +4,7 @@
 // workspace (like the reference); INVITE MEMBER and NEW AGENT populate it.
 
 import { useState } from "react";
-import { Bot, UserPlus, Users } from "lucide-react";
+import { Bot, Plus, Users } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { EmptyState } from "@/components/orbital/empty-state";
 import { AvatarBubble } from "@/components/orbital/widgets";
@@ -29,13 +29,13 @@ export function TeamView() {
         </div>
         <button
           type="button"
-          className="orb-pill"
+          className="orb-pill-round"
           onClick={() => {
             setInviteKind("human");
             setInviteOpen(true);
           }}
         >
-          <UserPlus size={14} aria-hidden="true" />
+          <Plus size={14} aria-hidden="true" />
           Invite Member
         </button>
       </header>
@@ -49,13 +49,13 @@ export function TeamView() {
             action={
               <button
                 type="button"
-                className="orb-ghost-pill"
+                className="orb-pill-round"
                 onClick={() => {
                   setInviteKind("human");
                   setInviteOpen(true);
                 }}
               >
-                <UserPlus size={14} aria-hidden="true" /> Invite Member
+                <Plus size={14} aria-hidden="true" /> Invite Member
               </button>
             }
           />
@@ -82,13 +82,13 @@ export function TeamView() {
           </div>
           <button
             type="button"
-            className="orb-ghost-pill"
+            className="orb-pill-round"
             onClick={() => {
               setInviteKind("agent");
               setInviteOpen(true);
             }}
           >
-            <Bot size={14} aria-hidden="true" />
+            <Plus size={14} aria-hidden="true" />
             New Agent
           </button>
         </div>
@@ -102,13 +102,13 @@ export function TeamView() {
               action={
                 <button
                   type="button"
-                  className="orb-ghost-pill"
+                  className="orb-pill-round"
                   onClick={() => {
                     setInviteKind("agent");
                     setInviteOpen(true);
                   }}
                 >
-                  <Bot size={14} aria-hidden="true" /> New Agent
+                  <Plus size={14} aria-hidden="true" /> New Agent
                 </button>
               }
             />

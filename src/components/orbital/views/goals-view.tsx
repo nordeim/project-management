@@ -54,7 +54,7 @@ function GoalCard({
   }
 
   return (
-    <div className="orb-card p-5 transition-transform hover:-translate-y-0.5">
+    <div className="orb-card px-5 py-[18px] transition-transform hover:-translate-y-0.5">
       <div className="flex w-full items-start justify-between gap-4 text-left">
         <button
           type="button"
@@ -62,28 +62,27 @@ function GoalCard({
           className="min-w-0 flex-1 text-left"
           aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
         >
-          <div className="flex items-center gap-2">
-            <span
-              className="orb-well-pill flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
-              style={{ color: meta.color }}
-            >
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: meta.color }} aria-hidden="true" />
+          {/* Status chip (reference, v1.5): inset well pill — gray label,
+              a light-purple pip for EVERY status, an inline red blocked
+              count, and a trailing chevron. */}
+          <div className="mb-3">
+            <span className="orb-well-pill inline-flex items-center gap-[5px] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C9B3F5]" aria-hidden="true" />
               {meta.label}
-            </span>
-            {goal.blockedCount > 0 && goal.status === "active" ? (
-              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-coral-deep">
-                · {goal.blockedCount} Blocked
+              {goal.blockedCount > 0 && goal.status === "active" ? (
+                <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
+              ) : null}
+              <span className="text-[11px] text-[#767676]" aria-hidden="true">
+                ›
               </span>
-            ) : null}
-            <span className="text-[11px] text-orb-muted" aria-hidden="true">
-              ›
             </span>
           </div>
-          <p className="mt-1.5 truncate text-[16px] font-semibold text-orb-heading">{goal.title}</p>
+          <p className="mb-3.5 truncate text-[20px] font-medium leading-[1.2] text-orb-heading">{goal.title}</p>
 
-          {/* Horizontal progress bar on the inset track (reference pattern) */}
+          {/* Horizontal progress bar on the inset track (reference pattern;
+              track reads as pressed-in — 6px with the standard inset pair) */}
           <div
-            className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-1px_-1px_2px_rgba(255,250,244,0.68),inset_1px_1px_2px_rgba(160,143,126,0.24)]"
+            className="h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
@@ -96,13 +95,14 @@ function GoalCard({
             />
           </div>
 
-          <p className="mt-2.5 text-[13px] text-orb-muted">
+          {/* Meta (reference, v1.5): task fraction on line 1, date on line 2. */}
+          <p className="mb-1 text-[12px] text-orb-muted">
             {goal.doneCount}/{goal.taskCount} tasks · {pct}%
             {goal.blockedCount > 0 && goal.status === "active" ? (
               <span className="sm:hidden"> · {goal.blockedCount} blocked</span>
             ) : null}
-            {goal.targetDate ? <span className="ml-3">{formatDate(goal.targetDate)}</span> : null}
           </p>
+          {goal.targetDate ? <p className="text-[12px] text-[#767676]">{formatDate(goal.targetDate)}</p> : null}
         </button>
 
         {/* Right column: big percentage, fraction, then actions

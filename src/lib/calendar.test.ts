@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSameDay, monthGrid, type CalendarCell } from "./calendar";
+import { formatLongDate, isSameDay, monthGrid, type CalendarCell } from "./calendar";
 
 describe("monthGrid", () => {
   it("returns a 6x7 grid (42 cells) for every month", () => {
@@ -82,5 +82,40 @@ describe("isSameDay", () => {
     const cell: CalendarCell = { year: 2026, month: 8, day: 17, inMonth: true };
     expect(isSameDay(cell, new Date(2026, 8, 17, 12, 0))).toBe(true);
     expect(isSameDay(cell, new Date(2026, 8, 18, 12, 0))).toBe(false);
+  });
+});
+
+describe("formatLongDate", () => {
+  it("formats with full month, ordinal day, comma year", () => {
+    expect(formatLongDate(new Date(2026, 8, 20))).toBe("September 20th, 2026");
+  });
+
+  it("uses 1st / 2nd / 3rd ordinals", () => {
+    expect(formatLongDate(new Date(2026, 0, 1))).toBe("January 1st, 2026");
+    expect(formatLongDate(new Date(2026, 0, 2))).toBe("January 2nd, 2026");
+    expect(formatLongDate(new Date(2026, 0, 3))).toBe("January 3rd, 2026");
+  });
+
+  it("uses 11th / 12th / 13th for the teens", () => {
+    expect(formatLongDate(new Date(2026, 0, 11))).toBe("January 11th, 2026");
+    expect(formatLongDate(new Date(2026, 0, 12))).toBe("January 12th, 2026");
+    expect(formatLongDate(new Date(2026, 0, 13))).toBe("January 13th, 2026");
+  });
+
+  it("uses 21st / 22nd / 23rd / 31st for the tens", () => {
+    expect(formatLongDate(new Date(2026, 0, 21))).toBe("January 21st, 2026");
+    expect(formatLongDate(new Date(2026, 0, 22))).toBe("January 22nd, 2026");
+    expect(formatLongDate(new Date(2026, 0, 23))).toBe("January 23rd, 2026");
+    expect(formatLongDate(new Date(2026, 0, 31))).toBe("January 31st, 2026");
+  });
+
+  it("covers every month with its full name", () => {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ];
+    months.forEach((m, i) => {
+      expect(formatLongDate(new Date(2026, i, 15))).toBe(`${m} 15th, 2026`);
+    });
   });
 });

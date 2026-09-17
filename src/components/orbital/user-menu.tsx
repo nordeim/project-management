@@ -59,7 +59,7 @@ export function UserMenuOrLogin() {
           }}
           className="flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-[13px] font-medium text-[#bd3228] transition-colors hover:bg-black/[0.03]"
         >
-          <LogOut size={15} aria-hidden="true" />
+          <LogOut size={24} strokeWidth={2} aria-hidden="true" />
           Log Out
         </button>
       </PopoverContent>

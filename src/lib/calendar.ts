@@ -49,3 +49,22 @@ export function isSameDay(
   const bD = b instanceof Date ? b.getDate() : b.day;
   return aY === bY && aM === bM && aD === bD;
 }
+
+/** English ordinal suffix for a day of the month (1st, 2nd, 3rd, 11th…). */
+function dayOrdinal(day: number): string {
+  if (day % 100 >= 11 && day % 100 <= 13) return "th";
+  if (day % 10 === 1) return "st";
+  if (day % 10 === 2) return "nd";
+  if (day % 10 === 3) return "rd";
+  return "th";
+}
+
+/**
+ * Long date format used by the wizard's date-picker trigger
+ * (measured from the reference: "September 20th, 2026" — full month,
+ * ordinal day, comma year).
+ */
+export function formatLongDate(date: Date): string {
+  const month = date.toLocaleDateString("en-US", { month: "long" });
+  return `${month} ${date.getDate()}${dayOrdinal(date.getDate())}, ${date.getFullYear()}`;
+}

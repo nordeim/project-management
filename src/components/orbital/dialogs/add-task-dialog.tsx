@@ -186,14 +186,13 @@ export function AddTaskDialog({
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button
               type="button"
-              variant="ghost"
-              className="h-10 rounded-full px-5 text-[13px] font-medium text-orb-muted"
+              className="orb-btn-cancel"
               onClick={() => onOpenChange(false)}
               disabled={busy}
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-pill" disabled={busy || !title.trim()}>
+            <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               Add Task
             </Button>

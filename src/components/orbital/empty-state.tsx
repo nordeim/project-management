@@ -1,6 +1,8 @@
 "use client";
 
 // Friendly empty state used by My Tasks, Team, Activity, Goals.
+// Reference (v1.5): empty states render directly on the canvas — no card
+// wrapper, no border or shadow.
 
 export function EmptyState({
   icon,
@@ -14,7 +16,7 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="orb-card flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
+    <div className="flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
       <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-orb-inset text-orb-muted" aria-hidden="true">
         {icon}
       </div>

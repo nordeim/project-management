@@ -211,6 +211,87 @@
     pointer-events: none;
     opacity: 0.4;
   }
+  /* Dark primary submit (measured from the reference, v1.5): every in-dialog
+     primary action — Post Update, Continue, Add Task, Save — renders a
+     charcoal pill with near-white text, NOT a neumorphic raised button.
+     Radius 10, 11-12px, fw 600; page-level actions (NEW GOAL, ADD TASK,
+     DELETE) stay neumorphic. */
+  .orb-btn-dark {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 0 16px;
+    background-color: var(--orb-heading);
+    color: #f1f1f0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: -3px -3px 7px rgba(255, 250, 244, 0.5), 4px 4px 10px rgba(160, 143, 126, 0.36);
+    transition: background-color 150ms ease;
+  }
+  .orb-btn-dark:hover:not(:disabled) {
+    background-color: #2f2823;
+  }
+  .orb-btn-dark:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  /* The check-in modal's Post Update button (measured): same dark pill but
+     radius 14, 32px tall, 12px fw 500, literal Title Case label — content
+     sized (121px measured), not full width. Dedicated class because
+     .orb-btn-dark (custom layer) beats generated utilities. */
+  .orb-btn-post {
+    display: inline-flex;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 14px;
+    padding: 0 20px;
+    background-color: #2f2823;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: -3px -3px 7px rgba(255, 250, 244, 0.5), 4px 4px 10px rgba(160, 143, 126, 0.36);
+    transition: background-color 150ms ease;
+  }
+  .orb-btn-post:hover:not(:disabled) {
+    background-color: #2f2823;
+  }
+  .orb-btn-post:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  /* Secondary cancel inside dialogs (reference): a soft inset well button
+     with muted text, radius 10. */
+  .orb-btn-cancel {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 0 16px;
+    background-color: var(--orb-well);
+    color: var(--orb-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: inset -2px -2px 5px rgba(255, 250, 244, 0.68), inset 2px 2px 5px rgba(160, 143, 126, 0.24);
+    transition: color 150ms ease;
+  }
+  .orb-btn-cancel:hover:not(:disabled) {
+    color: var(--orb-heading);
+  }
+  .orb-btn-cancel:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
   /* Inset well: inputs, chips, icon squares, clock face */
   .orb-well {
     border-radius: 10px;
@@ -302,6 +383,33 @@
     box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
     transition: color 150ms ease;
   }
+  /* Round pill variant (reference, v1.5): the Team view's Invite Member /
+     New Agent buttons are fully-rounded raised pills. Dedicated class —
+     a rounded-full utility would lose to .orb-pill's radius in the cascade. */
+  .orb-pill-round {
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 11px 20px;
+    background-color: var(--orb-raised);
+    color: var(--orb-heading);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+    transition: color 150ms ease;
+  }
+  .orb-pill-round:hover:not(:disabled) {
+    color: var(--orb-body);
+  }
+  .orb-pill-round:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
   .orb-pill-outline:hover:not(:disabled) {
     color: var(--orb-body);
   }
@@ -322,6 +430,28 @@
 }
 .orb-scroll::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Live-status dot (reference, v1.5): a 7px green dot with a gentle
+   opacity/scale pulse — softer than Tailwind's expanding ping ring. */
+.orb-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: var(--orb-green);
+  animation: orb-live-pulse 2.4s ease-in-out infinite;
+}
+@keyframes orb-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
