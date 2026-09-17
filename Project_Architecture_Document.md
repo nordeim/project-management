@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v1.5
+# ORBITAL — Master Project Architecture Document (PAD) v1.6
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,15 @@
 **Last Updated:** 2026-09-17
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v1.6
+
+- `[MOD]` **Card system re-measured into THREE tiers** (side-by-side computed-style probes on the live app): standard pair `-5px/-5px/10px 0.78` + `5px/5px/12px 0.27` (buttons, small ui); deeper row pair at alpha `0.92`/`0.36` (goal cards r16 `.orb-goal-card`, task cards + activity feed r14 `.orb-row-card`); large panel pair `-8px/-8px/16px 0.78` + `8px/8px/18px 0.31` (dashboard panels, settings cards, goal-detail stat cards — `.orb-panel` r16). `.orb-task-blocked` re-scoped to the coral inset ring only (composes with `.orb-row-card`); `.orb-pill-round` re-measured as a radius-12 rectangle (NOT a round pill).
+- `[MOD]` **The desktop sidebar is STICKY** (measured: `position: sticky; top: 0; height ≈ viewport − 40px`, clock block via `mt-auto`) — the clock / TASKS STATUS / collapse control stay visible while main scrolls. Previously the sidebar stretched with the page and the clock sat below the fold.
+- `[MOD]` **Task cards rebuilt flat** (measured): radius-14 deeper card (`p 14px 18px`) holding only [gray 11px/500 status chip + colored dot | 14px/500 title (coral when blocked) | 12px one-line description | 11px meta with 11px lucide icons]; the AI badge becomes a solid `#EEEAE6` chip (r6, 10px/500 `#996CE4`, no icon); the 26px radius-7 raised action squares sit OUTSIDE the shadowed card, pinned top-right. The whole row opens the check-in modal. (Also fixed a latent cascade bug: `orb-card rounded-[14px]` rendered radius 16 — the custom class won.)
+- `[MOD]` **Activity feed rebuilt** (TDD): the most recent entry renders as a standalone hero card; the rest group under uppercase 10px/600 date labels ("THU JUL 16 2026") with each day wrapped in one big radius-14 deeper card; the online indicator shows the count only ("Online · 36"). New pure seam `src/lib/activity-groups.ts` (`groupActivityByDate`) with 8 specs — 85 → 93 unit checks.
+- `[MOD]` **Mobile chrome matches the reference**: a sticky full-bleed app bar (ORBITAL logo + user pill, 62px, bottom drop shadow) replaces the desktop greeting header below `lg`; the date card + ring sit side-by-side even at 390px; the bottom tab bar is a floating rounded-24 raised pill with the active tab on an inset well highlight.
+- `[MOD]` **Dashboard panel internals**: grid gap 16 → 20px; ring card `p-6` (inner circle 156px); stats panel `p 20/24` with `p 10/8` columns; the activity card goes `p-0` with full-width rows (`p 14/18`, 30px solid icon circles `#C9B3F5`/`#2ECC8A` with 13px `square-check-big` glyphs); the goals card `p 20/18/0` with inset-well rows (`p 12/14`) and 60px SVG rings. Goal-detail stat cards move to the large tier at a 2:1 ratio (pct 24px, blocked count 26px `#FF7043`); settings cards to the large tier (`p 22/24`, headers 13px, inputs 38px/13px, "Active Window" 12px/600 Title Case above the description); the goals-view card splits into a 952px left column + 120px stats column with a 42px/500 percentage and flat gray 29×23 actions.
 
 #### Revision Block — v1.5
 
@@ -317,6 +326,8 @@ Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
 │       ├── checkin.ts             ← check-in → task-status mapping
 │       ├── calendar.ts            ← month-grid math for the date picker — unit
 │       │                            tested (monthGrid, isSameDay)
+│       ├── activity-groups.ts      ← activity feed date grouping — unit
+│       │                            tested (groupActivityByDate, v1.6)
 │       ├── rate-limit.ts          ← fixed-window auth throttling (ADR-009)
 │       ├── team.ts                ← invite/agent form normalization — unit tested
 │       ├── next-action.ts         ← dashboard next-planned-action derivation — unit tested
@@ -496,7 +507,7 @@ Declared as CSS variables in `src/app/globals.css`, exposed to Tailwind 4 via `@
 
 Status → color binding is centralized in `TASK_STATUS_META` (dot + text colors per status), so a status never renders with an ad-hoc color. The legacy `tailwind.config.ts` carries only shadcn/ui HSL tokens and `tailwindcss-animate`.
 
-**Primitive classes** (same file, `@layer utilities`): `.orb-raised` (radius 16), `.orb-raised-lg` (radius 20 — sidebar, dialogs, stat blocks), `.orb-raised-btn` (radius 12 buttons), `.orb-well` (radius 10 insets), `.orb-well-pill` (full-radius chips), `.orb-card` (alias of raised), `.orb-task-blocked` (blocked-card coral ring), plus the `.orb-pill` action family. **Cascade rule:** these custom classes are emitted after Tailwind's generated utilities — never pair an arbitrary `shadow-[…]` utility with `.orb-card`/`.orb-raised` on one element (the utility loses); use a dedicated custom class for shadow overrides.
+**Primitive classes** (same file, `@layer utilities`) across **three measured card tiers** (v1.6): `.orb-raised` (radius 16, standard pair — buttons/small ui), `.orb-raised-lg` (radius 20 — sidebar), `.orb-panel` (radius 16, large pair — dashboard/settings/stat panels), `.orb-row-card` (radius 14, deeper pair — task cards, activity feed), `.orb-goal-card` (radius 16, deeper pair — goal cards), `.orb-raised-btn` (radius 12 buttons), `.orb-well` (radius 10 insets), `.orb-well-pill` (full-radius chips), `.orb-card` (legacy standard alias), `.orb-task-blocked` (blocked-card coral ring), plus the `.orb-pill` action family. **Cascade rule:** these custom classes are emitted after Tailwind's generated utilities — never pair an arbitrary `shadow-[…]` utility with `.orb-card`/`.orb-raised` on one element (the utility loses); use a dedicated custom class for shadow overrides.
 
 ### 5.3 Component Primitives
 
@@ -563,17 +574,17 @@ v1.4 auth surface (mirrors the reference): unauthenticated visits render the wor
 | Category | Files | Checks | Location | Framework |
 |----------|-------|--------|----------|-----------|
 | End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 30 | `scripts/` | Bash + curl + python3 (no test framework needed) |
-| Unit (pure domain seams) | 8 (`src/lib/*.test.ts`) | 85 | `src/lib/` | Vitest 5 (`bun run test`) |
+| Unit (pure domain seams) | 9 (`src/lib/*.test.ts`) | 93 | `src/lib/` | Vitest 5 (`bun run test`) |
 
 ### 7.2 Test Patterns
 
-The unit layer (`bun run test`, ~1.1s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule), `rate-limit.test.ts` (fixed-window accounting, expired-bucket eviction, limit boundary, retry-after math), `team.test.ts` (email → display-name derivation, agent-field normalization bounds), `next-action.test.ts` (next-planned-action extraction incl. the v1.3 name-prefix regression), `logo-geometry.test.ts` (six-dot ring angles, 1-2-3 pyramid rows), `calendar.test.ts` (month-grid boundaries, leap February, the 6-row invariant, `isSameDay`, and — added v1.5 — `formatLongDate` ordinals: 1st/2nd/3rd, 11th–13th, 21st/22nd/23rd, all twelve months). All v1.1–v1.5 logic changes were written red → green at these seams.
+The unit layer (`bun run test`, ~1.1s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule), `rate-limit.test.ts` (fixed-window accounting, expired-bucket eviction, limit boundary, retry-after math), `team.test.ts` (email → display-name derivation, agent-field normalization bounds), `next-action.test.ts` (next-planned-action extraction incl. the v1.3 name-prefix regression), `logo-geometry.test.ts` (six-dot ring angles, 1-2-3 pyramid rows), `calendar.test.ts` (month-grid boundaries, leap February, the 6-row invariant, `isSameDay`, and — added v1.5 — `formatLongDate` ordinals: 1st/2nd/3rd, 11th–13th, 21st/22nd/23rd, all twelve months), `activity-groups.test.ts` (added v1.6: feed date grouping — order, labels, midnight boundaries, the "Today" group). All v1.1–v1.6 logic changes were written red → green at these seams.
 
 The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` each return the app shell; an unknown path must 404), the **clarify endpoint** (three questions returned; title-less payload rejected 400), **team validation** (invite with an invalid email rejected 400; agent without a name rejected 400), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
 
 ### 7.3 Coverage Thresholds
 
-- **Gate (mandatory before push):** `bun run lint` → `bun run typecheck` → `bun run test` (**85/85**) → `bun run build` → `./scripts/smoke-test.sh` with **30/30 PASS**. There is no hosted CI; this local gate is the only gate. The `typecheck` step is not optional: `next.config.ts` sets `ignoreBuildErrors`, so the build alone will not surface type errors.
+- **Gate (mandatory before push):** `bun run lint` → `bun run typecheck` → `bun run test` (**93/93**) → `bun run build` → `./scripts/smoke-test.sh` with **30/30 PASS**. There is no hosted CI; this local gate is the only gate. The `typecheck` step is not optional: `next.config.ts` sets `ignoreBuildErrors`, so the build alone will not surface type errors.
 - Line/branch coverage is not measured — the seam list is small and deliberately complete (see ADR-008).
 
 ### 7.4 Pre-Push Checklist
@@ -581,7 +592,7 @@ The smoke suite boots the **production standalone server** (not dev mode), polls
 - [ ] `bun run lint` exits 0
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run build` compiles clean
-- [ ] `bun run test` → 85/85 PASS
+- [ ] `bun run test` → 93/93 PASS
 - [ ] `./scripts/smoke-test.sh` → 30/30 PASS
 - [ ] New/changed endpoints write their `ActivityLog` entries (Pattern D)
 - [ ] Schema changes regenerated (`bunx prisma generate`) and reseeded (`db:push` + `db:seed`)
@@ -634,7 +645,7 @@ bun run db:seed            # canonical demo workspace
 bun run dev                # http://localhost:3000
 ```
 
-Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 30/30 PASS; unit layer via `bun run test`, 85/85).
+Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 30/30 PASS; unit layer via `bun run test`, 93/93).
 
 ### 9.2 Common Commands
 
@@ -690,18 +701,20 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 |------|-------|---------|
 | `src/components/orbital/store.ts` | 374 | The Zustand store: all server state, `call()` envelope client, every action + refresh set; skips fetches while `user` is null |
 | `prisma/seed.ts` | 265 | Idempotent demo workspace: user, 10 people, 3 goals, 31 tasks, 22 activity rows |
-| `src/app/globals.css` | 465 | Tailwind 4 `@theme` tokens, neumorphic primitive classes, base styles, reduced-motion query |
+| `src/app/globals.css` | 495 | Tailwind 4 `@theme` tokens, neumorphic primitive classes, base styles, reduced-motion query |
 | `src/components/orbital/views/dashboard-view.tsx` | 286 | Dashboard: greeting card, unified stats, faint done ring, activity preview, mobile abbreviated labels |
 | `src/components/orbital/login-screen.tsx` | 277 | LoginCard — the `/login` auth card: sign-in / sign-up / forgot states, Google degrade |
-| `src/components/orbital/orbital-app.tsx` | 221 | App shell (nullable user): collapsible desktop sidebar, mobile tab bar + MORE sheet, popstate wiring |
-| `src/components/orbital/views/goals-view.tsx` | 238 | Goals grid: neumorphic cards, filter chips, inline delete confirm |
-| `src/components/orbital/views/goal-detail-view.tsx` | 199 | Goal detail: 2-stat row, inline ADD TASK, header inline delete confirm |
+| `src/components/orbital/orbital-app.tsx` | 246 | App shell (nullable user): collapsible desktop sidebar, mobile tab bar + MORE sheet, popstate wiring |
+| `src/components/orbital/views/goals-view.tsx` | 239 | Goals grid: neumorphic cards, filter chips, inline delete confirm |
+| `src/components/orbital/views/goal-detail-view.tsx` | 203 | Goal detail: 2-stat row, inline ADD TASK, header inline delete confirm |
 | `src/components/orbital/views/settings-view.tsx` | 207 | Settings: 2-column layout (Workspace + Hours / AI Assistant), well inputs |
 | `src/components/orbital/dialogs/new-goal-dialog.tsx` | 260 | 3-step AI wizard: describe (+ DatePicker) → clarifying questions → generate |
 | `src/app/login/page.tsx` | 26 | Real `/login` route: auth-card shell, `?from_url` handling, authed redirect |
 | `src/components/ui/date-picker.tsx` | 139 | Custom date picker: well trigger + popover calendar on the `calendar.ts` seam |
 | `src/lib/calendar.test.ts` | 121 | Month-grid specs: boundaries, leap February, 6-row invariant, `isSameDay` |
 | `src/lib/calendar.ts` | 70 | Pure month-grid math (`monthGrid`, `isSameDay`) — unit tested |
+| `src/lib/activity-groups.ts` | 56 | Activity feed date grouping (`groupActivityByDate`) — unit tested |
+| `src/lib/activity-groups.test.ts` | 71 | Feed grouping specs: order, labels, midnight boundaries, "Today" |
 | `src/components/orbital/sidebar.tsx` | 181 | Collapsible nav: sections, clock + tasks-status row, chevron toggle |
 | `src/lib/router.ts` | 91 | View ↔ path mapping (`parseUrl` / `toPath`), legacy link support — unit tested |
 | `src/lib/orbital.ts` | 154 | Domain types, DTOs, status metadata (labels + colors), overdue helper |
@@ -713,8 +726,8 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `src/components/orbital/sidebar-clock.tsx` | 70 | Neumorphic analog clock (SVG, 15s tick) |
 | `src/lib/auth.ts` | 91 | scrypt hashing, HMAC session tokens, cookie lifecycle |
 | `src/lib/plan-sanitizer.ts` | 54 | AI task-plan bounds + deterministic template — unit tested |
-| `src/components/orbital/user-menu.tsx` | 68 | UserMenuOrLogin: neumorphic trigger + Log Out popover, or LOG IN button |
-| `src/components/orbital/task-card.tsx` | 163 | Task row: status, AI badge, coral blocked title + `.orb-task-blocked` ring, inline "Delete? Yes No" confirm |
+| `src/components/orbital/user-menu.tsx` | 78 | UserMenuOrLogin: neumorphic trigger + Log Out popover, or LOG IN button |
+| `src/components/orbital/task-card.tsx` | 149 | Task row: status, AI badge, coral blocked title + `.orb-task-blocked` ring, inline "Delete? Yes No" confirm |
 | `src/components/orbital/dialogs/invite-member-dialog.tsx` | 207 | Invite Member (email + role) / Create AI Agent (name/description/instructions) |
 | `src/components/orbital/sidebar-collapse.ts` | 37 | Collapse state: `useSyncExternalStore` + localStorage |
 | `src/lib/db.ts` | 51 | Prisma singleton + SQLite URL normalization (Pattern B) |
