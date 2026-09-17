@@ -1,114 +1,32 @@
-Workspace exists with v1.5 committed locally. Let me pull the latest from remote and check the docs status.
-Workspace refreshed — `docs/session_8.md` is new. Let me set up the task plan and read the key docs.
-Now let me read README.md and the architecture doc.
-Let me read the architecture doc directly in chunks.
-Now the session and remediation docs.
-`docs/session_8.md` turns out to be a raw transcript dump of the v1.5 session (committed as "update session log"), not a proper session log — a doc defect to fix this round. Now let me validate the codebase against the documented v1.5 claims.
-The worklog confirms Session 7's v1.5 was fully delivered. Now let me validate the v1.5 claims against the codebase and run the gate.
-Lint, typecheck, and 85/85 unit tests all green. Now the production build.
-Full gate green — all v1.5 claims hold. Now let me check the skills catalog and start the fresh parity crawl (v1.6 evidence round).
-Browser is up with the live app. Let me set up the research directory and crawl the live reference app.
-Live app shows the unauth shell as expected. Let me log in for the deep crawl.
-Signed in. Now let me capture the authenticated dashboard and probe it.
-Now let me probe the live dashboard structure in depth.
-Live 2×2 grid confirmed (526×526 cols, 180px top row). Now let me boot the clone's production server for side-by-side comparison.
-The clone grid uses gap-16 (528px cells) vs live gap-20 (526px cells), and the bottom row is taller (657 vs 511). Let me set up parallel browser sessions for efficient side-by-side probing.
-Both sessions are authenticated and independent. Let me write a reusable side-by-side probe script.
-The probe missed the clone's `<section>` grids. Let me fix the probe to search all elements.
-First deltas found: grid gap 16 vs 20px, and bottom-row panel height 657 vs 511px. Let me dig into the panel contents.
-Key finding: live's Agent Activity panel appears to have NO card wrapper while Goals does. Let me verify.
-The clone's DB is showing empty stats — the smoke suite left it depleted. Let me re-seed and re-measure.
-API returns correct data (84%, 31 tasks). The browser page was mid-reload. Let me re-measure after settling.
-The clone's bottom panels still look empty. Let me screenshot the clone session to see what's rendering.
-The re-seed invalidated the clone session's user. Let me re-login on the clone session.
-Clear deltas emerging. Let me screenshot both dashboards and compare visually.
-VLM gives useful hints. Let me verify each programmatically — starting with the NEXT PLANNED ACTION box, activity icons, and stats panel.
-NPA boxes match (VLM misjudged) — just padding differs slightly. Now the activity list items and their icons.
-Selectors need refinement. Let me dump the live activity panel structure directly.
-The live activity panel IS a card (nested one level deeper — my first probe hit the transparent wrapper). Let me map its inner structure precisely.
-Positional DOM access is brittle on the live app. Let me use a text-anchored, defensive probe.
-Solid deltas confirmed. Let me check the shadow variants on all dashboard cards and compare against the clone's CSS primitives.
-Rich data. Let me read the clone's dashboard implementation to map these deltas to code.
-Now let me measure the remaining dashboard details comprehensively on both sides.
-Excellent data. Let me read the clone's globals.css to map the shadow primitives.
-The live cards use radius 16 + LARGE shadow combo. Let me check whether live's other view cards also use the large shadow — this may be a global token fix.
-Goals cards use a DEEPER shadow variant on live (0.92/0.36). Let me examine the live goal card's inner structure.
-Let me read the clone's goals-view implementation to compare structures.
-The live goal card has a 42px percentage and different structure. Let me probe the live card's action buttons and meta area.
-Live goal card fully mapped. Now let me survey the remaining views' card styles on live.
-Live My Tasks is empty for this account. Let me check the clone's tabs and continue the live survey: activity, team, settings.
-My Tasks matches. Now the remaining live views.
-Team buttons show radius 12 on live vs round pills on clone. Let me verify visually.
-Now the goal-detail view on live.
-The live task card HTML is flat — no edit/delete buttons (VLM hallucinated). Let me check if they appear on hover.
-The live DOES have task pencil/trash buttons (26x26, radius 7). Let me locate their exact position in the DOM.
-Now let me read the clone's task-card implementation for comparison.
-Add-task dialog matches v1.5 spec. Let me close it and check the header/user area + sidebar clock.
-Key finding: the clone's sidebar clock is below the fold (y=1957) while live pins it near the bottom (y=746). Let me verify the live's anchoring mechanism.
-Let me probe the live dashboard's activity/goal row internals to explain the height difference.
-Comprehensive data gathered. Let me do a quick mobile check, then compile the v1.6 plan.
-The live session expired mid-crawl. Let me re-login and re-verify the mobile state.
-I have comprehensive findings. Let me grab the last details — activity row icons and the clone's AiBadge — then write the plan.
-Let me view the full live mobile screenshot to finalize the mobile layout understanding.
-我已经获得了所有需要的证据。让我来编写 v1.6 补救计划文档。
-现在，让我对照计划将涉及的代码库文件来验证该计划。
-All files reviewed — the plan validates against the code. Let me begin implementation with WS-1 (globals.css card tiers).
-Now let me add the card-tier primitives to globals.css.
-Now WS-5.1 — the TDD seam. Writing RED tests first for the activity grouping.
-RED confirmed. Now the GREEN implementation.
-8/8 new tests green (93 total). Before the dashboard rework, let me verify the live mobile app bar's full contents.
-No NEW GOAL on live mobile — the app bar is just logo + user pill. Now let me rewrite the dashboard view (WS-2 + mobile arrangement).
-Now WS-3 — the task-card rework.
-Now the AiBadge rework in widgets.tsx.
-Now WS-4 — the goals-view card rework.
-Now WS-5.2 — the activity view rework.
-Now WS-6 — Team view updates.
-Now the Settings view updates.
-Now the goal-detail view updates.
-Now WS-7 — the shell rework. Let me view the app shell's top portion first.
-Let me check the live mobile main padding before restructuring the shell.
-Now let me update the app shell with sticky sidebar, mobile app bar, and floating tab bar.
-Now let me check UserMenuOrLogin to add the compact prop.
-Let me run an interim gate check.
-93/93 tests green. Now the production build.
-Excellent — the clone now matches the live card specs. Let me run a full verification sweep.
-Nearly everything matches. There's a small vertical offset (~16px) — let me measure the exact section spacing on both.
-The spacing probe looks off. Let me measure the clone's hero section directly.
-I dropped the hero section's margin in the rewrite. Let me fix the spacing.
-Sticky sidebar works — clock at y=724 (visible). Now let me verify the goals view and task cards.
-Goals card matches except the button radius (theme maps rounded-lg to 16px). Let me fix with an explicit value.
-Action buttons match (zeroed entries are preflight artifacts; real shadows render). Now the activity view verification.
-Now team and settings verification.
-Live dialog inputs are 36-38px/13px. Let me align the Input component and remove the dialog overrides.
-Mobile chrome verified. Let me do the VLM mobile comparison and run the smoke suite.
-Mobile parity is good (remaining items are data-driven). Now the full smoke suite.
-30/30 smoke checks pass. Now let me regenerate the README screenshots from the new build.
-All screenshots regenerated. Let me do a final VLM spot-check on the key views.
-The computed-style probes confirm all four panel shadows match exactly — VLM depth-perception on 1x PNGs is noise. Let me run the final full gate and the placeholder sweep.
-Full gate green (lint 0 · typecheck 0 · 93/93 · build · 30/30 smoke · sweep clean). Now WS-9 — documentation. Starting with AGENTS.md.
-Now CLAUDE.md updates.
-Now README's feature table and design system sections.
-Now the PAD v1.6 revision block and section updates.
-Now let me re-measure §11 line counts and add the new seam.
-Now let me rewrite `docs/session_8.md` as a proper session log (replacing the raw transcript).
-Now let me update the worklog, review the change set, and commit.
-Both commits in place. Now the SSH wrapper push — let me review the runbook and materialize the key.
-The shim is in place with the right shebang. Let me materialize the operator key and verify.
-Key fingerprint matches the prior session's record. Dry-run next.
-Push verified — remote main @ `fa680e5` == local HEAD. Let me clean up and finalize the worklog.
-**Session 8 (v1.6 parity remediation) is complete and pushed to GitHub `main` @ `fa680e5`.**
+# Session 9 — v1.7 Parity Remediation
 
-## What was delivered
+Session start: workspace refreshed via `git clone` (HEAD `64bf2d5` — "update session log", which added `docs/session_9.md` as an accidentally-committed raw streaming transcript of the v1.6 session; same defect pattern as the old session_8.md, replaced by this log — the transcript content duplicates session_8.md, no information lost). Read all four core docs (AGENTS, CLAUDE, README, PAD v1.6) plus `session_8.md`, `parity-remediation-v1.6.md` and the transcript, then validated every v1.6 claim by re-running the full gate on the existing build: lint 0 · typecheck 0 · **93/93** unit · build clean · **30/30** smoke — all claims held. Also reviewed the scandihaven repo (AGENTS.md + `scandihaven_SKILL.md`) as the tech-stack pattern reference and picked the relevant skills from the repo catalog (`agent-browser` for the crawl, `tdd` for the seam discipline, `clone-app-pat-pro` for the computed-styles-as-ground-truth doctrine).
 
-**Fresh evidence round** — two parallel browser sessions (live + clone build) with a reusable side-by-side computed-style probe surfaced four systemic gaps no screenshot round had caught:
+Fresh live-app crawl (`research/live-capture-s9/` + `research/clone-capture-s9/`, 25+ captures): two parallel agent-browser sessions (live `sepnetflix2023@outlook.com` + the clone's production build) with a new cleaner side-by-side probe (`scripts/par-probe2.sh`) executing identical computed-style extraction on both, at 1440×900 and 390×844. Six systemic findings:
 
-1. **Three card tiers** — the reference ships standard (buttons), deeper (goal/task/activity cards), and large (view panels) shadow pairs; the clone only had one. New `.orb-panel` / `.orb-row-card` / `.orb-goal-card` primitives now carry the measured values byte-for-byte.
-2. **Sticky sidebar** — the clock/TASKS STATUS previously sat below the fold at y≈1957; now pinned like the reference.
-3. **Flat task cards** — radius-14, gray status chips, one-line descriptions, 26px action squares floating outside the card (plus a latent radius-16 cascade bug fixed).
-4. **Mobile chrome** — a real app bar (logo + user pill), side-by-side date/ring hero, and a floating rounded-24 pill tab bar.
+- **The live app ships a strict two-tier label typography the clone approximated inconsistently.** Panel labels are 11px/600/ls 1.1px `#6E6E6E` uppercase; small labels (sidebar sections, NPA, date labels, TASKS STATUS) are 10px/600/ls 1.2px `#767676`. The clone's `.orb-label` rendered 11px/500/0.88px with scattered `!text-[12px]` overrides.
+- **The mobile tab bar is a FULL-WIDTH bottom-attached bar** — `[0,771,390,74]`, fixed bottom-0, radius `20px 20px 0 0` (top corners only), upward shadow `0 -4px 20px 0.22`, pad 8/8/12, 20px icons, 9px/600 labels, color-only active state. The v1.6 "floating rounded-24 pill with inset highlight" was a misread. The mobile shell is also full-bleed (content ~22px; hero cards 150px tall).
+- **Dashboard stats columns are CENTER-aligned** with no outer padding (inner `pad 10px` blocks), 50.4px/300 numerals (the date-card clamp face), 12px `#665F57` subs, 16px gap — the clone shipped left-aligned justify-between columns with 44px numerals and a 4px gap.
+- **The sidebar is tighter and quieter**: sticky top-0 with the panel itself the full `calc(100vh-40px)` height; compact brand (16px mark + "ORBITAL" 13px/600/ls 2.34px `#2F2823`); 39px nav rows with 400-weight inactive text; a PLAIN Tasks Status block (no well, 11px/700 numbers) beside the 80px clock.
+- **The destructive red is darker: `#BD3228`** (blocked titles, "· N blocked") vs the clone's `#C9574E`.
+- **h1 line-height is 1.2 on every view** and the greeting is Title Case ("Good Evening.").
 
-Plus: TDD date-grouping seam for the activity feed (`activity-groups.ts`, 85→**93** unit checks), 42px goal percentages, radius-12 team buttons, settings panel/input alignment — all verified programmatically against live measurements, with all 12 README screenshots regenerated.
+Plus ~40 measured micro-deltas: grid gap p→grid 20px; date square flush day+month stack (80px); ring "done" caption 10px/400; activity header pt 20/mb 14; NPA label 10px tier + 13px value; activity rows 12px icon gap, lh 20/18, timestamp INSIDE the message row, and a 10px/600 `#B3B3B3` TYPE TAG on every group row the clone lacked entirely; feed hero = 36px icon + "Last agent action" caption (no timestamp); online indicator = inset well pill; dashboard goals rows 13px/500 titles, 11px meta, 10px gap, 14px ring pct; goal-card chip softer inset pair + 7px pip + 11px title gap + 14px track gap; right column vertically centered; goal-detail: Back link 13px/400, DELETE radius 12, centered blocked stat (64px number wrapper, lh 1.5), gray status chip text, Tasks header in the small label style; task-card actions 2px apart; filter chips ls 0.72px/600-all-states/pad 7-14; My-Tasks empty title 15px/400; empty states plain icons (no circle); Team "AI Agents" h2 16px/500 with a button-less agents well; Settings labels 12px/600 + hints 11px `#9A9A9A`; check-in modal h2 16px/500 + 16px Send icon; add-task textarea 72px/13px; mobile NEW GOAL shortens to "New" at 35px.
 
-**Final gate:** lint 0 · typecheck 0 · 93/93 unit · build clean · 30/30 smoke · sweep clean. Docs fully aligned, and the accidentally-committed raw transcript in `session_8.md` was replaced with a proper log.
+Remediation plan v1.7 (`docs/parity-remediation-v1.7.md`), validated file-by-file against the codebase before execution, then executed in full (WS-1…WS-9):
 
-**Suggested next:** pull the repo and click through dashboard → goal detail (new task cards) → activity (date groups) → resize to mobile to see the new chrome. If any surface still drifts, a v1.7 crawl can target it surgically with `scripts/par-probe.sh`.
+- **WS-1 tokens**: `.orb-label` retuned to 11px/600/1.1px; new `.orb-label-sm` (10px/600/1.2px/#767676); `--orb-coral-deep` → `#BD3228`; every view h1 got `leading-[1.2]`.
+- **TDD seams (RED → GREEN)**: `src/lib/greeting.test.ts` (4 specs pinning the shared Title Case `greetingFor` — the dashboard had drifted to a local sentence-case duplicate) and `src/lib/activity-tags.ts` + `activity-tags.test.ts` (4 specs — the live's type tags are the ActivityLog type with underscores → spaces, verified against "task assigned"/"tasks generated"/"goal analyzed"). **93 → 101 unit checks.**
+- **WS-2 dashboard**: centered stats columns (50.4px/300 numerals, 12px `#665F57` subs, gap-4); ring "done" 10px/400; date square flush stack; activity header pt-20/mb-14; NPA "Next Planned Action" 10px label + 13px value; activity rows (12px gap, lh 20/18, in-row timestamp); goals panel rows 13px/500, 11px meta, 10px gap, 14px ring pct; hero section mt-5.
+- **WS-3 sidebar**: aside `lg:top-0 lg:h-[calc(100vh-40px)]` with the `.orb-raised-lg` panel owning the padding (panel box now 860px — byte-identical to live); compact brand; `.orb-label-sm` sections; 39px nav rows (400 inactive); plain Tasks Status (11px/700 numbers) beside the clock at the measured coordinates (clock [40,746], collapse [40,838,30] — verified exact).
+- **WS-4/5 goals + goal detail**: chips (ls 0.72px, 600 all states, pad 7/14); goal-card chip softer inset pair + 7px pip + 11px/14px gaps; right column centered; Back link 13px/400; gray status chip text; DELETE radius 12; centered blocked stat with the 64px wrapper; Tasks header small-label + 13px total; ADD TASK radius 12; task-card actions 2px apart.
+- **WS-6 activity**: inset-well "Online · N" pill; 36px hero icon + "Last agent action" caption; type tags on every group row (25 tags render on the seeded feed); `.orb-label-sm` date labels.
+- **WS-7 team + settings**: "AI Agents" 16px/500; button-less agents well (icon + two lines); plain-icon empty states with 15px/400 titles; settings labels 12px/600 `#6E6E6E`, hints 11px `#9A9A9A`, Start/End 11px/500.
+- **WS-8 mobile**: full-bleed shell below `lg` (p-0 lg:p-6); content `px-[22px]`; FULL-WIDTH bottom tab bar (`rounded-t-[20px]`, upward shadow, pad 8/8/12, 20px icons, 9px/600 labels, color-only active); 150px mobile hero; `.orb-pill-outline-sm` (35px "New" button).
+- **WS-9 dialogs**: check-in h2 16px/500 + 16px Send icon + tightened rhythm (430 → 417px tall, live 408); add-task textarea 72px/13px.
+
+Verification (WS-10): side-by-side re-measurement on every changed surface — stats columns (pad 0, inner 10px, 50.4px/300 numerals, 16px gap), greeting "Good Evening." + 20px grid gap + 330px date card + 80px square on both, ring circle 156px + matching caption, sidebar panel 860px with clock/collapse at the live coordinates, goals chips (ls 0.72px/600/7-14) and card internals (pip 7px, blocked `#BD3228`, centered fraction), goal-detail (Back 13px/400, DELETE r12, centered blocked stat, action gap 2px), activity (pill 31px, hero 36px icon + caption, 25 type tags, 10px/600/1.2px date labels), team (16px/500 h2, 139px button-less well), settings (12px/600 labels, 11px hints), mobile (app bar [0,0,390,62], tab bar [0,770,390,74] r-20px-top, 150px hero). Also exercised the full wizard flow end-to-end through the UI. Final gate: lint 0 · typecheck 0 · **101/101** unit · build clean · **30/30** smoke · placeholder sweep clean. All 14 README screenshots regenerated from the v1.7 build (login captured after a real logout; the generating/new-goal-detail shots captured through a live wizard run).
+
+Documentation aligned (WS-11): README (feature table, design system, label tiers, `#BD3228`, 101 checks, refreshed screenshots), AGENTS.md (two-tier labels, stats/sidebar/mobile/activity specs, 101 checks, cascade examples incl. `.orb-pill-outline-sm`), CLAUDE.md (same in agent-contract form), PAD → v1.7 (revision block, §5.2 label tiers, §7 at 101 checks, §11 line counts re-measured, new seam rows), plus this log replacing the raw transcript.
+
+Delivered as two commits on `main` (`:art: feat:` code + `:memo: docs:` docs), pushed through the SSH wrapper (`docs/ssh_git_wrapper_v3.py`) per the runbook in `docs/how-to-git-push-using-ssh-wrapper_SKILL.md`.
