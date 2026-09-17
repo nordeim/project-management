@@ -8,7 +8,7 @@ last_updated: 2026-09-17
 
 # ORBITAL — AI Project Management Workspace
 
-Self-hosted project management workspace where teams define goals and an AI agent drafts their task plans. Single-page Next.js application with cookie-session auth, Prisma/SQLite persistence, and a typed JSON API. Maintained by Pete A (`pete@pop-os`).
+Self-hosted project management workspace where teams define goals and an AI agent drafts their task plans. Two-route Next.js SPA (workspace page + `/login`) with cookie-session auth, Prisma/SQLite persistence, and a typed JSON API. Maintained by Pete A (`pete@pop-os`).
 
 **Tech Stack**: Next.js 16.1 (App Router, standalone output), React 19, TypeScript 5 (strict), Tailwind CSS 4, shadcn/ui (Radix), Zustand 5, Prisma 6 + SQLite, z-ai-web-dev-sdk (server-side LLM), Vitest 5 (unit tests), lucide-react.
 
@@ -24,24 +24,25 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 2. **PLAN** — Map the change across the four layers it will touch: schema (`prisma/schema.prisma`) → route handler (`src/app/api/…`) → domain types (`src/lib/orbital.ts` / pure lib modules) → store action + view/dialog.
 3. **VALIDATE** — Confirm the plan preserves the API envelope and the activity-feed invariant before coding. Pure logic goes in `src/lib/*.ts` with a Vitest test — write the failing test first.
 4. **IMPLEMENT** — One layer at a time; keep the build green (`bun run build`) between layers.
-5. **VERIFY** — Run the full gate: `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh` (71 unit + 30 smoke checks required).
+5. **VERIFY** — Run the full gate: `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh` (80 unit + 30 smoke checks required).
 6. **DELIVER** — Conventional Commit on `main`, push via the SSH wrapper runbook.
 
 ### Project-Specific Principles
 
-- **The SPA stays single-page with path URLs.** View switching is client-side; `/goals/<id>`, `/my-tasks`, … are rewrites onto the one page (`src/lib/router.ts`) — never add per-view routes or change the URL shape.
+- **The workspace stays a single-page app with path URLs; `/login` is the only other route.** View switching is client-side; `/goals/<id>`, `/my-tasks`, … are rewrites onto the one page (`src/lib/router.ts`) — never add per-view routes or change the URL shape. Unauthenticated visits render the shell with a LOG IN header button (nullable-user pattern); `/login` is a real route (excluded from rewrites) with sign-in / sign-up / forgot states and `?from_url=` return handling.
 - **Every mutation narrates itself.** An API change without its `ActivityLog` write is incomplete.
 - **The AI features may degrade, never fail.** `clarify` (wizard questions) and `generate-tasks` fall back to deterministic outputs; preserve that guarantee when touching them.
 - **No new state libraries.** Server state flows through the Zustand store's refresh pattern.
-- **Test at the pure seams.** Router mapping, clarify questions, plan sanitization, check-in mapping, auth rate limiting, team-form normalization, the dashboard's next-planned-action derivation, and the logo dot geometry live in `src/lib/*.ts` (or `logo.tsx`) with Vitest specs — TDD (red → green) is the default for changes there.
+- **Test at the pure seams.** Router mapping, clarify questions, plan sanitization, check-in mapping, auth rate limiting, team-form normalization, the dashboard's next-planned-action derivation, the logo dot geometry, and the date-picker calendar grid live in `src/lib/*.ts` (or `logo.tsx`) with Vitest specs — TDD (red → green) is the default for changes there.
 - **Deletes confirm inline, not in modals.** Goal cards, the goal-detail header, and task cards swap their action icons for inline confirm pairs ("Delete / Cancel", "Yes, Delete / Cancel", "Delete? Yes / No") — the reference pattern; `AlertDialog` confirms were removed in v1.3.
-- **Auth endpoints are rate-limited; auth navigation uses `router.refresh()`.** 10 attempts/IP/15 min on login + register (`429 RATE_LIMITED`); login success and Log Out swap the shell via a server session re-resolve, never `window.location` assignments.
+- **Auth endpoints are rate-limited; auth navigation uses `router.refresh()`.** 10 attempts/IP/15 min on login + register (`429 RATE_LIMITED`); login success and Log Out swap the header (UserMenu ↔ LOG IN) via a server session re-resolve, never `window.location` assignments. "Continue with Google" renders for parity but degrades to a toast — no OAuth credentials in a self-hosted clone (documented deviation).
+- **The visual system is neumorphic (measured, v1.4).** Tokens and primitive classes in `globals.css`: `.orb-raised` / `.orb-raised-lg` / `.orb-raised-btn` / `.orb-well` / `.orb-well-pill` / `.orb-task-blocked`. **Never pair an arbitrary `shadow-[…]` utility with `.orb-card`/`.orb-raised` on the same element** — custom layer classes are emitted after generated utilities and win the cascade; use a dedicated custom class for shadow overrides.
 
 ## Implementation Standards
 
 ### Next.js 16 Specifics
 
-- App Router; `src/app/page.tsx` is the only page and is `force-dynamic` (session check server-side, then client handoff). The view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/activity`, `/team`, `/settings`) are `rewrites()` in `next.config.ts` onto `/` — keep them in sync with `src/lib/router.ts`.
+- App Router; `src/app/page.tsx` (force-dynamic) passes a **nullable user** to the client shell — the workspace renders for unauthenticated visitors with empty states + LOG IN; `src/app/login/page.tsx` is a real route rendering the `LoginCard`. The view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/activity`, `/team`, `/settings`) are `rewrites()` in `next.config.ts` onto `/` — keep them in sync with `src/lib/router.ts`; `/login` must stay excluded from the rewrites.
 - All server logic lives in route handlers under `src/app/api/`; there are no server actions.
 - Client components are explicit: `orbital-app.tsx`, all views, dialogs, and the store carry `"use client"`.
 - `next/font` loads DM Sans / DM Mono; do not import fonts any other way.
@@ -56,7 +57,7 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 
 ### Tailwind CSS 4 + shadcn/ui
 
-- App palette = `orb-*` utilities, defined as CSS variables in `src/app/globals.css` (`--orb-canvas`, `--orb-card`, `--orb-green`, `--orb-purple`, `--orb-coral`, …) and mapped via `@theme inline`.
+- App palette = `orb-*` utilities, defined as CSS variables in `src/app/globals.css` (neumorphic tokens: `--orb-canvas` `#EBE7E2`, `--orb-raised` `#EEEAE6`, `--orb-well` `#EBE7E2`, `--orb-track` `#DDD8D0`, plus the status colors) and mapped via `@theme inline`.
 - `tailwind.config.ts` is legacy support for shadcn/ui HSL tokens and `tailwindcss-animate` — extend the CSS variables, not new config keys.
 - Use shadcn primitives from `src/components/ui/` before writing bespoke UI; bespoke styling is the exception.
 
@@ -87,7 +88,7 @@ bun run dev          # http://localhost:3000 — demo@orbital.app / Demo1234!
 
 ## Testing Strategy
 
-- **Unit layer** (`bun run test`, Vitest): 71 checks pinning the pure domain seams — `src/lib/router.test.ts` (view ↔ path mapping incl. legacy `?view=` links), `clarify.test.ts` (wizard questions: fallback + LLM bounds), `domain.test.ts` (plan sanitizer, template fallback, check-in status mapping), `rate-limit.test.ts` (fixed-window buckets, eviction, retry-after), `team.test.ts` (email → display-name derivation, agent-field normalization), `next-action.test.ts` (dashboard next-planned-action extraction incl. the name-prefix regression), `logo-geometry.test.ts` (six-dot ring + 1-2-3 pyramid geometry).
+- **Unit layer** (`bun run test`, Vitest): 80 checks pinning the pure domain seams — `src/lib/router.test.ts` (view ↔ path mapping incl. legacy `?view=` links), `clarify.test.ts` (wizard questions: fallback + LLM bounds), `domain.test.ts` (plan sanitizer, template fallback, check-in status mapping), `rate-limit.test.ts` (fixed-window buckets, eviction, retry-after), `team.test.ts` (email → display-name derivation, agent-field normalization), `next-action.test.ts` (dashboard next-planned-action extraction incl. the name-prefix regression), `logo-geometry.test.ts` (six-dot ring + 1-2-3 pyramid geometry), `calendar.test.ts` (month-grid math: boundaries, leap February, 6-row invariant, `isSameDay`).
 - **End-to-end smoke suite** (`scripts/smoke-test.sh`): boots the production standalone server and runs 30 checks — health, auth (valid/invalid/unauthenticated), all read endpoints, task create, invalid-status rejection, check-in round-trip (status flip + update recorded), delete, logout invalidation, page render, path-route serving (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` + 404 guard), the clarify endpoint (3 questions + validation), team validation (invalid email, agent without name), and the login rate limit (429 `RATE_LIMITED`). Exits non-zero on failure.
 - **Pre-push gate** (mandatory, no CI exists): `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh`.
 - Manual QA matrix: every changed dialog must be exercised in both desktop and mobile layouts (bottom tab bar + MORE sheet below `lg`).
@@ -97,7 +98,7 @@ bun run dev          # http://localhost:3000 — demo@orbital.app / Demo1234!
 ```bash
 bun run lint        # must exit 0 with no errors
 bun run typecheck   # must exit 0 (the build won't catch type errors)
-bun run test        # 71 unit checks must pass
+bun run test        # 80 unit checks must pass
 bun run build       # must compile clean
 ```
 

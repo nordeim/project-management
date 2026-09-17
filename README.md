@@ -11,7 +11,7 @@ A production-grade project management workspace where humans and AI agents plan 
 
 ## Overview
 
-ORBITAL lets a team describe **goals** in natural language, then generates a concrete **task plan** for each goal — assigned across the team, spread over the timeline, and tracked through status check-ins. Every action lands in an **agent activity feed**, so the workspace itself narrates what the plan is doing. The app is a single-route SPA (like the original): one page, client-side view switching, deep-linkable URLs, with all persistence behind typed JSON API routes and a Prisma/SQLite store.
+ORBITAL lets a team describe **goals** in natural language, then generates a concrete **task plan** for each goal — assigned across the team, spread over the timeline, and tracked through status check-ins. Every action lands in an **agent activity feed**, so the workspace itself narrates what the plan is doing. The app is a two-route SPA (like the original): a workspace page with client-side view switching and deep-linkable URLs, plus a real `/login` route — unauthenticated visitors browse the workspace shell with a **LOG IN** button in the header, and all persistence sits behind typed JSON API routes and a Prisma/SQLite store.
 
 ## Key Features
 
@@ -23,11 +23,13 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | 📊 **Dashboard** | Greeting + date card, unified stats card, progress ring with faint done state, tasks-status panel, recent agent activity |
 | 👥 **Team of humans + AI agents** | Invite members by email with a role toggle, or configure AI agents with name, description and instructions; person directory drives assignment |
 | 📜 **Agent activity feed** | Every mutation logs a typed, human-readable activity entry with full log view |
+| 🎨 **Neumorphic design system** | Measured token system from the reference — beige canvas `#EBE7E2`, raised panels `#EEEAE6` with dual embossed shadows, inset wells for inputs/chips/clock, `#DDD8D0` progress tracks, coral inset ring on blocked task cards |
 | 🔐 **Cookie-session auth** | scrypt password hashing + HMAC-signed sessions, per-IP rate limiting on login/register (429 with `Retry-After`), zero external auth dependencies |
-| 🗑 **Inline delete confirms** | Deletes confirm in place — goal cards, the goal-detail header and task cards swap their action icons for confirm pairs (no modal interruption) |
+| 🚪 **Reference auth flow** | Unauthenticated visits render the workspace shell with a LOG IN header button; `/login` is a real route with sign-in / sign-up / forgot-password states and `?from_url=` return handling — "Continue with Google" renders for parity and degrades to an explanatory toast (no OAuth credentials in a self-hosted clone) |
 | 🗑 **Inline delete confirms** | Deletes confirm in place — goal cards, the goal-detail header and task cards swap their action icons for confirm pairs (no modal interruption) |
 | 🧭 **Path-based deep links** | Real URLs — `/goals/<id>`, `/my-tasks`, `/activity` — with working browser back/forward (single-page app under the hood) |
-| 📱 **Responsive SPA** | Collapsible desktop sidebar with live analog clock; mobile bottom tab bar (Home / Goals / My Tasks / Agent / More) with a More sheet |
+| 📱 **Responsive SPA** | Collapsible desktop sidebar (240px ⇄ 64px icon rail) with live analog clock; mobile bottom tab bar (Home / Goals / My Tasks / Agent / More) with a More sheet and abbreviated stat labels |
+| 🗓 **Custom date picker** | "Pick a deadline" well-style trigger opening a popover calendar (month chevrons, Su–Sa headers, 7×6 grid, today ringed, click-to-select) — grid math lives in a pure, unit-tested seam |
 | 🌱 **One-command demo data** | Idempotent seed mirrors the reference workspace (3 goals, 31 tasks, 22 activity entries) |
 
 ## Screenshots
@@ -44,9 +46,9 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 |:---:|:---:|
 | ![My Tasks](docs/screenshots/07-my-tasks.png) | ![Activity](docs/screenshots/08-activity.png) |
 
-| Team | Settings |
-|:---:|:---:|
-| ![Team](docs/screenshots/09-team.png) | ![Settings](docs/screenshots/10-settings.png) |
+| Team | Settings | Login |
+|:---:|:---:|:---:|
+| ![Team](docs/screenshots/09-team.png) | ![Settings](docs/screenshots/10-settings.png) | ![Login](docs/screenshots/14-login.png) |
 
 <details>
 <summary>Mobile</summary>
@@ -67,7 +69,7 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | Styling | Tailwind CSS | 4 | Utility styling + design tokens |
 | Components | shadcn/ui on Radix | — | Accessible primitives (dialog, select, radio, …) |
 | State | Zustand | 5 | Single client store; server state via fetch + refresh |
-| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms, next-action, logo geometry |
+| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms, next-action, logo geometry, calendar grid |
 | ORM | Prisma | 6 | Schema, client, `db push`, seed |
 | Database | SQLite | — | Zero-config local persistence (`db/custom.db`) |
 | Auth | Node `crypto` (scrypt + HMAC) | — | Cookie sessions, no external auth service |
@@ -87,7 +89,7 @@ flowchart LR
     B -->|Zustand store| B
 ```
 
-The page at `/` resolves the session once and hands off to the client app. All data flows through the Zustand store, which calls the API routes and unwraps the `{ ok, data } | { ok, error }` envelope. Views live at **real paths** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings`) — Next.js rewrites map them onto the single page, and the store syncs view state with the History API (`src/lib/router.ts`), so every screen is deep-linkable and browser back/forward works. Same SPA architecture as the reference app.
+The page at `/` resolves the session and hands a **nullable user** to the client app — the workspace shell renders either way (reference behavior); when unauthenticated it shows empty states and a LOG IN header button, and the store skips data fetches until a session exists. `/login` is a real Next.js route (excluded from the SPA rewrites) that redirects authenticated visitors back to `/`. All data flows through the Zustand store, which calls the API routes and unwraps the `{ ok, data } | { ok, error }` envelope. Views live at **real paths** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings`) — Next.js rewrites map them onto the single page, and the store syncs view state with the History API (`src/lib/router.ts`), so every screen is deep-linkable and browser back/forward works. Same SPA architecture as the reference app.
 
 ## File Hierarchy
 
@@ -102,22 +104,23 @@ The page at `/` resolves the session once and hands off to the client app. All d
   📄 smoke-test.sh          # 30-check E2E suite + unit tests via `bun run test` (boots prod server)
 📂 src/
   📂 app/
-    📄 page.tsx             # Single route: session check → OrbitalApp | LoginScreen
+    📄 page.tsx             # Workspace route: session → OrbitalApp (nullable user)
     📄 layout.tsx           # DM Sans / DM Mono fonts, global styles
-    📄 globals.css          # Tailwind 4 tokens + ORBITAL color palette
+    📄 globals.css          # Tailwind 4 tokens + neumorphic primitive classes
+    📂 login/               # Real /login route — auth card (3 states, from_url)
     📂 api/                 # 16 route handlers (auth, goals, tasks, team, activity, stats, settings, health)
   📂 components/
     📂 orbital/             # The application
-      📄 orbital-app.tsx    # Authenticated shell: sidebar + view switcher + mobile tab bar
-      📄 login-screen.tsx   # Sign-in / sign-up
+      📄 orbital-app.tsx    # App shell (nullable user): sidebar + views + mobile tab bar
+      📄 login-screen.tsx   # LoginCard — the /login auth card (3 states)
       📄 store.ts           # Zustand store: all server state + actions
       📄 sidebar.tsx        # Desktop navigation (collapsible; clock + tasks status)
       📄 sidebar-clock.tsx  # Neumorphic analog clock (SVG, 15s tick)
       📄 sidebar-collapse.ts# Collapse state: useSyncExternalStore + localStorage
-      📄 user-menu.tsx      # Avatar popover with Log Out
+      📄 user-menu.tsx      # UserMenuOrLogin: avatar popover w/ Log Out, or LOG IN button
       📂 views/             # dashboard, goals, goal-detail, my-tasks, activity, team, settings
-      📂 dialogs/           # new-goal (3-step wizard), goal-edit, add-task, task-edit, task-detail, invite-member
-    📂 ui/                  # shadcn/ui component library
+      📂 dialogs/           # new-goal (3-step wizard + date picker), goal-edit, add-task, task-edit, task-detail, invite-member
+    📂 ui/                  # shadcn/ui primitives + date-picker
   📂 lib/
     📄 orbital.ts           # Domain types, DTOs, status metadata (labels + colors)
     📄 router.ts            # View ↔ path mapping (parseUrl / toPath) — unit tested
@@ -126,6 +129,7 @@ The page at `/` resolves the session once and hands off to the client app. All d
     📄 checkin.ts           # Check-in → task-status mapping — unit tested
     📄 rate-limit.ts        # Fixed-window per-IP auth throttling — unit tested
     📄 team.ts              # Invite/agent form normalization — unit tested
+    📄 calendar.ts          # Month-grid math for the date picker — unit tested
     📄 api.ts               # ok()/fail() envelope helpers + session guard
     📄 auth.ts              # scrypt hashing, HMAC session tokens, cookie handling
     📄 db.ts                # Prisma client + SQLite URL normalization
@@ -208,27 +212,31 @@ All endpoints return `{ "ok": true, "data": … }` or `{ "ok": false, "error": {
 
 ## Design System
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `--orb-canvas` | `#EBE7E2` | Page canvas behind the app panel |
-| `--orb-surface` | `#F0EDE8` | App panel background |
-| `--orb-card` | `#F8F5F1` | Elevated cards |
+Measured from the reference app (v1.4) — a soft-beige neumorphic system: raised surfaces carry dual embossed shadows (light `rgba(255,250,244,…)` top-left, dark `rgba(160,143,126,…)` bottom-right); inset wells carry the same pair inverted.
+
+| Token | Hex / Value | Usage |
+|-------|-------------|-------|
+| `--orb-canvas` | `#EBE7E2` | Page canvas (24px padding, no outer panel) |
+| `--orb-raised` | `#EEEAE6` | Raised surfaces: sidebar, cards, dialogs, buttons |
+| `--orb-well` | `#EBE7E2` | Inset wells: inputs, chips, clock face, icon squares |
+| `--orb-track` | `#DDD8D0` | Progress track behind the green fill |
 | `--orb-body` | `#2F2823` | Primary text |
+| `--orb-heading` | `#3A3A3A` | Headings / button text |
 | `--orb-muted` | `#6E6E6E` | Secondary text |
 | `--orb-green` | `#2ECC8A` | Success / done / active |
 | `--orb-purple` | `#996CE4` | In-progress / AI accents |
-| `--orb-coral` | `#FF8077` | Blocked / destructive |
+| `--orb-coral` | `#FF8077` | Blocked / destructive (deep `#C9574E`; blocked cards add a coral inset ring `rgba(255,128,119,0.18)`) |
 
-Typography: **DM Sans** (UI) and **DM Mono** (numeric/date accents), loaded via `next/font`. Status dots and text pair each palette color with a deeper accessible variant (`--orb-*-deep`).
+Primitive classes in `globals.css`: `.orb-raised` / `.orb-raised-lg` (panels), `.orb-raised-btn` (buttons), `.orb-well` / `.orb-well-pill` (insets), `.orb-task-blocked` (blocked-card ring), plus the `.orb-pill` family for actions. Typography: **DM Sans** (UI) and **DM Mono** (numeric/date accents), loaded via `next/font`. Status dots and text pair each palette color with a deeper accessible variant (`--orb-*-deep`).
 
 ## Testing
 
 ```bash
-bun run test              # unit tests — 71 checks on the pure domain seams
+bun run test              # unit tests — 80 checks on the pure domain seams
 ./scripts/smoke-test.sh   # E2E — 30 checks against the production build
 ```
 
-The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), and the logo dot geometry (`logo.tsx`).
+The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), the logo dot geometry (`logo.tsx`), and the date-picker calendar grid (`src/lib/calendar.ts`).
 
 The smoke suite boots the production standalone server, then runs **30 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), the **clarify endpoint** (3 questions + validation), **team validation** (invite with invalid email, agent without a name), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). It exits non-zero on any failure and cleans up after itself.
 
@@ -238,7 +246,8 @@ The smoke suite boots the production standalone server, then runs **30 checks**:
 |---------|-------|-----|
 | `Error code 14: Unable to open the database file` | Server started from a directory other than the project root | Start via `bun run start` / `bun run dev` (npm scripts always run from the root) |
 | `Is port 3000 in use?` | Stale dev/prod server | `pkill -f "next dev"` or `pkill -f "standalone/server.js"` |
-| Login loops back to the sign-in screen | `AUTH_SECRET` changed between server restarts | Keep `AUTH_SECRET` stable in production |
+| Login loops back to the sign-in page | `AUTH_SECRET` changed between server restarts | Keep `AUTH_SECRET` stable in production |
+| "Continue with Google" shows a toast instead of signing in | Expected — the self-hosted clone carries no OAuth credentials (documented deviation) | Configure an OAuth provider + adapt `login-screen.tsx` if you need real Google sign-in |
 | Login suddenly returns 429 | Per-IP rate limit engaged (10 attempts / 15 min) | Wait for the window to reset (see `Retry-After`) or restart the server to clear in-memory buckets |
 | Prisma `P1003` / missing tables | Database not initialized | `bun run db:push && bun run db:seed` |
 | AI generation returns a generic 8-step plan | SDK unavailable/malformed output — deterministic fallback engaged | Expected behavior; configure the SDK environment to get LLM plans |
