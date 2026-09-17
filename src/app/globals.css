@@ -1,0 +1,198 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-dm-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* ORBITAL brand palette */
+  --color-orb-canvas: var(--orb-canvas);
+  --color-orb-surface: var(--orb-surface);
+  --color-orb-card: var(--orb-card);
+  --color-orb-inset: var(--orb-inset);
+  --color-orb-heading: var(--orb-heading);
+  --color-orb-body: var(--orb-body);
+  --color-orb-muted: var(--orb-muted);
+  --color-orb-green: var(--orb-green);
+  --color-orb-purple: var(--orb-purple);
+  --color-orb-coral: var(--orb-coral);
+  --color-orb-pink: var(--orb-pink);
+  --color-orb-tan: var(--orb-tan);
+  --color-orb-lavender: var(--orb-lavender);
+  --color-orb-amber: var(--orb-amber);
+  --color-orb-green-deep: var(--orb-green-deep);
+  --color-orb-purple-deep: var(--orb-purple-deep);
+  --color-orb-coral-deep: var(--orb-coral-deep);
+}
+
+:root {
+  --radius: 1rem;
+
+  /* ORBITAL warm-cream design system (sampled from the reference app) */
+  --orb-canvas: #ebe7e2; /* page canvas behind the app panel */
+  --orb-surface: #eeeae6; /* app panel + sidebar */
+  --orb-card: #f8f5f1; /* elevated cards */
+  --orb-inset: #e9e3dc; /* inset wells (progress tracks, chat bubbles) */
+  --orb-heading: #3a3a3a;
+  --orb-body: #2f2823;
+  --orb-muted: #8f8981;
+  --orb-green: #2ecc8a;
+  --orb-purple: #996ce4;
+  --orb-coral: #ff8077;
+  --orb-pink: #ffcbde;
+  --orb-tan: #c4996a;
+  --orb-lavender: #c9b3f5;
+  --orb-amber: #f5b841;
+  --orb-green-deep: #1f8f5f;
+  --orb-purple-deep: #6b4bbf;
+  --orb-coral-deep: #c9574e;
+
+  --background: var(--orb-canvas);
+  --foreground: var(--orb-body);
+  --card: var(--orb-card);
+  --card-foreground: var(--orb-body);
+  --popover: #fffdfb;
+  --popover-foreground: var(--orb-body);
+  --primary: #3a3a3a; /* charcoal pill buttons */
+  --primary-foreground: #f8f5f1;
+  --secondary: var(--orb-inset);
+  --secondary-foreground: var(--orb-body);
+  --muted: var(--orb-inset);
+  --muted-foreground: #6e6e6e;
+  --accent: #e9e2da;
+  --accent-foreground: var(--orb-body);
+  --destructive: #e5564c;
+  --destructive-foreground: #ffffff;
+  --border: rgba(47, 40, 35, 0.1);
+  --input: rgba(47, 40, 35, 0.14);
+  --ring: #2ecc8a;
+  --chart-1: #2ecc8a;
+  --chart-2: #996ce4;
+  --chart-3: #ff8077;
+  --chart-4: #c4996a;
+  --chart-5: #c9b3f5;
+  --sidebar: var(--orb-surface);
+  --sidebar-foreground: var(--orb-body);
+  --sidebar-primary: #3a3a3a;
+  --sidebar-primary-foreground: #f8f5f1;
+  --sidebar-accent: #e5dfd8;
+  --sidebar-accent-foreground: var(--orb-body);
+  --sidebar-border: rgba(47, 40, 35, 0.08);
+  --sidebar-ring: #2ecc8a;
+}
+
+.dark {
+  --background: #201c19;
+  --foreground: #efece7;
+  --card: #2a2521;
+  --card-foreground: #efece7;
+  --popover: #2a2521;
+  --popover-foreground: #efece7;
+  --primary: #efece7;
+  --primary-foreground: #201c19;
+  --secondary: #332d28;
+  --secondary-foreground: #efece7;
+  --muted: #332d28;
+  --muted-foreground: #a8a196;
+  --accent: #332d28;
+  --accent-foreground: #efece7;
+  --destructive: #ff8077;
+  --destructive-foreground: #201c19;
+  --border: rgba(239, 236, 231, 0.12);
+  --input: rgba(239, 236, 231, 0.16);
+  --ring: #2ecc8a;
+  --sidebar: #262220;
+  --sidebar-foreground: #efece7;
+  --sidebar-primary: #efece7;
+  --sidebar-primary-foreground: #201c19;
+  --sidebar-accent: #332d28;
+  --sidebar-accent-foreground: #efece7;
+  --sidebar-border: rgba(239, 236, 231, 0.1);
+  --sidebar-ring: #2ecc8a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01" on;
+  }
+}
+
+@layer utilities {
+  /* Uppercase micro-label used across the ORBITAL UI */
+  .orb-label {
+    @apply text-[11px] font-medium uppercase tracking-[0.08em] text-orb-muted;
+  }
+  .orb-card {
+    @apply rounded-3xl border border-black/[0.04] bg-orb-card shadow-[0_1px_2px_rgba(47,40,35,0.04),0_8px_24px_-12px_rgba(47,40,35,0.12)];
+  }
+  .orb-pill {
+    @apply inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-primary-foreground transition-colors hover:bg-black disabled:pointer-events-none disabled:opacity-40;
+  }
+  .orb-ghost-pill {
+    @apply inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-transparent px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading transition-colors hover:bg-black/[0.04] disabled:pointer-events-none disabled:opacity-40;
+  }
+}
+
+/* Soft, unobtrusive scrollbars for long lists */
+.orb-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.orb-scroll::-webkit-scrollbar-thumb {
+  background: rgba(47, 40, 35, 0.14);
+  border-radius: 999px;
+}
+.orb-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
