@@ -20,7 +20,7 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | 🎯 **Goals with AI task planning** | Three-step conversational wizard: describe the goal → answer the agent's clarifying questions → get a 6–9 task plan (LLM via `z-ai-web-dev-sdk`, deterministic fallback — never hard-fails) |
 | ✅ **Task lifecycle** | Five task statuses (pending / in progress / blocked / need help / done), deadlines, assignees, estimated hours, AI-attribution badge |
 | 💬 **Status check-ins** | Post on-track / blocked / need-help / done updates with notes; updates history on every task |
-| 📊 **Dashboard** | Greeting + date card, unified stats card, progress ring with faint done state, tasks-status panel, recent agent activity |
+| 📊 **Dashboard** | 2×2 grid: date card + inset DONE circle beside the stats panel, Agent Activity and Goals panels below — on a 1200px clamped canvas with a soft purple glow |
 | 👥 **Team of humans + AI agents** | Invite members by email with a role toggle, or configure AI agents with name, description and instructions; person directory drives assignment |
 | 📜 **Agent activity feed** | Every mutation logs a typed, human-readable activity entry with full log view |
 | 🎨 **Neumorphic design system** | Measured token system from the reference — beige canvas `#EBE7E2`, raised panels `#EEEAE6` with dual embossed shadows, inset wells for inputs/chips/clock, `#DDD8D0` progress tracks, coral inset ring on blocked task cards |
@@ -29,7 +29,8 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | 🗑 **Inline delete confirms** | Deletes confirm in place — goal cards, the goal-detail header and task cards swap their action icons for confirm pairs (no modal interruption) |
 | 🧭 **Path-based deep links** | Real URLs — `/goals/<id>`, `/my-tasks`, `/activity` — with working browser back/forward (single-page app under the hood) |
 | 📱 **Responsive SPA** | Collapsible desktop sidebar (240px ⇄ 64px icon rail) with live analog clock; mobile bottom tab bar (Home / Goals / My Tasks / Agent / More) with a More sheet and abbreviated stat labels |
-| 🗓 **Custom date picker** | "Pick a deadline" well-style trigger opening a popover calendar (month chevrons, Su–Sa headers, 7×6 grid, today ringed, click-to-select) — grid math lives in a pure, unit-tested seam |
+| 🗓 **Custom date picker** | "Pick a deadline" well-style trigger opening a raised popover calendar (month chevrons, Su–Sa headers, 7×6 grid, today in bold purple) with the reference's long date format ("September 20th, 2026") — grid math and formatting live in a pure, unit-tested seam |
+| ⚫ **Dark primary actions** | In-dialog submits (Post Update, Continue, Add Task, Save) are charcoal `#3A3A3A` pills with near-white text — the reference's action hierarchy; page-level actions stay neumorphic |
 | 🌱 **One-command demo data** | Idempotent seed mirrors the reference workspace (3 goals, 31 tasks, 22 activity entries) |
 
 ## Screenshots
@@ -99,7 +100,8 @@ The page at `/` resolves the session and hands a **nullable user** to the client
   📄 seed.ts                # Idempotent demo workspace seed
 📂 public/
   📄 orbital-logo.svg       # Brand mark
-  📄 dusk-hills.jpg         # Login/dashboard backdrop (OSS)
+  📄 day-hills.jpg          # Dashboard date-card backdrop (extracted from the reference)
+  📄 dusk-hills.jpg         # Legacy landscape (unused, kept as an OSS asset)
 📂 scripts/
   📄 smoke-test.sh          # 30-check E2E suite + unit tests via `bun run test` (boots prod server)
 📂 src/
@@ -212,7 +214,7 @@ All endpoints return `{ "ok": true, "data": … }` or `{ "ok": false, "error": {
 
 ## Design System
 
-Measured from the reference app (v1.4) — a soft-beige neumorphic system: raised surfaces carry dual embossed shadows (light `rgba(255,250,244,…)` top-left, dark `rgba(160,143,126,…)` bottom-right); inset wells carry the same pair inverted.
+Measured from the reference app (v1.5) — a soft-beige neumorphic system: raised surfaces carry dual embossed shadows (light `rgba(255,250,244,…)` top-left, dark `rgba(160,143,126,…)` bottom-right); inset wells carry the same pair inverted. Main content sits in a 1200px clamped column over a canvas washed with a soft purple radial glow bottom-right; every in-dialog primary submit is a charcoal pill (`#3A3A3A` bg, `#F1F1F0` text).
 
 | Token | Hex / Value | Usage |
 |-------|-------------|-------|
@@ -227,16 +229,16 @@ Measured from the reference app (v1.4) — a soft-beige neumorphic system: raise
 | `--orb-purple` | `#996CE4` | In-progress / AI accents |
 | `--orb-coral` | `#FF8077` | Blocked / destructive (deep `#C9574E`; blocked cards add a coral inset ring `rgba(255,128,119,0.18)`) |
 
-Primitive classes in `globals.css`: `.orb-raised` / `.orb-raised-lg` (panels), `.orb-raised-btn` (buttons), `.orb-well` / `.orb-well-pill` (insets), `.orb-task-blocked` (blocked-card ring), plus the `.orb-pill` family for actions. Typography: **DM Sans** (UI) and **DM Mono** (numeric/date accents), loaded via `next/font`. Status dots and text pair each palette color with a deeper accessible variant (`--orb-*-deep`).
+Primitive classes in `globals.css`: `.orb-raised` / `.orb-raised-lg` (panels), `.orb-raised-btn` (buttons), `.orb-well` / `.orb-well-pill` (insets), `.orb-task-blocked` (blocked-card ring), `.orb-btn-dark` / `.orb-btn-post` (dark primary submits), `.orb-btn-cancel` (dialog secondary), `.orb-pill-round` (round team buttons), plus the `.orb-pill` family for page-level actions. Typography: **DM Sans** (UI) and **DM Mono** (numeric/date accents), loaded via `next/font`. Status dots and text pair each palette color with a deeper accessible variant (`--orb-*-deep`).
 
 ## Testing
 
 ```bash
-bun run test              # unit tests — 80 checks on the pure domain seams
+bun run test              # unit tests — 85 checks on the pure domain seams
 ./scripts/smoke-test.sh   # E2E — 30 checks against the production build
 ```
 
-The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), the logo dot geometry (`logo.tsx`), and the date-picker calendar grid (`src/lib/calendar.ts`).
+The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), the logo dot geometry (`logo.tsx`), and the date-picker calendar grid + long date format (`src/lib/calendar.ts`).
 
 The smoke suite boots the production standalone server, then runs **30 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), the **clarify endpoint** (3 questions + validation), **team validation** (invite with invalid email, agent without a name), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). It exits non-zero on any failure and cleans up after itself.
 
