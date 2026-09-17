@@ -24,6 +24,8 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | 👥 **Team of humans + AI agents** | Invite members by email with a role toggle, or configure AI agents with name, description and instructions; person directory drives assignment |
 | 📜 **Agent activity feed** | Every mutation logs a typed, human-readable activity entry with full log view |
 | 🔐 **Cookie-session auth** | scrypt password hashing + HMAC-signed sessions, per-IP rate limiting on login/register (429 with `Retry-After`), zero external auth dependencies |
+| 🗑 **Inline delete confirms** | Deletes confirm in place — goal cards, the goal-detail header and task cards swap their action icons for confirm pairs (no modal interruption) |
+| 🗑 **Inline delete confirms** | Deletes confirm in place — goal cards, the goal-detail header and task cards swap their action icons for confirm pairs (no modal interruption) |
 | 🧭 **Path-based deep links** | Real URLs — `/goals/<id>`, `/my-tasks`, `/activity` — with working browser back/forward (single-page app under the hood) |
 | 📱 **Responsive SPA** | Collapsible desktop sidebar with live analog clock; mobile bottom tab bar (Home / Goals / My Tasks / Agent / More) with a More sheet |
 | 🌱 **One-command demo data** | Idempotent seed mirrors the reference workspace (3 goals, 31 tasks, 22 activity entries) |
@@ -65,7 +67,7 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | Styling | Tailwind CSS | 4 | Utility styling + design tokens |
 | Components | shadcn/ui on Radix | — | Accessible primitives (dialog, select, radio, …) |
 | State | Zustand | 5 | Single client store; server state via fetch + refresh |
-| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms |
+| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms, next-action, logo geometry |
 | ORM | Prisma | 6 | Schema, client, `db push`, seed |
 | Database | SQLite | — | Zero-config local persistence (`db/custom.db`) |
 | Auth | Node `crypto` (scrypt + HMAC) | — | Cookie sessions, no external auth service |
@@ -222,11 +224,11 @@ Typography: **DM Sans** (UI) and **DM Mono** (numeric/date accents), loaded via 
 ## Testing
 
 ```bash
-bun run test              # unit tests — 61 checks on the pure domain seams
+bun run test              # unit tests — 71 checks on the pure domain seams
 ./scripts/smoke-test.sh   # E2E — 30 checks against the production build
 ```
 
-The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), and the team-form normalization (`src/lib/team.ts`).
+The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), and the logo dot geometry (`logo.tsx`).
 
 The smoke suite boots the production standalone server, then runs **30 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), the **clarify endpoint** (3 questions + validation), **team validation** (invite with invalid email, agent without a name), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). It exits non-zero on any failure and cleans up after itself.
 

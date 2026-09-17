@@ -12,7 +12,7 @@ Single Next.js 16 app (App Router) that clones the reference PM workspace: one p
 | Production server | `bun run start` |
 | Lint | `bun run lint` |
 | Type check | `bun run typecheck` |
-| Unit tests (61 checks) | `bun run test` |
+| Unit tests (71 checks) | `bun run test` |
 | Prisma client after schema change | `bunx prisma generate` |
 | Recreate DB from schema | `bun run db:push` |
 | Seed demo workspace | `bun run db:seed` |
@@ -45,7 +45,9 @@ First-run setup: `bun install && cp .env.example .env && bun run db:push && bun 
 - **Validation is hand-rolled in route handlers** (trim, length caps, enum membership, referential checks). No schema library — zod and the other template extras were pruned in v1.2; follow the existing manual style.
 - **Every mutation writes an `ActivityLog` row** (type, message, detail, task/goal ids). New endpoints must keep the feed complete. (`goal_analyzed` is logged by the clarify endpoint — an AI action, not a mutation.)
 - **AI features degrade, never fail:** `POST /api/goals/clarify` (wizard questions) and `generate-tasks` both fall back to deterministic outputs when the SDK is down.
-- **Pure domain seams are unit-tested** (`src/lib/router.ts`, `clarify.ts`, `plan-sanitizer.ts`, `checkin.ts`, `rate-limit.ts`, `team.ts` + Vitest `*.test.ts` — 61 checks). Route handlers import these modules instead of inlining the logic — extend the tests when you extend the logic.
+- **Pure domain seams are unit-tested** (`src/lib/router.ts`, `clarify.ts`, `plan-sanitizer.ts`, `checkin.ts`, `rate-limit.ts`, `team.ts`, `next-action.ts` + the logo geometry helpers in `logo.tsx`, all with Vitest `*.test.ts` — 71 checks). Route handlers import these modules instead of inlining the logic — extend the tests when you extend the logic.
+- **Deletes confirm INLINE, never in a modal** (reference pattern): the goal card swaps its icons for a "Delete / Cancel" pair, the goal-detail header swaps DELETE for "Delete goal & all tasks? · Yes, Delete | Cancel", and task cards swap their icons for "Delete? | Yes | No". Don't reintroduce `AlertDialog` confirms.
+- **The brand marks are two different dot arrangements** (pixel-measured): sidebar/logo mark = six dots in a hexagonal ring; login card = six dots in a 1-2-3 pyramid inside a white circle. Geometry lives as pure helpers in `logo.tsx` with a spec — don't hand-place dots.
 - **Sidebar carries a live analog clock and collapses on desktop** (`sidebar-clock.tsx` + `sidebar-collapse.ts`, a `useSyncExternalStore` store persisted to localStorage `orbital-sidebar-collapsed`). Don't reintroduce `useState`-in-`useEffect` patterns for it — React 19's lint rules reject them; use external stores.
 - **AI agents are TeamMembers with `description`/`instructions`** (schema extended in v1.2); the New Agent dialog and `/api/team` POST share the `src/lib/team.ts` seams.
 - **Mobile navigates with a bottom tab bar** (HOME / GOALS / MY TASKS / AGENT / MORE + a bottom Sheet with Tasks / Team / Settings) — not a hamburger slide-over. Desktop keeps the sidebar.

@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v1.2
+# ORBITAL — Master Project Architecture Document (PAD) v1.3
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,15 @@
 **Last Updated:** 2026-09-17
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v1.3
+
+- `[FIX]` Dashboard NEXT PLANNED ACTION text corruption: `String.replace` with a capture group left the person prefix in place (`Resolve blocker on "Shelly GenosarReview Q3 project milestones"`). Extracted to the pure seam `src/lib/next-action.ts` (`nextPlannedAction`) with a regression spec; fixed with `String.match` (61 → 71 unit checks total incl. logo geometry).
+- `[MOD]` Brand marks re-measured by pixel-level connected-component analysis (VLM counts proved unreliable): sidebar mark = **six** dots in a hexagonal ring (12/2/4/6/8/10 o'clock); login card = **six** dots in a 1-2-3 pyramid inside a white circle. v1.2's "8-dot constellation" was a miscount. Geometry lives as pure helpers (`ringDotPositions` / `pyramidDotPositions`) with `logo-geometry.test.ts`; `public/orbital-logo.svg` + `logo.svg` regenerated.
+- `[MOD]` Delete confirmations moved from centered `AlertDialog` modals to the reference app's **inline** pattern: goal cards swap icons for "Delete / Cancel", the goal-detail header swaps DELETE for "Delete goal & all tasks? · Yes, Delete | Cancel", task cards swap icons for "Delete? | Yes | No". `alert-dialog.tsx` no longer has app consumers.
+- `[MOD]` Task cards: blocked titles render in the alert coral; edit/delete icon buttons sit on soft rounded squares (always visible). Dialog headers (Add/Edit Task) are plain titles — icon-circle embellishments removed. Task-detail modal assignee renders plain "Assigned to: Name".
+- `[MOD]` Login screen: sentence-case labels ("Email" / "Password"), in-field envelope/padlock icons, "Sign in" Title Case submit, "OR" divider, `you@example.com` placeholder.
+- `[MOD]` Mobile tab bar: HOME → `LayoutGrid` (four squares), MORE → `Menu` (three lines), matching the reference icons.
 
 #### Revision Block — v1.2
 
@@ -62,7 +71,7 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 | UI runtime | React | 19.x | Required by Next 16; the client store model fits React 19 fine-grained re-renders |
 | Language | TypeScript | 5.x, `strict: true` (`noImplicitAny: false`) | End-to-end typing from Prisma models through DTOs to the client store |
 | Styling | Tailwind CSS | 4.x (CSS-first tokens) | `--orb-*` design tokens declared in `globals.css` and mapped via `@theme inline`; no runtime CSS cost |
-| Components | shadcn/ui on Radix | vendored, `src/components/ui/` (12 primitives) | Accessible primitives (dialog, select, radio-group, sheet, toast…) owned as source, not a versioned dependency; unused template components pruned in v1.2 |
+| Components | shadcn/ui on Radix | vendored, `src/components/ui/` (11 primitives) | Accessible primitives (dialog, select, radio-group, sheet, toast…) owned as source, not a versioned dependency; unused template components pruned in v1.2 |
 | Client state | Zustand | 5.0.6 (resolved 5.0.10) | One store for all server state with explicit refresh composition; no cache-heuristics layer to tune |
 | Unit tests | Vitest | 5.0.1 | Pins the pure domain seams (router, clarify, sanitizer, check-in mapping) without a browser or DB |
 | ORM | Prisma | 6.11.1 (client resolved 6.19.2) | Typed, schema-first modeling; `db push` matches SQLite's no-migration workflow |
@@ -137,7 +146,7 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 - **Context:** v1.0's only verification was the 18-check E2E smoke suite — regressions in pure logic (status mapping, URL parsing, LLM-output bounds) could only be caught end-to-end, and the v1.1 remediation plan called for TDD.
 - **Decision:** A Vitest layer (`bun run test`) covers exactly the pure modules: `src/lib/router.ts` (view ↔ path mapping, legacy links), `src/lib/clarify.ts` (question fallback + LLM bounds), `src/lib/plan-sanitizer.ts` (task-plan bounds + template), `src/lib/checkin.ts` (check-in → task-status mapping). Route handlers were refactored to import these modules instead of inlining the logic.
 - **Rationale:** Tests at pre-agreed seams verify behavior through public interfaces; the modules are pure (no DB, no React, no Next runtime), so the suite runs in ~0.4s with zero infrastructure; red → green drove every v1.1 logic change.
-- **Consequences:** New pure logic belongs in `src/lib/` with a spec; component/DB behavior stays covered by the smoke suite (now 30 checks). No coverage thresholds yet — the seam list is deliberately small and complete. v1.2 added `rate-limit.test.ts` and `team.test.ts` (43 → 61 checks).
+- **Consequences:** New pure logic belongs in `src/lib/` with a spec; component/DB behavior stays covered by the smoke suite (now 30 checks). No coverage thresholds yet — the seam list is deliberately small and complete. v1.2 added `rate-limit.test.ts` and `team.test.ts` (43 → 61 checks); v1.3 added `next-action.test.ts` and `logo-geometry.test.ts` (61 → 71).
 - **Alternatives Rejected:** Component testing (Testing Library) — the views are thin over the store, and the smoke suite already exercises them against the real server; Jest (slower, more config for the same result).
 
 **ADR-009: Fixed-window per-IP rate limiting on the auth endpoints**
@@ -260,16 +269,18 @@ Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
 │   │   │   ├── sidebar-collapse.ts ← collapse state: useSyncExternalStore
 │   │   │   │                        + localStorage (orbital-sidebar-collapsed)
 │   │   │   ├── task-card.tsx      ← status dot, AI badge, assignee, deadline,
-│   │   │   │                        direct edit/delete row buttons
+│   │   │   │                        direct edit/delete buttons + inline
+│   │   │   │                        "Delete? Yes No" confirm
 │   │   │   ├── progress-ring.tsx  ← SVG completion ring (incl. faint variant)
 │   │   │   ├── widgets.tsx        ← stat cards, tasks-status panel
 │   │   │   ├── empty-state.tsx    ← illustrated empty screens
-│   │   │   ├── logo.tsx           ← 8-dot constellation mark
+│   │   │   ├── logo.tsx           ← brand marks: 6-dot ring + 1-2-3 pyramid
+│   │   │   │                        (pure geometry helpers, unit tested)
 │   │   │   ├── views/             ← dashboard, goals, goal-detail, my-tasks,
 │   │   │   │                        activity, team, settings (7 views)
 │   │   │   └── dialogs/           ← new-goal (3-step wizard), goal-edit, add-task,
 │   │   │                            task-edit, task-detail, invite-member
-│   │   └── ui/                    ← shadcn/ui primitives (vendored, 12 in use)
+│   │   └── ui/                    ← shadcn/ui primitives (vendored, 11 in use)
 │   ├── hooks/                     ← use-toast
 │   └── lib/
 │       ├── orbital.ts             ← domain types, DTOs, status metadata
@@ -279,6 +290,7 @@ Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
 │       ├── checkin.ts             ← check-in → task-status mapping
 │       ├── rate-limit.ts          ← fixed-window auth throttling (ADR-009)
 │       ├── team.ts                ← invite/agent form normalization — unit tested
+│       ├── next-action.ts         ← dashboard next-planned-action derivation — unit tested
 │       ├── api.ts                 ← ok()/fail() envelope + requireSession()
 │       ├── auth.ts                ← scrypt + HMAC sessions (ADR-003)
 │       ├── db.ts                  ← Prisma singleton + URL normalization
@@ -455,11 +467,11 @@ Status → color binding is centralized in `TASK_STATUS_META` (dot + text colors
 
 ### 5.3 Component Primitives
 
-shadcn/ui (Radix-based), vendored under `src/components/ui/` — the app leans on: `dialog` (all modals, including the conversational New Goal wizard), `select` (assignee/status pickers), `radio-group` (check-in radios), `dropdown-menu` (row actions), `progress`, `avatar`, `badge`, `tabs`, `separator`, `sheet`, `toast` (via `use-toast`), `scroll-area`. Bespoke ORBITAL components (`task-card`, `progress-ring`, `widgets`, `empty-state`) are built on these primitives, not around them.
+shadcn/ui (Radix-based), vendored under `src/components/ui/` (11 in use): `button`, `dialog` (all modals, including the conversational New Goal wizard), `input`, `label`, `popover` (user menu), `radio-group` (check-in radios), `select` (assignee/status pickers), `sheet` (mobile MORE sheet), `textarea`, and `toast` (via `use-toast` + `toaster`). Bespoke ORBITAL components (`task-card`, `progress-ring`, `widgets`, `empty-state`, `logo`) are built on these primitives, not around them. Deletes confirm inline in the cards themselves (v1.3), so no alert-dialog primitive is needed.
 
 ### 5.4 Motion / Animation
 
-Deliberately restrained, all CSS-based: the mobile bottom tab bar, the MORE bottom sheet (slide-in from Radix primitives), dialog enter/exit, toast slide-ins, and hover transitions on cards/buttons. `framer-motion` is **not** used (present in `package.json` from the template, unreferenced). No `prefers-reduced-motion` overrides exist yet — tracked in §10.
+Deliberately restrained, all CSS-based: the mobile bottom tab bar, the MORE bottom sheet (slide-in from Radix primitives), dialog enter/exit, toast slide-ins, and hover transitions on cards/buttons. `framer-motion` was pruned with the other unused template extras in v1.2. A `prefers-reduced-motion: reduce` media query in `globals.css` disables animations and transitions for users who opt out.
 
 ---
 
@@ -516,17 +528,17 @@ Single-workspace model with no RBAC: any authenticated user has full read/write 
 | Category | Files | Checks | Location | Framework |
 |----------|-------|--------|----------|-----------|
 | End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 30 | `scripts/` | Bash + curl + python3 (no test framework needed) |
-| Unit (pure domain seams) | 5 (`src/lib/*.test.ts`) | 61 | `src/lib/` | Vitest 5 (`bun run test`) |
+| Unit (pure domain seams) | 7 (`src/lib/*.test.ts`) | 71 | `src/lib/` | Vitest 5 (`bun run test`) |
 
 ### 7.2 Test Patterns
 
-The unit layer (`bun run test`, ~0.7s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule), `rate-limit.test.ts` (fixed-window accounting, expired-bucket eviction, limit boundary, retry-after math), `team.test.ts` (email → display-name derivation, agent-field normalization bounds). All v1.1/v1.2 logic changes were written red → green at these seams.
+The unit layer (`bun run test`, ~0.7s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule), `rate-limit.test.ts` (fixed-window accounting, expired-bucket eviction, limit boundary, retry-after math), `team.test.ts` (email → display-name derivation, agent-field normalization bounds), `next-action.test.ts` (next-planned-action extraction incl. the v1.3 name-prefix regression), `logo-geometry.test.ts` (six-dot ring angles, 1-2-3 pyramid rows). All v1.1–v1.3 logic changes were written red → green at these seams.
 
 The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` each return the app shell; an unknown path must 404), the **clarify endpoint** (three questions returned; title-less payload rejected 400), **team validation** (invite with an invalid email rejected 400; agent without a name rejected 400), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
 
 ### 7.3 Coverage Thresholds
 
-- **Gate (mandatory before push):** `bun run lint` → `bun run typecheck` → `bun run test` (**61/61**) → `bun run build` → `./scripts/smoke-test.sh` with **30/30 PASS**. There is no hosted CI; this local gate is the only gate. The `typecheck` step is not optional: `next.config.ts` sets `ignoreBuildErrors`, so the build alone will not surface type errors.
+- **Gate (mandatory before push):** `bun run lint` → `bun run typecheck` → `bun run test` (**71/71**) → `bun run build` → `./scripts/smoke-test.sh` with **30/30 PASS**. There is no hosted CI; this local gate is the only gate. The `typecheck` step is not optional: `next.config.ts` sets `ignoreBuildErrors`, so the build alone will not surface type errors.
 - Line/branch coverage is not measured — the seam list is small and deliberately complete (see ADR-008).
 
 ### 7.4 Pre-Push Checklist
@@ -534,7 +546,7 @@ The smoke suite boots the **production standalone server** (not dev mode), polls
 - [ ] `bun run lint` exits 0
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run build` compiles clean
-- [ ] `bun run test` → 61/61 PASS
+- [ ] `bun run test` → 71/71 PASS
 - [ ] `./scripts/smoke-test.sh` → 30/30 PASS
 - [ ] New/changed endpoints write their `ActivityLog` entries (Pattern D)
 - [ ] Schema changes regenerated (`bunx prisma generate`) and reseeded (`db:push` + `db:seed`)
@@ -587,7 +599,7 @@ bun run db:seed            # canonical demo workspace
 bun run dev                # http://localhost:3000
 ```
 
-Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 30/30 PASS; unit layer via `bun run test`, 61/61).
+Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 30/30 PASS; unit layer via `bun run test`, 71/71).
 
 ### 9.2 Common Commands
 
@@ -602,7 +614,7 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `bun run db:push` | Apply schema changes to SQLite |
 | `bun run db:seed` | Idempotent reset to demo data |
 | `bunx prisma studio` | Inspect data in a browser (optional convenience) |
-| `bun run test` | Vitest unit suite (61 checks, pure seams) |
+| `bun run test` | Vitest unit suite (71 checks, pure seams) |
 | `./scripts/smoke-test.sh` | 30-check E2E suite against the production build |
 
 ### 9.3 Code Style Rules
@@ -642,7 +654,7 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 |------|-------|---------|
 | `src/components/orbital/store.ts` | 356 | The Zustand store: all server state, `call()` envelope client, every action + refresh set |
 | `prisma/seed.ts` | 265 | Idempotent demo workspace: user, 10 people, 3 goals, 31 tasks, 22 activity rows |
-| `src/components/orbital/views/dashboard-view.tsx` | 259 | Dashboard: greeting card, unified stats, faint done ring, activity preview |
+| `src/components/orbital/views/dashboard-view.tsx` | 253 | Dashboard: greeting card, unified stats, faint done ring, activity preview |
 | `src/components/orbital/orbital-app.tsx` | 201 | Authenticated shell: collapsible desktop sidebar, mobile bottom tab bar + MORE sheet, popstate wiring |
 | `src/components/orbital/sidebar.tsx` | 181 | Collapsible nav: sections, clock + tasks-status row, chevron toggle |
 | `src/lib/router.ts` | 91 | View ↔ path mapping (`parseUrl` / `toPath`), legacy link support — unit tested |
@@ -657,15 +669,18 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `src/components/orbital/sidebar-clock.tsx` | 69 | Neumorphic analog clock (SVG, 15s tick) |
 | `src/lib/plan-sanitizer.ts` | 54 | AI task-plan bounds + deterministic template — unit tested |
 | `src/components/orbital/user-menu.tsx` | 55 | Avatar popover with identity + Log Out (router.refresh swap) |
-| `src/components/orbital/views/goal-detail-view.tsx` | 238 | Goal detail: 2-stat row, inline ADD TASK, task cards |
-| `src/components/orbital/views/goals-view.tsx` | 230 | Goals grid: redesigned cards, filter chips, NEW GOAL outline pill |
+| `src/components/orbital/views/goal-detail-view.tsx` | 199 | Goal detail: 2-stat row, inline ADD TASK, header inline delete confirm |
+| `src/components/orbital/views/goals-view.tsx` | 235 | Goals grid: redesigned cards, filter chips, inline delete confirm |
 | `src/components/orbital/views/settings-view.tsx` | 204 | Settings: 2-column layout (Workspace + Hours / AI Assistant) |
 | `src/components/orbital/dialogs/invite-member-dialog.tsx` | 207 | Invite Member (email + role) / Create AI Agent (name/description/instructions) |
 | `src/components/orbital/dialogs/new-goal-dialog.tsx` | 274 | 3-step AI wizard: describe → clarifying questions → generate |
 | `src/components/orbital/sidebar-collapse.ts` | 37 | Collapse state: `useSyncExternalStore` + localStorage |
 | `src/lib/team.ts` | 35 | Invite/agent form normalization — unit tested |
+| `src/lib/next-action.ts` | 20 | Dashboard next-planned-action derivation — unit tested |
+| `src/components/orbital/task-card.tsx` | 158 | Task row: status, AI badge, coral blocked title, inline "Delete? Yes No" confirm |
 | `src/lib/db.ts` | 51 | Prisma singleton + SQLite URL normalization (Pattern B) |
 | `src/lib/clarify.ts` | 36 | Wizard question fallback + LLM bounds — unit tested |
+| `src/components/orbital/logo.tsx` | 78 | Brand marks: 6-dot ring + 1-2-3 pyramid — geometry unit tested |
 | `src/lib/api.ts` | 30 | `ok()` / `fail()` envelope + `requireSession()` guard |
 | `src/lib/checkin.ts` | 24 | Check-in → task-status mapping — unit tested |
 | `src/app/page.tsx` | 19 | The single page: session check → shell or login |
@@ -686,5 +701,6 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | **The planner** | `POST /api/goals/[id]/generate-tasks` — LLM-backed task-plan generation (clarifying answers in, sanitized tasks out) with deterministic fallback |
 | **Deep link** | A shareable view URL (`/goals/<id>`, `/my-tasks`, …) — rewrites serve the shell, `router.ts` restores the view (legacy `?view=` links still resolve) |
 | **Smoke suite** | `scripts/smoke-test.sh` — the 30-check production-server verification gate |
+| **Inline confirm** | The reference app's delete pattern: the action icons swap in place for a confirm pair ("Delete / Cancel", "Yes, Delete / Cancel", "Delete? Yes / No") instead of opening a modal |
 | **SSH wrapper** | `docs/ssh_git_wrapper_v3.py` — key-materializing authenticated push tool with post-push remote verification |
 

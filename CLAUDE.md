@@ -24,7 +24,7 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 2. **PLAN** — Map the change across the four layers it will touch: schema (`prisma/schema.prisma`) → route handler (`src/app/api/…`) → domain types (`src/lib/orbital.ts` / pure lib modules) → store action + view/dialog.
 3. **VALIDATE** — Confirm the plan preserves the API envelope and the activity-feed invariant before coding. Pure logic goes in `src/lib/*.ts` with a Vitest test — write the failing test first.
 4. **IMPLEMENT** — One layer at a time; keep the build green (`bun run build`) between layers.
-5. **VERIFY** — Run the full gate: `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh` (61 unit + 30 smoke checks required).
+5. **VERIFY** — Run the full gate: `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh` (71 unit + 30 smoke checks required).
 6. **DELIVER** — Conventional Commit on `main`, push via the SSH wrapper runbook.
 
 ### Project-Specific Principles
@@ -33,7 +33,8 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 - **Every mutation narrates itself.** An API change without its `ActivityLog` write is incomplete.
 - **The AI features may degrade, never fail.** `clarify` (wizard questions) and `generate-tasks` fall back to deterministic outputs; preserve that guarantee when touching them.
 - **No new state libraries.** Server state flows through the Zustand store's refresh pattern.
-- **Test at the pure seams.** Router mapping, clarify questions, plan sanitization, check-in mapping, auth rate limiting and team-form normalization live in `src/lib/*.ts` with Vitest specs — TDD (red → green) is the default for changes there.
+- **Test at the pure seams.** Router mapping, clarify questions, plan sanitization, check-in mapping, auth rate limiting, team-form normalization, the dashboard's next-planned-action derivation, and the logo dot geometry live in `src/lib/*.ts` (or `logo.tsx`) with Vitest specs — TDD (red → green) is the default for changes there.
+- **Deletes confirm inline, not in modals.** Goal cards, the goal-detail header, and task cards swap their action icons for inline confirm pairs ("Delete / Cancel", "Yes, Delete / Cancel", "Delete? Yes / No") — the reference pattern; `AlertDialog` confirms were removed in v1.3.
 - **Auth endpoints are rate-limited; auth navigation uses `router.refresh()`.** 10 attempts/IP/15 min on login + register (`429 RATE_LIMITED`); login success and Log Out swap the shell via a server session re-resolve, never `window.location` assignments.
 
 ## Implementation Standards
@@ -86,7 +87,7 @@ bun run dev          # http://localhost:3000 — demo@orbital.app / Demo1234!
 
 ## Testing Strategy
 
-- **Unit layer** (`bun run test`, Vitest): 61 checks pinning the pure domain seams — `src/lib/router.test.ts` (view ↔ path mapping incl. legacy `?view=` links), `clarify.test.ts` (wizard questions: fallback + LLM bounds), `domain.test.ts` (plan sanitizer, template fallback, check-in status mapping), `rate-limit.test.ts` (fixed-window buckets, eviction, retry-after), `team.test.ts` (email → display-name derivation, agent-field normalization).
+- **Unit layer** (`bun run test`, Vitest): 71 checks pinning the pure domain seams — `src/lib/router.test.ts` (view ↔ path mapping incl. legacy `?view=` links), `clarify.test.ts` (wizard questions: fallback + LLM bounds), `domain.test.ts` (plan sanitizer, template fallback, check-in status mapping), `rate-limit.test.ts` (fixed-window buckets, eviction, retry-after), `team.test.ts` (email → display-name derivation, agent-field normalization), `next-action.test.ts` (dashboard next-planned-action extraction incl. the name-prefix regression), `logo-geometry.test.ts` (six-dot ring + 1-2-3 pyramid geometry).
 - **End-to-end smoke suite** (`scripts/smoke-test.sh`): boots the production standalone server and runs 30 checks — health, auth (valid/invalid/unauthenticated), all read endpoints, task create, invalid-status rejection, check-in round-trip (status flip + update recorded), delete, logout invalidation, page render, path-route serving (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` + 404 guard), the clarify endpoint (3 questions + validation), team validation (invalid email, agent without name), and the login rate limit (429 `RATE_LIMITED`). Exits non-zero on failure.
 - **Pre-push gate** (mandatory, no CI exists): `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh`.
 - Manual QA matrix: every changed dialog must be exercised in both desktop and mobile layouts (bottom tab bar + MORE sheet below `lg`).
@@ -96,7 +97,7 @@ bun run dev          # http://localhost:3000 — demo@orbital.app / Demo1234!
 ```bash
 bun run lint        # must exit 0 with no errors
 bun run typecheck   # must exit 0 (the build won't catch type errors)
-bun run test        # 61 unit checks must pass
+bun run test        # 71 unit checks must pass
 bun run build       # must compile clean
 ```
 
