@@ -7,7 +7,7 @@
 // Settings — mirroring the reference app.
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Activity, CheckSquare, ChevronLeft, LayoutDashboard, MoreHorizontal, Settings, Target, Users, X } from "lucide-react";
+import { Activity, CheckSquare, ChevronLeft, LayoutGrid, Menu, Settings, Target, Users, X } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Sidebar } from "@/components/orbital/sidebar";
 import { DashboardView } from "@/components/orbital/views/dashboard-view";
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import type { ViewId } from "@/lib/router";
 
 const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutDashboard size={19} strokeWidth={1.8} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutGrid size={19} strokeWidth={1.8} /> },
   { view: "goals", label: "Goals", icon: <Target size={19} strokeWidth={1.8} /> },
   { view: "my-tasks", label: "My Tasks", icon: <CheckSquare size={19} strokeWidth={1.8} /> },
   { view: "activity", label: "Agent", icon: <Activity size={19} strokeWidth={1.8} /> },
@@ -142,7 +142,7 @@ export function OrbitalApp({ user }: { user: { id: string; email: string; name: 
                 moreActive ? "text-orb-heading" : "text-orb-muted",
               )}
             >
-              <MoreHorizontal size={19} strokeWidth={1.8} />
+              <Menu size={19} strokeWidth={1.8} />
               More
             </button>
           </nav>

@@ -1,24 +1,15 @@
 "use client";
 
 // My Tasks: tasks assigned to the signed-in user, filterable by status.
+// Deletes confirm inline on the task card (reference pattern).
 
 import { useMemo, useState } from "react";
-import { CheckSquare, Pencil, Trash2 } from "lucide-react";
+import { CheckSquare } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { TaskCard } from "@/components/orbital/task-card";
 import { EmptyState } from "@/components/orbital/empty-state";
 import { TaskDetailDialog } from "@/components/orbital/dialogs/task-detail-dialog";
 import { TaskEditDialog } from "@/components/orbital/dialogs/task-edit-dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import type { TaskDTO, TaskStatus } from "@/lib/orbital";
 import { cn } from "@/lib/utils";
 
@@ -37,8 +28,6 @@ export function MyTasksView() {
   const [filter, setFilter] = useState<"all" | TaskStatus>("all");
   const [detailTask, setDetailTask] = useState<TaskDTO | null>(null);
   const [editTask, setEditTask] = useState<TaskDTO | null>(null);
-  const [taskToDelete, setTaskToDelete] = useState<TaskDTO | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const counts = useMemo(() => {
     const map = new Map<string, number>([["all", myTasks.length]]);
@@ -97,7 +86,7 @@ export function MyTasksView() {
               task={task}
               onOpen={setDetailTask}
               onEdit={setEditTask}
-              onDelete={setTaskToDelete}
+              onDelete={(t) => deleteTask(t.id, t.goalId)}
             />
           ))
         )}
@@ -105,36 +94,6 @@ export function MyTasksView() {
 
       {detailTask ? <TaskDetailDialog task={detailTask} onClose={() => setDetailTask(null)} /> : null}
       {editTask ? <TaskEditDialog task={editTask} onClose={() => setEditTask(null)} /> : null}
-
-      <AlertDialog open={taskToDelete !== null} onOpenChange={(open) => !open && setTaskToDelete(null)}>
-        <AlertDialogContent className="rounded-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Trash2 size={16} /> Delete this task?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              &quot;{taskToDelete?.title}&quot; will be permanently removed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="rounded-full bg-destructive text-white hover:bg-destructive/90"
-              disabled={deleting}
-              onClick={async (event) => {
-                event.preventDefault();
-                if (!taskToDelete) return;
-                setDeleting(true);
-                const done = await deleteTask(taskToDelete.id, taskToDelete.goalId);
-                setDeleting(false);
-                if (done) setTaskToDelete(null);
-              }}
-            >
-              {deleting ? "Deleting…" : "Delete task"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

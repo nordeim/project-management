@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { AvatarBubble } from "@/components/orbital/widgets";
 import { UPDATE_STATUS_META, relativeTime, type TaskDTO, type UpdateStatus } from "@/lib/orbital";
 import { cn } from "@/lib/utils";
 
@@ -43,14 +42,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
         </DialogHeader>
 
         <div className="space-y-1.5 text-[13.5px] text-orb-muted">
-          {task.assignee ? (
-            <p className="flex items-center gap-2">
-              <AvatarBubble name={task.assignee.name} color={task.assignee.avatarColor} size={22} />
-              Assigned to <span className="font-medium text-orb-heading">{task.assignee.name}</span>
-            </p>
-          ) : (
-            <p>Unassigned</p>
-          )}
+          {task.assignee ? <p>Assigned to: {task.assignee.name}</p> : <p>Unassigned</p>}
           {task.goalTitle ? <p>Goal: {task.goalTitle}</p> : null}
           {task.deadline ? (
             <p>

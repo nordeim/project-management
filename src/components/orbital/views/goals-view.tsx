@@ -3,7 +3,9 @@
 // Goals: filter chips (All / Active / Done / Draft / Paused) + goal cards
 // matching the reference layout — status row + title + horizontal progress
 // bar, big percentage with task fraction on the right, meta + date bottom
-// left, always-visible edit / delete actions bottom right.
+// left, always-visible edit / delete actions bottom right. Delete confirms
+// INLINE on the card (reference pattern): the icons swap for a
+// "Delete / Cancel" pair; no modal.
 
 import { useMemo, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
@@ -11,16 +13,6 @@ import { useOrbital } from "@/components/orbital/store";
 import { EmptyState } from "@/components/orbital/empty-state";
 import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
 import { GoalEditDialog } from "@/components/orbital/dialogs/goal-edit-dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { GOAL_STATUS_META, type GoalDTO, type GoalStatus } from "@/lib/orbital";
 import { cn } from "@/lib/utils";
 
@@ -37,15 +29,138 @@ function formatDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function GoalCard({
+  goal,
+  onEdit,
+  onDelete,
+}: {
+  goal: GoalDTO;
+  onEdit: (goal: GoalDTO) => void;
+  onDelete: (goal: GoalDTO) => Promise<boolean | void> | boolean | void;
+}) {
+  const navigate = useOrbital((s) => s.navigate);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const pct = goal.taskCount > 0 ? Math.round((goal.doneCount / goal.taskCount) * 100) : 0;
+  const meta = GOAL_STATUS_META[goal.status];
+
+  async function confirmDelete() {
+    if (deleting) return;
+    setDeleting(true);
+    const done = await onDelete(goal);
+    setDeleting(false);
+    if (done !== false) setConfirming(false);
+  }
+
+  return (
+    <div className="orb-card p-5 transition-transform hover:-translate-y-0.5">
+      <div className="flex w-full items-start justify-between gap-4 text-left">
+        <button
+          type="button"
+          onClick={() => navigate("goal-detail", goal.id)}
+          className="min-w-0 flex-1 text-left"
+          aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+              style={{ color: meta.color }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: meta.color }} aria-hidden="true" />
+              {meta.label}
+            </span>
+            {goal.blockedCount > 0 && goal.status === "active" ? (
+              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-coral-deep">
+                · {goal.blockedCount} Blocked
+              </span>
+            ) : null}
+            <span className="text-[11px] text-orb-muted" aria-hidden="true">
+              ›
+            </span>
+          </div>
+          <p className="mt-1.5 truncate text-[16px] font-semibold text-orb-heading">{goal.title}</p>
+
+          {/* Horizontal progress bar (reference pattern) */}
+          <div
+            className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]"
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${goal.title} progress`}
+          >
+            <div
+              className="h-full rounded-full bg-orb-green transition-[width] duration-700"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+
+          <p className="mt-2.5 text-[13px] text-orb-muted">
+            {goal.doneCount}/{goal.taskCount} tasks · {pct}%
+            {goal.targetDate ? <span className="ml-3">{formatDate(goal.targetDate)}</span> : null}
+          </p>
+        </button>
+
+        {/* Right column: big percentage, fraction, then actions
+            (reference: buttons sit under the fraction; deleting swaps them
+            for the inline confirmation) */}
+        <div className="flex shrink-0 flex-col items-end pt-4">
+          <span className="text-[30px] font-normal leading-none text-orb-heading">{pct}%</span>
+          <span className="mt-1.5 text-[13px] text-orb-muted">
+            {goal.doneCount}/{goal.taskCount}
+          </span>
+          {confirming ? (
+            <div className="mt-2.5 flex items-center gap-2" role="group" aria-label={`Confirm delete ${goal.title}`}>
+              <button
+                type="button"
+                onClick={() => void confirmDelete()}
+                disabled={deleting}
+                className="h-8 rounded-full bg-orb-coral-deep px-4 text-[12.5px] font-semibold text-white transition-colors hover:bg-orb-coral-deep/90 disabled:opacity-50"
+              >
+                {deleting ? "…" : "Delete"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirming(false)}
+                disabled={deleting}
+                className="h-8 px-1 text-[12.5px] font-medium text-orb-muted transition-colors hover:text-orb-heading disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="mt-2.5 flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onEdit(goal)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-orb-muted transition-colors hover:bg-black/[0.06] hover:text-orb-heading"
+                aria-label={`Edit goal ${goal.title}`}
+              >
+                <Pencil size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirming(true)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-orb-muted transition-colors hover:bg-orb-coral/15 hover:text-orb-coral-deep"
+                aria-label={`Delete goal ${goal.title}`}
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function GoalsView() {
   const goals = useOrbital((s) => s.goals);
-  const navigate = useOrbital((s) => s.navigate);
   const deleteGoal = useOrbital((s) => s.deleteGoal);
   const [filter, setFilter] = useState<"all" | GoalStatus>("all");
   const [newGoalOpen, setNewGoalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GoalDTO | null>(null);
-  const [goalToDelete, setGoalToDelete] = useState<GoalDTO | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const counts = useMemo(() => {
     const map = new Map<string, number>([["all", goals.length]]);
@@ -102,129 +217,19 @@ export function GoalsView() {
             description="Create your first goal and the AI assistant will draft a task plan for it."
             action={
               <button type="button" className="orb-pill-outline" onClick={() => setNewGoalOpen(true)}>
-                <Plus size={14} aria-hidden="true" /> New Goal
+                <Plus size={14} /> New Goal
               </button>
             }
           />
         ) : (
-          visible.map((goal) => {
-            const pct = goal.taskCount > 0 ? Math.round((goal.doneCount / goal.taskCount) * 100) : 0;
-            const meta = GOAL_STATUS_META[goal.status];
-            return (
-              <div key={goal.id} className="orb-card p-5 transition-transform hover:-translate-y-0.5">
-                <button
-                  type="button"
-                  onClick={() => navigate("goal-detail", goal.id)}
-                  className="flex w-full items-start justify-between gap-4 text-left"
-                  aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
-                        style={{ color: meta.color }}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: meta.color }} aria-hidden="true" />
-                        {meta.label}
-                      </span>
-                      {goal.blockedCount > 0 && goal.status === "active" ? (
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-coral-deep">
-                          · {goal.blockedCount} Blocked
-                        </span>
-                      ) : null}
-                      <span className="text-[11px] text-orb-muted" aria-hidden="true">
-                        ›
-                      </span>
-                    </div>
-                    <p className="mt-1.5 truncate text-[16px] font-semibold text-orb-heading">{goal.title}</p>
-
-                    {/* Horizontal progress bar (reference pattern) */}
-                    <div
-                      className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]"
-                      role="progressbar"
-                      aria-valuenow={pct}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label={`${goal.title} progress`}
-                    >
-                      <div
-                        className="h-full rounded-full bg-orb-green transition-[width] duration-700"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-
-                    <p className="mt-2.5 text-[13px] text-orb-muted">
-                      {goal.doneCount}/{goal.taskCount} tasks · {pct}%
-                      {goal.targetDate ? (
-                        <span className="ml-3">{formatDate(goal.targetDate)}</span>
-                      ) : null}
-                    </p>
-                  </div>
-
-                  {/* Right column: big percentage, fraction, then actions
-                      (reference: buttons sit under the fraction) */}
-                  <div className="flex shrink-0 flex-col items-end pt-4">
-                    <span className="text-[30px] font-normal leading-none text-orb-heading">{pct}%</span>
-                    <span className="mt-1.5 text-[13px] text-orb-muted">
-                      {goal.doneCount}/{goal.taskCount}
-                    </span>
-                    <div className="mt-2.5 flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setEditingGoal(goal)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-orb-muted transition-colors hover:bg-black/[0.06] hover:text-orb-heading"
-                        aria-label={`Edit goal ${goal.title}`}
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setGoalToDelete(goal)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-orb-muted transition-colors hover:bg-orb-coral/15 hover:text-orb-coral-deep"
-                        aria-label={`Delete goal ${goal.title}`}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            );
-          })
+          visible.map((goal) => (
+            <GoalCard key={goal.id} goal={goal} onEdit={setEditingGoal} onDelete={(g) => deleteGoal(g.id)} />
+          ))
         )}
       </div>
 
       <NewGoalDialog open={newGoalOpen} onOpenChange={setNewGoalOpen} />
       {editingGoal ? <GoalEditDialog goal={editingGoal} onClose={() => setEditingGoal(null)} /> : null}
-
-      <AlertDialog open={goalToDelete !== null} onOpenChange={(open) => !open && setGoalToDelete(null)}>
-        <AlertDialogContent className="rounded-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this goal?</AlertDialogTitle>
-            <AlertDialogDescription>
-              &quot;{goalToDelete?.title}&quot; and its {goalToDelete?.taskCount ?? 0} tasks will be permanently
-              removed. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="rounded-full bg-destructive text-white hover:bg-destructive/90"
-              disabled={deleting}
-              onClick={async (event) => {
-                event.preventDefault();
-                if (!goalToDelete) return;
-                setDeleting(true);
-                const done = await deleteGoal(goalToDelete.id);
-                setDeleting(false);
-                if (done) setGoalToDelete(null);
-              }}
-            >
-              {deleting ? "Deleting…" : "Delete goal"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

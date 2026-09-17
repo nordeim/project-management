@@ -1,7 +1,8 @@
 "use client";
 
-// Goal detail: header (status, title, description, target, delete), progress
-// stats row, ADD TASK, and the full task list.
+// Goal detail: header (status, title, description, target, inline delete
+// confirm — the reference pattern, no modal), progress stats row, ADD TASK,
+// and the full task list (per-card inline delete confirms).
 
 import { useEffect, useState } from "react";
 import { ArrowLeft, CalendarDays, Plus, Trash2 } from "lucide-react";
@@ -11,16 +12,6 @@ import { AddTaskDialog } from "@/components/orbital/dialogs/add-task-dialog";
 import { TaskDetailDialog } from "@/components/orbital/dialogs/task-detail-dialog";
 import { TaskEditDialog } from "@/components/orbital/dialogs/task-edit-dialog";
 import { EmptyState } from "@/components/orbital/empty-state";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { GOAL_STATUS_META, type GoalDTO, type TaskDTO } from "@/lib/orbital";
 
 export function GoalDetailView() {
@@ -35,7 +26,6 @@ export function GoalDetailView() {
   const [detailTask, setDetailTask] = useState<TaskDTO | null>(null);
   const [editTask, setEditTask] = useState<TaskDTO | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<TaskDTO | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const goal: GoalDTO | undefined = goals.find((g) => g.id === goalId);
@@ -100,14 +90,41 @@ export function GoalDetailView() {
           ) : null}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(true)}
-            className="inline-flex h-9 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03] hover:text-orb-heading"
-          >
-            <Trash2 size={13} aria-hidden="true" />
-            Delete
-          </button>
+          {confirmDelete ? (
+            <div className="flex items-center gap-2.5" role="group" aria-label="Confirm goal deletion">
+              <span className="text-[13px] text-orb-muted">Delete goal &amp; all tasks?</span>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true);
+                  const done = await deleteGoal(goal.id);
+                  setDeleting(false);
+                  if (done) navigate("goals");
+                }}
+                className="inline-flex h-9 items-center rounded-full bg-orb-coral-deep px-4 text-[13px] font-semibold text-white transition-colors hover:bg-orb-coral-deep/90 disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Yes, Delete"}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setConfirmDelete(false)}
+                className="inline-flex h-9 items-center rounded-full px-4 text-[13px] font-medium text-orb-muted transition-colors hover:text-orb-heading disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="inline-flex h-9 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03] hover:text-orb-heading"
+            >
+              <Trash2 size={13} aria-hidden="true" />
+              Delete
+            </button>
+          )}
         </div>
       </header>
 
@@ -168,7 +185,7 @@ export function GoalDetailView() {
               task={task}
               onOpen={setDetailTask}
               onEdit={setEditTask}
-              onDelete={(t) => setTaskToDelete(t)}
+              onDelete={(t) => deleteTask(t.id, t.goalId)}
             />
           ))
         )}
@@ -177,62 +194,6 @@ export function GoalDetailView() {
       <AddTaskDialog goalId={goal.id} open={addOpen} onOpenChange={setAddOpen} />
       {detailTask ? <TaskDetailDialog task={detailTask} onClose={() => setDetailTask(null)} /> : null}
       {editTask ? <TaskEditDialog task={editTask} onClose={() => setEditTask(null)} /> : null}
-
-      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <AlertDialogContent className="rounded-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this goal?</AlertDialogTitle>
-            <AlertDialogDescription>
-              &quot;{goal.title}&quot; and its {goal.taskCount} tasks will be permanently removed. This cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="rounded-full bg-destructive text-white hover:bg-destructive/90"
-              disabled={deleting}
-              onClick={async (event) => {
-                event.preventDefault();
-                setDeleting(true);
-                const done = await deleteGoal(goal.id);
-                setDeleting(false);
-                if (done) setConfirmDelete(false);
-              }}
-            >
-              {deleting ? "Deleting…" : "Delete goal"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={taskToDelete !== null} onOpenChange={(open) => !open && setTaskToDelete(null)}>
-        <AlertDialogContent className="rounded-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this task?</AlertDialogTitle>
-            <AlertDialogDescription>
-              &quot;{taskToDelete?.title}&quot; will be permanently removed from this goal.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="rounded-full bg-destructive text-white hover:bg-destructive/90"
-              disabled={deleting}
-              onClick={async (event) => {
-                event.preventDefault();
-                if (!taskToDelete || !goalId) return;
-                setDeleting(true);
-                const done = await deleteTask(taskToDelete.id, goalId);
-                setDeleting(false);
-                if (done) setTaskToDelete(null);
-              }}
-            >
-              {deleting ? "Deleting…" : "Delete task"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

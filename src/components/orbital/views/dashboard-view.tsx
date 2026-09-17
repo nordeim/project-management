@@ -10,6 +10,7 @@ import { useOrbital } from "@/components/orbital/store";
 import { FaintRing, ProgressRing } from "@/components/orbital/progress-ring";
 import { UserMenu } from "@/components/orbital/user-menu";
 import { greetingFor, relativeTime, type ActivityDTO } from "@/lib/orbital";
+import { nextPlannedAction } from "@/lib/next-action";
 import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
 
 function activityIcon(type: string): { bg: string; fg: string; glyph: React.ReactNode } {
@@ -114,14 +115,7 @@ export function DashboardView() {
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
 
-  const nextPlanned = useMemo(() => {
-    const blocked = activity.find((a) => a.type === "status_update" && a.detail?.includes("Blocked"));
-    if (blocked?.message) {
-      const task = blocked.message.replace(/ checked in on "(.+?)"/, "$1");
-      if (task && task !== blocked.message) return `Resolve blocker on "${task}"`;
-    }
-    return "Ping the team for a status check-in on active goals.";
-  }, [activity]);
+  const nextPlanned = useMemo(() => nextPlannedAction(activity), [activity]);
 
   return (
     <div className="mx-auto max-w-6xl">

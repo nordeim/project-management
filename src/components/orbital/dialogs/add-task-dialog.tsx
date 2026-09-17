@@ -3,7 +3,7 @@
 // Add Task: title, description, status, deadline, assignee, estimated hours.
 
 import { useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -84,12 +84,7 @@ export function AddTaskDialog({
     >
       <DialogContent className="max-w-md rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05]" aria-hidden="true">
-              <Plus size={15} />
-            </span>
-            Add Task
-          </DialogTitle>
+          <DialogTitle className="text-[16px] font-semibold text-orb-heading">Add Task</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">

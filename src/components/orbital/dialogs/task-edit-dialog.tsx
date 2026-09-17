@@ -3,7 +3,7 @@
 // Edit Task: same fields as Add Task, prefilled.
 
 import { useState } from "react";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -65,12 +65,7 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
     <Dialog open onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-w-md rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05]" aria-hidden="true">
-              <Pencil size={14} />
-            </span>
-            Edit Task
-          </DialogTitle>
+          <DialogTitle className="text-[16px] font-semibold text-orb-heading">Edit Task</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">

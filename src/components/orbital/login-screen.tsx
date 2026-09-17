@@ -1,15 +1,17 @@
 "use client";
 
-// Login / sign-up screen. Mirrors the reference app: centered card,
-// "Continue with Google" (demo notice), email + password form.
+// Login / sign-up screen. Mirrors the reference app: centered card, the
+// 1-2-3 pyramid dot mark, "Continue with Google" (demo notice), email +
+// password form with in-field icons, Title Case labels and submit button.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Lock, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { LogoMark } from "@/components/orbital/logo";
+import { LogoPyramid } from "@/components/orbital/logo";
 
 export function LoginScreen() {
   const router = useRouter();
@@ -61,7 +63,7 @@ export function LoginScreen() {
       <div className="w-full max-w-md">
         <div className="orb-card p-8 sm:p-10">
           <div className="mb-8 flex flex-col items-center gap-4 text-center">
-            <LogoMark size={44} />
+            <LogoPyramid size={48} />
             <h1 className="text-2xl font-normal tracking-tight text-orb-heading">
               Welcome to <span className="font-bold">Project Management App</span>
             </h1>
@@ -99,14 +101,14 @@ export function LoginScreen() {
 
           <div className="my-6 flex items-center gap-3" aria-hidden="true">
             <span className="h-px flex-1 bg-black/[0.08]" />
-            <span className="text-xs text-orb-muted">or</span>
+            <span className="text-xs font-medium text-orb-muted">OR</span>
             <span className="h-px flex-1 bg-black/[0.08]" />
           </div>
 
           <form onSubmit={submit} className="space-y-4" noValidate>
             {mode === "signup" ? (
               <div className="space-y-2">
-                <Label htmlFor="name" className="orb-label">
+                <Label htmlFor="name" className="text-[13.5px] font-medium text-orb-body">
                   Name
                 </Label>
                 <Input
@@ -121,41 +123,47 @@ export function LoginScreen() {
               </div>
             ) : null}
             <div className="space-y-2">
-              <Label htmlFor="email" className="orb-label">
+              <Label htmlFor="email" className="text-[13.5px] font-medium text-orb-body">
                 Email
               </Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@team.com"
-                required
-                className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60 text-sm"
-              />
+              <div className="relative">
+                <Mail size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orb-muted" />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60 pl-10 text-sm"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="orb-label">
+              <Label htmlFor="password" className="text-[13.5px] font-medium text-orb-body">
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={8}
-                className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60 text-sm"
-              />
+              <div className="relative">
+                <Lock size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orb-muted" />
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={8}
+                  className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60 pl-10 text-sm"
+                />
+              </div>
             </div>
 
             <Button
               type="submit"
               disabled={busy}
-              className="h-11 w-full rounded-full bg-primary text-[12px] font-semibold uppercase tracking-[0.08em] text-primary-foreground hover:bg-black disabled:opacity-50"
+              className="h-11 w-full rounded-full bg-primary text-sm font-semibold text-primary-foreground hover:bg-black disabled:opacity-50"
             >
               {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Sign up"}
             </Button>
