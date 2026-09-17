@@ -10,7 +10,7 @@ last_updated: 2026-09-17
 
 Self-hosted project management workspace where teams define goals and an AI agent drafts their task plans. Single-page Next.js application with cookie-session auth, Prisma/SQLite persistence, and a typed JSON API. Maintained by Pete A (`pete@pop-os`).
 
-**Tech Stack**: Next.js 16.1 (App Router, standalone output), React 19, TypeScript 5 (strict), Tailwind CSS 4, shadcn/ui (Radix), Zustand 5, Prisma 6 + SQLite, z-ai-web-dev-sdk (server-side LLM), lucide-react.
+**Tech Stack**: Next.js 16.1 (App Router, standalone output), React 19, TypeScript 5 (strict), Tailwind CSS 4, shadcn/ui (Radix), Zustand 5, Prisma 6 + SQLite, z-ai-web-dev-sdk (server-side LLM), Vitest 5 (unit tests), lucide-react.
 
 ## Core Identity & Purpose
 
@@ -21,24 +21,25 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 ### Meticulous Approach (Six-Phase Workflow)
 
 1. **ANALYZE** — Read the existing view/dialog/route you are touching plus its store action. The Zustand store is the single source of client truth; changes ripple through refresh calls.
-2. **PLAN** — Map the change across the four layers it will touch: schema (`prisma/schema.prisma`) → route handler (`src/app/api/…`) → domain types (`src/lib/orbital.ts`) → store action + view/dialog.
-3. **VALIDATE** — Confirm the plan preserves the API envelope and the activity-feed invariant before coding.
+2. **PLAN** — Map the change across the four layers it will touch: schema (`prisma/schema.prisma`) → route handler (`src/app/api/…`) → domain types (`src/lib/orbital.ts` / pure lib modules) → store action + view/dialog.
+3. **VALIDATE** — Confirm the plan preserves the API envelope and the activity-feed invariant before coding. Pure logic goes in `src/lib/*.ts` with a Vitest test — write the failing test first.
 4. **IMPLEMENT** — One layer at a time; keep the build green (`bun run build`) between layers.
-5. **VERIFY** — Run the full gate: `bun run lint && bun run build && ./scripts/smoke-test.sh` (18/18 required).
+5. **VERIFY** — Run the full gate: `bun run lint && bun run test && bun run build && ./scripts/smoke-test.sh` (43 unit + 27 smoke checks required).
 6. **DELIVER** — Conventional Commit on `main`, push via the SSH wrapper runbook.
 
 ### Project-Specific Principles
 
-- **The SPA stays single-route.** View switching is client-side with URL-synced state — never add per-view routes.
+- **The SPA stays single-page with path URLs.** View switching is client-side; `/goals/<id>`, `/my-tasks`, … are rewrites onto the one page (`src/lib/router.ts`) — never add per-view routes or change the URL shape.
 - **Every mutation narrates itself.** An API change without its `ActivityLog` write is incomplete.
-- **The AI feature may degrade, never fail.** `generate-tasks` falls back to a deterministic template plan; preserve that guarantee when touching it.
+- **The AI features may degrade, never fail.** `clarify` (wizard questions) and `generate-tasks` fall back to deterministic outputs; preserve that guarantee when touching them.
 - **No new state libraries.** Server state flows through the Zustand store's refresh pattern.
+- **Test at the pure seams.** Router mapping, clarify questions, plan sanitization and check-in mapping live in `src/lib/*.ts` with Vitest specs — TDD (red → green) is the default for changes there.
 
 ## Implementation Standards
 
 ### Next.js 16 Specifics
 
-- App Router; `src/app/page.tsx` is the only page and is `force-dynamic` (session check server-side, then client handoff).
+- App Router; `src/app/page.tsx` is the only page and is `force-dynamic` (session check server-side, then client handoff). The view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/activity`, `/team`, `/settings`) are `rewrites()` in `next.config.ts` onto `/` — keep them in sync with `src/lib/router.ts`.
 - All server logic lives in route handlers under `src/app/api/`; there are no server actions.
 - Client components are explicit: `orbital-app.tsx`, all views, dialogs, and the store carry `"use client"`.
 - `next/font` loads DM Sans / DM Mono; do not import fonts any other way.
@@ -83,14 +84,16 @@ bun run dev          # http://localhost:3000 — demo@orbital.app / Demo1234!
 
 ## Testing Strategy
 
-- **End-to-end smoke suite** (`scripts/smoke-test.sh`): boots the production standalone server and runs 18 checks — health, auth (valid/invalid/unauthenticated), all read endpoints, task create, invalid-status rejection, check-in round-trip (status flip + update recorded), delete, logout invalidation, page render. Exits non-zero on failure.
-- **Pre-push gate** (mandatory, no CI exists): `bun run lint && bun run build && ./scripts/smoke-test.sh`.
-- Manual QA matrix: every changed dialog must be exercised in both desktop and mobile layouts (sidebar collapses to slide-over below `lg`).
+- **Unit layer** (`bun run test`, Vitest): 43 checks pinning the pure domain seams — `src/lib/router.test.ts` (view ↔ path mapping incl. legacy `?view=` links), `clarify.test.ts` (wizard questions: fallback + LLM bounds), `domain.test.ts` (plan sanitizer, template fallback, check-in status mapping).
+- **End-to-end smoke suite** (`scripts/smoke-test.sh`): boots the production standalone server and runs 27 checks — health, auth (valid/invalid/unauthenticated), all read endpoints, task create, invalid-status rejection, check-in round-trip (status flip + update recorded), delete, logout invalidation, page render, path-route serving (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` + 404 guard), and the clarify endpoint (3 questions + validation). Exits non-zero on failure.
+- **Pre-push gate** (mandatory, no CI exists): `bun run lint && bun run test && bun run build && ./scripts/smoke-test.sh`.
+- Manual QA matrix: every changed dialog must be exercised in both desktop and mobile layouts (bottom tab bar + MORE sheet below `lg`).
 
 ## Code Quality Standards
 
 ```bash
 bun run lint     # must exit 0 with no errors
+bun run test     # 43 unit checks must pass
 bun run build    # must compile clean
 ```
 
@@ -121,11 +124,11 @@ bun run build    # must compile clean
 
 ### Architecture
 
-Four layers, strictly downward: schema → route handlers → domain types/DTOs → store + views. Views never fetch directly; they read the store and call its actions.
+Four layers, strictly downward: schema → route handlers → domain types/DTOs + pure lib modules → store + views. Views never fetch directly; they read the store and call its actions. Pure domain logic (routing, clarify, sanitization, check-in mapping) lives in `src/lib/*.ts` with unit tests — route handlers stay thin DB wrappers.
 
 ### API Design
 
-REST-ish resource routes under `/api` (auth, goals, tasks, team, activity, stats, settings, health). Filters via query params (`assignee=me`, `status=`, `goal=`). Validation is manual and returns `400` with a specific code; unknown ids return `404`; auth gaps return `401`. Generating tasks for an already-planned goal returns `409 ALREADY_PLANNED`.
+REST-ish resource routes under `/api` (auth, goals, clarify, tasks, team, activity, stats, settings, health). Filters via query params (`assignee=me`, `status=`, `goal=`). Validation is manual and returns `400` with a specific code; unknown ids return `404`; auth gaps return `401`. Generating tasks for an already-planned goal returns `409 ALREADY_PLANNED`. The wizard's clarify endpoint accepts a goal draft (`title`, optional `description`) and returns three questions; `generate-tasks` accepts optional `answers` from that step to sharpen the plan.
 
 ### Data Layer
 
@@ -140,9 +143,10 @@ Prisma + SQLite at `db/custom.db` (gitignored; recreate with `db:push` + `db:see
 
 ## Anti-Patterns to Avoid
 
-- Adding per-view `app/` routes (breaks the SPA contract).
+- Adding per-view `app/` routes or changing the URL shape (breaks the SPA contract; the rewrite list in `next.config.ts` and `src/lib/router.ts` must stay in sync).
 - Bypassing the store with ad-hoc `fetch` in components.
 - Constructing `PrismaClient` anywhere but `src/lib/db.ts`.
-- Letting `generate-tasks` hard-fail when the SDK is unavailable.
+- Letting `clarify` or `generate-tasks` hard-fail when the SDK is unavailable.
 - Skipping the `ActivityLog` write in a mutating endpoint.
 - Mixing the three status vocabularies (task vs goal vs check-in).
+- Inlining logic that belongs in a tested `src/lib` seam.

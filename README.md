@@ -17,14 +17,15 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 
 | Feature | Description |
 |---------|-------------|
-| 🎯 **Goals with AI task planning** | Create a goal, then generate a 6–9 task plan server-side (LLM via `z-ai-web-dev-sdk`, deterministic template fallback — never hard-fails) |
+| 🎯 **Goals with AI task planning** | Three-step conversational wizard: describe the goal → answer the agent's clarifying questions → get a 6–9 task plan (LLM via `z-ai-web-dev-sdk`, deterministic fallback — never hard-fails) |
 | ✅ **Task lifecycle** | Five task statuses (pending / in progress / blocked / need help / done), deadlines, assignees, estimated hours, AI-attribution badge |
 | 💬 **Status check-ins** | Post on-track / blocked / need-help / done updates with notes; updates history on every task |
-| 📊 **Dashboard** | Greeting + date card, progress ring, stat cards (total / done / blocked / overdue), tasks-status panel, recent agent activity |
+| 📊 **Dashboard** | Greeting + date card, progress ring, stat cards (total / done / blocked / completed), tasks-status panel, recent agent activity |
 | 👥 **Team of humans + AI agents** | Invite members or configure AI agents with roles; person directory drives assignment |
 | 📜 **Agent activity feed** | Every mutation logs a typed, human-readable activity entry with full log view |
 | 🔐 **Cookie-session auth** | scrypt password hashing + HMAC-signed sessions, zero external auth dependencies |
-| 📱 **Responsive SPA** | Desktop sidebar and mobile slide-over menu; deep-linkable `?view=…&goal=…` URLs |
+| 🧭 **Path-based deep links** | Real URLs — `/goals/<id>`, `/my-tasks`, `/activity` — with working browser back/forward (single-page app under the hood) |
+| 📱 **Responsive SPA** | Desktop sidebar; mobile bottom tab bar (Home / Goals / My Tasks / Agent / More) with a More sheet |
 | 🌱 **One-command demo data** | Idempotent seed mirrors the reference workspace (3 goals, 31 tasks, 22 activity entries) |
 
 ## Screenshots
@@ -58,12 +59,13 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 
 | Layer | Technology | Version | Purpose |
 |-------|-----------|---------|---------|
-| Web framework | Next.js (App Router) | 16.1 | Server page shell + 15 API route handlers |
+| Web framework | Next.js (App Router) | 16.1 | Server page shell + 16 API route handlers |
 | UI runtime | React | 19 | Component model |
 | Language | TypeScript | 5 (strict) | Type safety end-to-end |
 | Styling | Tailwind CSS | 4 | Utility styling + design tokens |
 | Components | shadcn/ui on Radix | — | Accessible primitives (dialog, select, radio, …) |
 | State | Zustand | 5 | Single client store; server state via fetch + refresh |
+| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping |
 | ORM | Prisma | 6 | Schema, client, `db push`, seed |
 | Database | SQLite | — | Zero-config local persistence (`db/custom.db`) |
 | Auth | Node `crypto` (scrypt + HMAC) | — | Cookie sessions, no external auth service |
@@ -75,15 +77,15 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 
 ```mermaid
 flowchart LR
-    B[Browser<br/>single-route SPA] -->|GET /| P["Next.js page (server component)<br/>session check"]
+    B[Browser<br/>single-page app] -->|GET / · /goals · /my-tasks …| P["Next.js page (server component)<br/>session check — view paths rewritten to /"]
     P -->|user| B
-    B -->|fetch JSON| A["API route handlers<br/>/api/* (15 routes)"]
+    B -->|fetch JSON| A["API route handlers<br/>/api/* (16 routes)"]
     A -->|Prisma Client| D[("SQLite<br/>db/custom.db")]
-    A -->|server-side| Z[z-ai-web-dev-sdk<br/>task-plan LLM]
+    A -->|server-side| Z[z-ai-web-dev-sdk<br/>clarify questions + task plans]
     B -->|Zustand store| B
 ```
 
-The page at `/` resolves the session once and hands off to the client app. All data flows through the Zustand store, which calls the API routes and unwraps the `{ ok, data } | { ok, error }` envelope. View state lives in the URL (`?view=goals&goal=<id>`), so every screen is deep-linkable — the same SPA architecture as the reference app.
+The page at `/` resolves the session once and hands off to the client app. All data flows through the Zustand store, which calls the API routes and unwraps the `{ ok, data } | { ok, error }` envelope. Views live at **real paths** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings`) — Next.js rewrites map them onto the single page, and the store syncs view state with the History API (`src/lib/router.ts`), so every screen is deep-linkable and browser back/forward works. Same SPA architecture as the reference app.
 
 ## File Hierarchy
 
@@ -95,24 +97,29 @@ The page at `/` resolves the session once and hands off to the client app. All d
   📄 orbital-logo.svg       # Brand mark
   📄 dusk-hills.jpg         # Login/dashboard backdrop (OSS)
 📂 scripts/
-  📄 smoke-test.sh          # 18-check end-to-end API smoke suite (boots prod server)
+  📄 smoke-test.sh          # 27-check E2E suite + unit tests via `bun run test` (boots prod server)
 📂 src/
   📂 app/
     📄 page.tsx             # Single route: session check → OrbitalApp | LoginScreen
     📄 layout.tsx           # DM Sans / DM Mono fonts, global styles
     📄 globals.css          # Tailwind 4 tokens + ORBITAL color palette
-    📂 api/                 # 15 route handlers (auth, goals, tasks, team, activity, stats, settings, health)
+    📂 api/                 # 16 route handlers (auth, goals, tasks, team, activity, stats, settings, health)
   📂 components/
     📂 orbital/             # The application
-      📄 orbital-app.tsx    # Authenticated shell: sidebar + view switcher
+      📄 orbital-app.tsx    # Authenticated shell: sidebar + view switcher + mobile tab bar
       📄 login-screen.tsx   # Sign-in / sign-up
       📄 store.ts           # Zustand store: all server state + actions
-      📄 sidebar.tsx        # Navigation
+      📄 sidebar.tsx        # Desktop navigation
+      📄 user-menu.tsx      # Avatar popover with Log Out
       📂 views/             # dashboard, goals, goal-detail, my-tasks, activity, team, settings
-      📂 dialogs/           # new-goal, goal-edit, add-task, task-edit, task-detail, invite-member
+      📂 dialogs/           # new-goal (3-step wizard), goal-edit, add-task, task-edit, task-detail, invite-member
     📂 ui/                  # shadcn/ui component library
   📂 lib/
     📄 orbital.ts           # Domain types, DTOs, status metadata (labels + colors)
+    📄 router.ts            # View ↔ path mapping (parseUrl / toPath) — unit tested
+    📄 clarify.ts           # Wizard clarifying questions: LLM sanitizer + fallback — unit tested
+    📄 plan-sanitizer.ts    # AI task-plan bounds + template fallback — unit tested
+    📄 checkin.ts           # Check-in → task-status mapping — unit tested
     📄 api.ts               # ok()/fail() envelope helpers + session guard
     📄 auth.ts              # scrypt hashing, HMAC session tokens, cookie handling
     📄 db.ts                # Prisma client + SQLite URL normalization
@@ -152,7 +159,7 @@ Open <http://localhost:3000> and sign in with the seeded demo account:
 curl http://localhost:3000/api/health
 # {"status":"ok","app":"orbital","ts":"…"}
 
-# Full end-to-end verification (18 checks: auth, CRUD, validation, logout)
+# Full end-to-end verification (27 checks: auth, CRUD, validation, routing, logout)
 ./scripts/smoke-test.sh    # builds must exist: run `bun run build` first
 ```
 
@@ -183,8 +190,9 @@ All endpoints return `{ "ok": true, "data": … }` or `{ "ok": false, "error": {
 | `/api/auth/me` | GET | Current user |
 | `/api/stats` 🔒 | GET | Dashboard stats (totals, completion rate) |
 | `/api/goals` 🔒 | GET / POST | List / create goals |
+| `/api/goals/clarify` 🔒 | POST | Wizard step: AI clarifying questions for a goal draft (3 questions, deterministic fallback) |
 | `/api/goals/[id]` 🔒 | GET / PATCH / DELETE | Goal detail (with tasks) / update / delete |
-| `/api/goals/[id]/generate-tasks` 🔒 | POST | AI-generate a task plan for an empty goal (409 if already planned) |
+| `/api/goals/[id]/generate-tasks` 🔒 | POST | AI-generate a task plan for an empty goal (409 if already planned; accepts optional clarifying `answers`) |
 | `/api/tasks` 🔒 | GET / POST | List (filters: `assignee=me\|<personId>`, `status`, `goal`) / create |
 | `/api/tasks/[id]` 🔒 | GET / PATCH / ⚠️ DELETE | Task detail / update / delete |
 | `/api/tasks/[id]/updates` 🔒 | POST | Post a status check-in (flips task status, logs activity) |
@@ -210,10 +218,13 @@ Typography: **DM Sans** (UI) and **DM Mono** (numeric/date accents), loaded via 
 ## Testing
 
 ```bash
-./scripts/smoke-test.sh
+bun run test              # unit tests — 43 checks on the pure domain seams
+./scripts/smoke-test.sh   # E2E — 27 checks against the production build
 ```
 
-The suite boots the production standalone server, then runs **18 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, and page render. It exits non-zero on any failure and cleans up after itself.
+The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), and the check-in status mapping (`src/lib/checkin.ts`).
+
+The smoke suite boots the production standalone server, then runs **27 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), and the **clarify endpoint** (3 questions + validation). It exits non-zero on any failure and cleans up after itself.
 
 ## Troubleshooting
 

@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v1.0
+# ORBITAL — Master Project Architecture Document (PAD) v1.1
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,11 @@
 **Last Updated:** 2026-09-17
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v1.1
+
+- `[MOD]` Parity remediation against a fresh live-app capture (2026-09-17): path-based URLs (ADR-001 revised), three-step wizard with AI clarifying questions + `POST /api/goals/clarify`, user menu with Log Out, mobile bottom tab bar + MORE sheet, direct edit/delete row actions, copy alignment (title, dashboard subtitle, stat-card sub-labels).
+- `[NEW]` ADR-008: Vitest unit layer on the pure domain seams (router, clarify, plan sanitizer, check-in mapping) — 43 checks; smoke suite extended 18 → 27.
 
 #### Revision Block — v1.0
 
@@ -50,6 +55,7 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 | Styling | Tailwind CSS | 4.x (CSS-first tokens) | `--orb-*` design tokens declared in `globals.css` and mapped via `@theme inline`; no runtime CSS cost |
 | Components | shadcn/ui on Radix | vendored, `src/components/ui/` | Accessible primitives (dialog, select, radio-group, sheet, toast…) owned as source, not a versioned dependency |
 | Client state | Zustand | 5.0.6 (resolved 5.0.10) | One store for all server state with explicit refresh composition; no cache-heuristics layer to tune |
+| Unit tests | Vitest | 5.0.1 | Pins the pure domain seams (router, clarify, sanitizer, check-in mapping) without a browser or DB |
 | ORM | Prisma | 6.11.1 (client resolved 6.19.2) | Typed, schema-first modeling; `db push` matches SQLite's no-migration workflow |
 | Database | SQLite | file-based, `db/custom.db` | Zero-config persistence; single gitignored file; trivially reseeded to a canonical demo state |
 | Auth | Node `crypto` | built-in (scrypt, HMAC-SHA256) | Stateless verifiable cookie sessions with no external auth dependency |
@@ -60,13 +66,14 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 
 ### 1.3 Architecture Decision Records (ADRs)
 
-**ADR-001: Single-route SPA instead of per-view Next.js routes**
+**ADR-001: Single-page app with path-based URLs (rewrites + History API)**
 
-- **Context:** The reference app is a browser SPA — sidebar navigation, view switches without page reloads, deep-linkable URLs. A conventional multi-page Next.js app would change the UX contract and add route transitions the original does not have.
-- **Decision:** One route (`src/app/page.tsx`, `force-dynamic`) resolves the session server-side, then renders the client shell. Views switch via a Zustand `view` field synced to URL search params (`?view=goals&goal=<id>`) through `history.replaceState`.
-- **Rationale:** Preserves the reference UX exactly while keeping a server-rendered auth gate; URLs stay shareable because view state is encoded in the query string and restored on boot.
-- **Consequences:** No route-transition machinery; deep links restore state. Trade-off: the whole app ships as one client bundle — no per-view code splitting.
-- **Alternatives Rejected:** Next.js pages per view (breaks SPA feel, duplicates the store's navigation); react-router inside Next (duplicates the router Next already provides).
+- **Context:** The reference app is a browser SPA — sidebar/bottom-tab navigation, view switches without page reloads, deep-linkable URLs at real paths (`/goals/<id>`), working browser back/forward. A conventional multi-page Next.js app would change the UX contract and add route transitions the original does not have.
+- **Decision:** One page (`src/app/page.tsx`, `force-dynamic`) resolves the session server-side, then renders the client shell. The six view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/activity`, `/team`, `/settings`) are mapped onto `/` with `rewrites()` in `next.config.ts`; view state syncs with `location.pathname` through `src/lib/router.ts` (`parseUrl` / `toPath`) using `history.pushState`, and a `popstate` listener re-derives state on back/forward. Legacy `?view=…&goal=…` links still resolve for pre-v1.1 deep links.
+- **Rationale:** Preserves the reference UX and URL contract exactly (the address bar shows the same paths as the original) while keeping a server-rendered auth gate and one client bundle. Unknown paths still 404 at the HTTP layer — the rewrites are an explicit allow-list, not a blanket proxy.
+- **Consequences:** The rewrite list and `router.ts` must stay in sync (both cite each other); every navigation is a real history entry. Trade-off: the whole app ships as one client bundle — no per-view code splitting.
+- **Alternatives Rejected:** Query-param URLs (`?view=goals` — v1.0 behavior; the reference app uses paths, and `replaceState` broke back/forward); Next.js pages per view (breaks SPA feel, duplicates the store's navigation); react-router inside Next (duplicates the router Next already provides).
+- **History:** v1.0 shipped `?view=` query params with `replaceState`; revised in v1.1 after fresh capture of the live app confirmed path URLs.
 
 **ADR-002: Prisma + SQLite with `db push` (no migrations)**
 
@@ -92,17 +99,17 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 - **Consequences:** Slight over-fetching (collections refresh whole); every new endpoint must wire its refresh calls into the relevant actions.
 - **Alternatives Rejected:** React Query (in `package.json`, unused — cache semantics unnecessary at this scale); React Context (coarser re-renders, more boilerplate).
 
-**ADR-005: AI task generation that degrades, never fails**
+**ADR-005: AI features that degrade, never fail (clarify + task planning)**
 
-- **Context:** The product's differentiator is "describe a goal, get a planned task list." The LLM dependency must not be able to take the feature down.
-- **Decision:** `POST /api/goals/[id]/generate-tasks` calls `z-ai-web-dev-sdk` server-side, sanitizes its JSON (≤10 tasks, 160-char titles, 1–40h clamp), and on any failure — SDK unavailable, malformed output, fewer than 4 usable tasks — substitutes a deterministic 8-step template plan. Generated tasks are round-robin assigned across people and spread between "now" and the goal's target date (or +45 days).
-- **Rationale:** Degrade-not-fail keeps the core workflow usable in any environment; sanitization bounds what prompt-injected LLM output can write to the database.
-- **Consequences:** Environments without SDK access get generic (still useful) plans; the fallback path is exercised and covered by the smoke suite's task pipeline indirectly.
+- **Context:** The product's differentiator is a conversational planner: the agent asks clarifying questions about a goal draft, then drafts a task plan. Both LLM dependencies must not be able to take the feature down.
+- **Decision:** `POST /api/goals/clarify` (wizard step 2) and `POST /api/goals/[id]/generate-tasks` call `z-ai-web-dev-sdk` server-side. Clarify sanitizes LLM questions (≤3, 200 chars each) and falls back to three deterministic template questions; generate-tasks sanitizes its JSON (≤10 tasks, 160-char titles, 1–40h clamp) and falls back to a deterministic 8-step template plan. The wizard passes the user's answers into the generation prompt. Generated tasks are round-robin assigned across people and spread between "now" and the goal's target date (or +45 days).
+- **Rationale:** Degrade-not-fail keeps the core workflow usable in any environment; sanitization bounds what prompt-injected LLM output can write to the database or show to the user.
+- **Consequences:** Environments without SDK access get generic (but useful) questions and plans; both fallback paths are unit-tested (`clarify.test.ts`, `domain.test.ts`); the clarify step logs a `goal_analyzed` activity entry either way.
 - **Alternatives Rejected:** Hard SDK dependency (breaks self-hosting); client-side generation (exposes prompting and validation to the browser).
 
 **ADR-006: Uniform API envelope `{ ok, data } | { ok, error }`**
 
-- **Context:** Fifteen route handlers must return predictable, typed JSON that one client helper can unwrap.
+- **Context:** Sixteen route handlers must return predictable, typed JSON that one client helper can unwrap.
 - **Decision:** `src/lib/api.ts` exports `ok(data, status)` / `fail(code, message, status)`; every handler returns one of these. The store's `call()` unwraps success data or surfaces a destructive toast and returns `null`.
 - **Rationale:** One response contract for all endpoints; errors carry a machine code plus a human message; the client never throws across render.
 - **Consequences:** Handlers must be disciplined about using the helpers; the contract is enforced by convention (and the smoke suite asserts the envelope).
@@ -116,6 +123,14 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 - **Consequences:** The server must start from the project root (npm scripts guarantee it; see also the SQLite path normalization in §3.3); `.env` is not auto-copied into the standalone tree.
 - **Alternatives Rejected:** `next start` (requires the full framework in production); Docker-only packaging (adds operational weight this clone does not need — Dockerfile listed in §10 as an open item).
 
+**ADR-008: Vitest unit layer on the pure domain seams**
+
+- **Context:** v1.0's only verification was the 18-check E2E smoke suite — regressions in pure logic (status mapping, URL parsing, LLM-output bounds) could only be caught end-to-end, and the v1.1 remediation plan called for TDD.
+- **Decision:** A Vitest layer (`bun run test`) covers exactly the pure modules: `src/lib/router.ts` (view ↔ path mapping, legacy links), `src/lib/clarify.ts` (question fallback + LLM bounds), `src/lib/plan-sanitizer.ts` (task-plan bounds + template), `src/lib/checkin.ts` (check-in → task-status mapping). Route handlers were refactored to import these modules instead of inlining the logic.
+- **Rationale:** Tests at pre-agreed seams verify behavior through public interfaces; the modules are pure (no DB, no React, no Next runtime), so the suite runs in ~0.4s with zero infrastructure; red → green drove every v1.1 logic change.
+- **Consequences:** New pure logic belongs in `src/lib/` with a spec; component/DB behavior stays covered by the smoke suite (now 27 checks). No coverage thresholds yet — the seam list is deliberately small and complete.
+- **Alternatives Rejected:** Component testing (Testing Library) — the views are thin over the store, and the smoke suite already exercises them against the real server; Jest (slower, more config for the same result).
+
 ---
 
 ## 2. High-Level System Topology
@@ -123,14 +138,14 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 ```mermaid
 flowchart TB
     subgraph Client
-        B["Browser<br/>single-route SPA<br/>(Zustand store)"]
+        B["Browser<br/>single-page app<br/>(Zustand store, path URLs)"]
     end
     subgraph Edge
         C["CDN / reverse proxy<br/>(static chunks, images)"]
     end
     subgraph App["Next.js standalone server (:3000)"]
-        P["GET / — server component<br/>session check"]
-        A["API route handlers ×15<br/>/api/*"]
+        P["GET / + rewrites (/goals, /my-tasks, …)<br/>server component — session check"]
+        A["API route handlers ×16<br/>/api/*"]
     end
     subgraph Data
         D[("SQLite<br/>db/custom.db<br/>via Prisma Client")]
@@ -143,12 +158,12 @@ flowchart TB
     C --> B
     P --> B
     A --> D
-    A -->|"generate-tasks only"| Z
+    A -->|"clarify + generate-tasks"| Z
 ```
 
 - **Client layer** — a standard browser; no PWA/service worker. All interactivity is client-side after the initial server-rendered shell.
 - **Edge layer** — optional; any static file server or CDN in front of the Node process. The app itself has no edge middleware.
-- **Application layer** — one Node process serving the page and 15 API routes. Stateless between requests (sessions are cookie-carried), so horizontal scaling is trivial behind a load balancer.
+- **Application layer** — one Node process serving the page (plus its six view-path rewrites) and 16 API routes. Stateless between requests (sessions are cookie-carried), so horizontal scaling is trivial behind a load balancer.
 - **Data layer** — a single SQLite file on local disk. Write concurrency is serialized by SQLite; this is the layer to swap (Postgres) if the workspace outgrows a single team.
 - **External services** — only the AI planner call, invoked inline during `generate-tasks` with a deterministic fallback; its absence never blocks a request.
 
@@ -193,16 +208,18 @@ Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
 │   ├── dusk-hills.jpg             ← login/dashboard photographic backdrop
 │   └── robots.txt
 ├── scripts/
-│   └── smoke-test.sh              ← 18-check E2E suite; boots the prod server
+│   └── smoke-test.sh              ← 27-check E2E suite; boots the prod server
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx               ← the single route: session → shell | login
+│   │   ├── page.tsx               ← the single page: session → shell | login
+│   │                            (view paths are rewrites onto it — ADR-001)
 │   │   ├── layout.tsx             ← DM Sans/Mono via next/font; global styles
 │   │   ├── globals.css            ← Tailwind 4 @theme tokens + --orb-* palette
 │   │   └── api/
 │   │       ├── health/route.ts            ← liveness probe (public)
 │   │       ├── auth/{register,login,logout,me}/route.ts
 │   │       ├── goals/route.ts             ← list / create
+│   │       ├── goals/clarify/route.ts      ← wizard step: AI clarifying questions
 │   │       ├── goals/[id]/route.ts        ← detail(+tasks) / patch / delete
 │   │       ├── goals/[id]/generate-tasks/route.ts  ← the AI planner (ADR-005)
 │   │       ├── tasks/route.ts             ← list (assignee/status/goal filters) / create
@@ -214,24 +231,31 @@ Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
 │   │       └── settings/route.ts          ← workspace singleton get/patch
 │   ├── components/
 │   │   ├── orbital/
-│   │   │   ├── orbital-app.tsx    ← authenticated shell; desktop + mobile nav
+│   │   │   ├── orbital-app.tsx    ← authenticated shell; desktop sidebar +
+│   │   │                        mobile bottom tab bar + MORE sheet
 │   │   │   ├── login-screen.tsx   ← sign-in / sign-up
 │   │   │   ├── store.ts           ← THE Zustand store (Layer 3)
+│   │   │   ├── user-menu.tsx      ← avatar popover w/ Log Out
 │   │   │   ├── sidebar.tsx        ← nav: Dashboard, Goals, My Tasks | Agent
 │   │   │   │                        Activity, Team, Settings
-│   │   │   ├── task-card.tsx      ← status dot, AI badge, assignee, deadline
+│   │   │   ├── task-card.tsx      ← status dot, AI badge, assignee, deadline,
+│   │   │   │                        direct edit/delete row buttons
 │   │   │   ├── progress-ring.tsx  ← SVG completion ring
 │   │   │   ├── widgets.tsx        ← stat cards, tasks-status panel
 │   │   │   ├── empty-state.tsx    ← illustrated empty screens
 │   │   │   ├── logo.tsx
 │   │   │   ├── views/             ← dashboard, goals, goal-detail, my-tasks,
 │   │   │   │                        activity, team, settings (7 views)
-│   │   │   └── dialogs/           ← new-goal (wizard), goal-edit, add-task,
+│   │   │   └── dialogs/           ← new-goal (3-step wizard), goal-edit, add-task,
 │   │   │                            task-edit, task-detail, invite-member
 │   │   └── ui/                    ← shadcn/ui primitives (vendored)
 │   ├── hooks/                     ← use-toast, use-mobile
 │   └── lib/
 │       ├── orbital.ts             ← domain types, DTOs, status metadata
+│       ├── router.ts              ← view ↔ path mapping (ADR-001) + unit tests
+│       ├── clarify.ts             ← wizard questions: bounds + fallback
+│       ├── plan-sanitizer.ts      ← AI plan bounds + template fallback
+│       ├── checkin.ts             ← check-in → task-status mapping
 │       ├── api.ts                 ← ok()/fail() envelope + requireSession()
 │       ├── auth.ts                ← scrypt + HMAC sessions (ADR-003)
 │       ├── db.ts                  ← Prisma singleton + URL normalization
@@ -412,7 +436,7 @@ shadcn/ui (Radix-based), vendored under `src/components/ui/` — the app leans o
 
 ### 5.4 Motion / Animation
 
-Deliberately restrained, all CSS-based: the mobile sidebar slide-over (`translate-x` + opacity, 300 ms), dialog enter/exit from Radix primitives, toast slide-ins, and hover transitions on cards/buttons. `framer-motion` is **not** used (present in `package.json` from the template, unreferenced). No `prefers-reduced-motion` overrides exist yet — tracked in §10.
+Deliberately restrained, all CSS-based: the mobile bottom tab bar, the MORE bottom sheet (slide-in from Radix primitives), dialog enter/exit, toast slide-ins, and hover transitions on cards/buttons. `framer-motion` is **not** used (present in `package.json` from the template, unreferenced). No `prefers-reduced-motion` overrides exist yet — tracked in §10.
 
 ---
 
@@ -466,23 +490,26 @@ Single-workspace model with no RBAC: any authenticated user has full read/write 
 
 | Category | Files | Checks | Location | Framework |
 |----------|-------|--------|----------|-----------|
-| End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 18 | `scripts/` | Bash + curl + python3 (no test framework needed) |
-| Unit / component | 0 | — | — | — (open item, §10) |
+| End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 27 | `scripts/` | Bash + curl + python3 (no test framework needed) |
+| Unit (pure domain seams) | 3 (`src/lib/*.test.ts`) | 43 | `src/lib/` | Vitest 5 (`bun run test`) |
 
 ### 7.2 Test Patterns
 
-The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, and page render. Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
+The unit layer (`bun run test`, ~0.4s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule). All v1.1 logic changes were written red → green at these seams.
+
+The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` each return the app shell; an unknown path must 404), and the **clarify endpoint** (three questions returned; title-less payload rejected 400). Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
 
 ### 7.3 Coverage Thresholds
 
-- **Gate (mandatory before push):** `bun run lint` → `bun run build` → `./scripts/smoke-test.sh` with **18/18 PASS**. There is no hosted CI; this local gate is the only gate.
-- Line/branch coverage is not measured — no unit layer exists yet.
+- **Gate (mandatory before push):** `bun run lint` → `bun run test` (**43/43**) → `bun run build` → `./scripts/smoke-test.sh` with **27/27 PASS**. There is no hosted CI; this local gate is the only gate.
+- Line/branch coverage is not measured — the seam list is small and deliberately complete (see ADR-008).
 
 ### 7.4 Pre-Push Checklist
 
 - [ ] `bun run lint` exits 0
 - [ ] `bun run build` compiles clean
-- [ ] `./scripts/smoke-test.sh` → 18/18 PASS
+- [ ] `bun run test` → 43/43 PASS
+- [ ] `./scripts/smoke-test.sh` → 27/27 PASS
 - [ ] New/changed endpoints write their `ActivityLog` entries (Pattern D)
 - [ ] Schema changes regenerated (`bunx prisma generate`) and reseeded (`db:push` + `db:seed`)
 - [ ] No `.env`, keys, or `db/*.db` staged (`git status` review)
@@ -534,7 +561,7 @@ bun run db:seed            # canonical demo workspace
 bun run dev                # http://localhost:3000
 ```
 
-Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 18/18 PASS).
+Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 27/27 PASS; unit layer via `bun run test`, 43/43).
 
 ### 9.2 Common Commands
 
@@ -548,7 +575,8 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `bun run db:push` | Apply schema changes to SQLite |
 | `bun run db:seed` | Idempotent reset to demo data |
 | `bunx prisma studio` | Inspect data in a browser (optional convenience) |
-| `./scripts/smoke-test.sh` | 18-check E2E suite against the production build |
+| `bun run test` | Vitest unit suite (43 checks, pure seams) |
+| `./scripts/smoke-test.sh` | 27-check E2E suite against the production build |
 
 ### 9.3 Code Style Rules
 
@@ -571,7 +599,7 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 |----------|-------|--------|--------|
 | HIGH | No rate limiting on `/api/auth/login` / `/api/auth/register` | Online brute-force surface | Open — add per-IP throttling middleware |
 | MEDIUM | Open registration (any visitor can create an account) | Workspace open to the public internet once deployed | Open — gate behind invite codes or an `ALLOW_REGISTRATION` env flag |
-| MEDIUM | No unit/component test layer | Regression risk concentrated in the E2E gate | Open — store actions and `sanitizeTasks` are the first candidates |
+| LOW | Unit layer covers pure seams only (no component tests) | View-layer regressions surface via the smoke suite, not a fast unit run | Partially closed in v1.1 (ADR-008); component tests remain open |
 | LOW | Template dependencies unused in `package.json` (zod, framer-motion, React Query, dnd-kit, react-hook-form beyond one dialog, next-auth, recharts beyond one chart, …) | Larger install footprint; misleading stack claims | Open — prune on next dependency pass |
 | LOW | `tsconfig.json` sets `noImplicitAny: false` | Weaker inference checks than full strict | Accepted (template default); tighten when convenient |
 | LOW | No `prefers-reduced-motion` handling | Accessibility gap in animations | Open |
@@ -585,19 +613,25 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `src/components/orbital/store.ts` | 341 | The Zustand store: all server state, `call()` envelope client, every action + refresh set |
+| `src/components/orbital/store.ts` | 347 | The Zustand store: all server state, `call()` envelope client, every action + refresh set |
 | `prisma/seed.ts` | 265 | Idempotent demo workspace: user, 10 people, 3 goals, 31 tasks, 22 activity rows |
-| `src/components/orbital/views/dashboard-view.tsx` | 258 | Dashboard: greeting card, progress ring, stats, tasks-status panel, activity preview |
+| `src/components/orbital/views/dashboard-view.tsx` | 253 | Dashboard: greeting card, user menu, progress ring, stats, activity preview |
+| `src/components/orbital/orbital-app.tsx` | 171 | Authenticated shell: desktop sidebar, mobile bottom tab bar + MORE sheet, popstate wiring |
+| `src/lib/router.ts` | 91 | View ↔ path mapping (`parseUrl` / `toPath`), legacy link support — unit tested |
 | `src/lib/orbital.ts` | 152 | Domain types, DTOs, status metadata (labels + colors), overdue helper |
-| `src/app/api/goals/[id]/generate-tasks/route.ts` | 154 | AI planner: SDK call, sanitizer, template fallback, assignment + scheduling |
+| `src/app/api/goals/[id]/generate-tasks/route.ts` | 130 | AI planner: SDK call (with clarifying answers), sanitizer, template fallback, assignment + scheduling |
+| `src/app/api/goals/clarify/route.ts` | 81 | Wizard step: AI clarifying questions + fallback + `goal_analyzed` activity |
 | `src/app/globals.css` | 198 | Tailwind 4 `@theme` tokens, `--orb-*` palette, base styles |
-| `scripts/smoke-test.sh` | 112 | 18-check E2E suite against the production server |
+| `scripts/smoke-test.sh` | 139 | 27-check E2E suite against the production server |
 | `prisma/schema.prisma` | 121 | 8 models, relations, indexes, referential actions |
 | `src/lib/auth.ts` | 91 | scrypt hashing, HMAC session tokens, cookie lifecycle |
-| `src/components/orbital/orbital-app.tsx` | 89 | Authenticated shell: desktop sidebar + mobile slide-over, view switcher |
+| `src/lib/plan-sanitizer.ts` | 54 | AI task-plan bounds + deterministic template — unit tested |
+| `src/components/orbital/user-menu.tsx` | 48 | Avatar popover with identity + Log Out |
 | `src/lib/db.ts` | 51 | Prisma singleton + SQLite URL normalization (Pattern B) |
+| `src/lib/clarify.ts` | 36 | Wizard question fallback + LLM bounds — unit tested |
 | `src/lib/api.ts` | 30 | `ok()` / `fail()` envelope + `requireSession()` guard |
-| `src/app/page.tsx` | 19 | The single route: session check → shell or login |
+| `src/lib/checkin.ts` | 24 | Check-in → task-status mapping — unit tested |
+| `src/app/page.tsx` | 19 | The single page: session check → shell or login |
 
 ---
 
@@ -612,8 +646,8 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | **TeamMember** | An invited human or a configured AI agent (`kind`, `agentRole`) shown on the Team page |
 | **ActivityLog** | The append-only feed narrating every mutation (create/assign/status/invite/settings) |
 | **Envelope** | The uniform API response `{ ok, data }` or `{ ok, error: { code, message } }` |
-| **The planner** | `POST /api/goals/[id]/generate-tasks` — LLM-backed task-plan generation with deterministic fallback |
-| **Deep link** | A shareable URL encoding view state (`?view=goal-detail&goal=<id>`), restored on boot |
-| **Smoke suite** | `scripts/smoke-test.sh` — the 18-check production-server verification gate |
+| **The planner** | `POST /api/goals/[id]/generate-tasks` — LLM-backed task-plan generation (clarifying answers in, sanitized tasks out) with deterministic fallback |
+| **Deep link** | A shareable view URL (`/goals/<id>`, `/my-tasks`, …) — rewrites serve the shell, `router.ts` restores the view (legacy `?view=` links still resolve) |
+| **Smoke suite** | `scripts/smoke-test.sh` — the 27-check production-server verification gate |
 | **SSH wrapper** | `docs/ssh_git_wrapper_v3.py` — key-materializing authenticated push tool with post-push remote verification |
 
