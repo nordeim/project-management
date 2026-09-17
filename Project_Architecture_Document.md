@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v1.1
+# ORBITAL — Master Project Architecture Document (PAD) v1.2
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,15 @@
 **Last Updated:** 2026-09-17
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v1.2
+
+- `[MOD]` Parity remediation against a second live-app capture (2026-09-17, 21 screenshots + VLM analysis): sidebar analog clock + desktop collapse (`sidebar-clock.tsx`, `sidebar-collapse.ts` — `useSyncExternalStore` + localStorage), 8-dot constellation logo, unified dashboard stats card + faint DONE ring, goal-card redesign (horizontal progress bar, always-visible actions), goal-detail 2-stat layout + inline ADD TASK, team dialogs rebuilt (email+role invite; agent name/description/instructions), wizard copy + bot avatars, settings 2-column layout.
+- `[NEW]` ADR-009: fixed-window per-IP rate limiting on the auth endpoints (`src/lib/rate-limit.ts`, 10 attempts/15 min → `429 RATE_LIMITED` + `Retry-After`) — closes the §10 HIGH item.
+- `[MOD]` `TeamMember` schema extended with `description` / `instructions` for AI agents; `/api/team` POST and the New Agent dialog share the new `src/lib/team.ts` seams.
+- `[MOD]` Dependency prune (859 → 193 packages): zod, framer-motion, React Query, dnd-kit, react-hook-form, next-auth, recharts and other unused template extras removed; 35 unused vendored shadcn/ui components deleted (12 remain); dead `use-mobile` hook removed.
+- `[MOD]` Auth navigation switched from `window.location` hard reloads to `router.refresh()` session re-resolution (ESLint-clean under Next 16 rules).
+- `[MOD]` Verification gate now includes `bun run typecheck` (the build sets `ignoreBuildErrors`); unit layer 43 → 61 checks (rate-limit + team seams), smoke suite 27 → 30 checks (team validation + rate limit).
 
 #### Revision Block — v1.1
 
@@ -53,7 +62,7 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 | UI runtime | React | 19.x | Required by Next 16; the client store model fits React 19 fine-grained re-renders |
 | Language | TypeScript | 5.x, `strict: true` (`noImplicitAny: false`) | End-to-end typing from Prisma models through DTOs to the client store |
 | Styling | Tailwind CSS | 4.x (CSS-first tokens) | `--orb-*` design tokens declared in `globals.css` and mapped via `@theme inline`; no runtime CSS cost |
-| Components | shadcn/ui on Radix | vendored, `src/components/ui/` | Accessible primitives (dialog, select, radio-group, sheet, toast…) owned as source, not a versioned dependency |
+| Components | shadcn/ui on Radix | vendored, `src/components/ui/` (12 primitives) | Accessible primitives (dialog, select, radio-group, sheet, toast…) owned as source, not a versioned dependency; unused template components pruned in v1.2 |
 | Client state | Zustand | 5.0.6 (resolved 5.0.10) | One store for all server state with explicit refresh composition; no cache-heuristics layer to tune |
 | Unit tests | Vitest | 5.0.1 | Pins the pure domain seams (router, clarify, sanitizer, check-in mapping) without a browser or DB |
 | ORM | Prisma | 6.11.1 (client resolved 6.19.2) | Typed, schema-first modeling; `db push` matches SQLite's no-migration workflow |
@@ -89,15 +98,15 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 - **Decision:** `src/lib/auth.ts` (91 lines) implements scrypt password hashing (`salt:hash`, 64-byte key), stateless session tokens `userId.expiry.signature` signed with HMAC-SHA256, delivered as an httpOnly `orbital_session` cookie (7-day TTL, `SameSite=Lax`, `Secure` in production).
 - **Rationale:** Auditable crypto code using Node built-ins; tokens verify without a session store; `timingSafeEqual` on both password and signature comparisons closes timing oracles.
 - **Consequences:** No MFA/OAuth/social flows; rotating `AUTH_SECRET` invalidates every session (documented in README troubleshooting).
-- **Alternatives Rejected:** NextAuth v4 (present in `package.json` from the template but unused — heavy for email/password only); JWT libraries (unnecessary for cookie-carried claims); server-side session table (adds state for no benefit).
+- **Alternatives Rejected:** NextAuth v4 (template-era dependency, pruned in v1.2 — heavy for email/password only); JWT libraries (unnecessary for cookie-carried claims); server-side session table (adds state for no benefit).
 
 **ADR-004: Zustand as the single client-state container**
 
 - **Context:** All server data (goals, tasks, team, activity, settings, stats) is shared across views and must refresh coherently after each mutation.
-- **Decision:** One store (`store.ts`, 341 lines) holds every DTO collection plus `view`/`goalId`. Actions call the API through a `call()` envelope-unwrapper, then `Promise.all` the exact refresh set the mutation touches.
+- **Decision:** One store (`store.ts`, 356 lines) holds every DTO collection plus `view`/`goalId`. Actions call the API through a `call()` envelope-unwrapper, then `Promise.all` the exact refresh set the mutation touches.
 - **Rationale:** A single source of client truth; post-mutation consistency is explicit (each action lists which slices it refreshes); nothing to invalidate heuristically.
 - **Consequences:** Slight over-fetching (collections refresh whole); every new endpoint must wire its refresh calls into the relevant actions.
-- **Alternatives Rejected:** React Query (in `package.json`, unused — cache semantics unnecessary at this scale); React Context (coarser re-renders, more boilerplate).
+- **Alternatives Rejected:** React Query (template-era dependency, pruned in v1.2 — cache semantics unnecessary at this scale); React Context (coarser re-renders, more boilerplate).
 
 **ADR-005: AI features that degrade, never fail (clarify + task planning)**
 
@@ -128,8 +137,17 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 - **Context:** v1.0's only verification was the 18-check E2E smoke suite — regressions in pure logic (status mapping, URL parsing, LLM-output bounds) could only be caught end-to-end, and the v1.1 remediation plan called for TDD.
 - **Decision:** A Vitest layer (`bun run test`) covers exactly the pure modules: `src/lib/router.ts` (view ↔ path mapping, legacy links), `src/lib/clarify.ts` (question fallback + LLM bounds), `src/lib/plan-sanitizer.ts` (task-plan bounds + template), `src/lib/checkin.ts` (check-in → task-status mapping). Route handlers were refactored to import these modules instead of inlining the logic.
 - **Rationale:** Tests at pre-agreed seams verify behavior through public interfaces; the modules are pure (no DB, no React, no Next runtime), so the suite runs in ~0.4s with zero infrastructure; red → green drove every v1.1 logic change.
-- **Consequences:** New pure logic belongs in `src/lib/` with a spec; component/DB behavior stays covered by the smoke suite (now 27 checks). No coverage thresholds yet — the seam list is deliberately small and complete.
+- **Consequences:** New pure logic belongs in `src/lib/` with a spec; component/DB behavior stays covered by the smoke suite (now 30 checks). No coverage thresholds yet — the seam list is deliberately small and complete. v1.2 added `rate-limit.test.ts` and `team.test.ts` (43 → 61 checks).
 - **Alternatives Rejected:** Component testing (Testing Library) — the views are thin over the store, and the smoke suite already exercises them against the real server; Jest (slower, more config for the same result).
+
+**ADR-009: Fixed-window per-IP rate limiting on the auth endpoints**
+
+- **Context:** §6.4 flagged unthrottled `POST /api/auth/login` / `register` as the top brute-force surface (HIGH, open since v1.0). The fix had to work with zero infrastructure (no Redis) and stay testable.
+- **Decision:** `src/lib/rate-limit.ts` implements a pure fixed-window limiter — `checkRate(buckets, key, limit, windowMs, now)` over a `Map` of counters with opportunistic eviction of expired entries. Route handlers call `authRateLimit(ip)` (10 attempts / 15 min per IP, IP from `x-forwarded-for` / `x-real-ip` with a trusted single proxy assumed); a throttled request gets `429 RATE_LIMITED` plus a `Retry-After` header, both through the standard envelope.
+- **Rationale:** Pure-function core keeps the window math and eviction unit-testable without timers; the fixed window is the simplest policy that materially raises brute-force cost; the envelope keeps client behavior uniform (the store's `call()` already toasts errors).
+- **Consequences:** Buckets live in process memory — per-instance only; a multi-instance deployment would need a shared store (documented in §6.4). Restarting the server clears buckets. Legitimate users who fat-finger a password 10 times in 15 minutes see a 429 with a countdown.
+- **Alternatives Rejected:** Sliding window (more state for marginal gain here); middleware-based blocking (Next middleware runs on the edge runtime, and the limiter needs Node process memory); Redis-backed store (breaks the zero-config story).
+- **History:** Added in v1.2; the smoke suite pins the behavior with a rapid-fire-login 429 check.
 
 ---
 
@@ -237,25 +255,30 @@ Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
 │   │   │   ├── store.ts           ← THE Zustand store (Layer 3)
 │   │   │   ├── user-menu.tsx      ← avatar popover w/ Log Out
 │   │   │   ├── sidebar.tsx        ← nav: Dashboard, Goals, My Tasks | Agent
-│   │   │   │                        Activity, Team, Settings
+│   │   │   │                        Activity, Team, Settings; collapsible
+│   │   │   ├── sidebar-clock.tsx   ← neumorphic analog clock (SVG, 15s tick)
+│   │   │   ├── sidebar-collapse.ts ← collapse state: useSyncExternalStore
+│   │   │   │                        + localStorage (orbital-sidebar-collapsed)
 │   │   │   ├── task-card.tsx      ← status dot, AI badge, assignee, deadline,
 │   │   │   │                        direct edit/delete row buttons
-│   │   │   ├── progress-ring.tsx  ← SVG completion ring
+│   │   │   ├── progress-ring.tsx  ← SVG completion ring (incl. faint variant)
 │   │   │   ├── widgets.tsx        ← stat cards, tasks-status panel
 │   │   │   ├── empty-state.tsx    ← illustrated empty screens
-│   │   │   ├── logo.tsx
+│   │   │   ├── logo.tsx           ← 8-dot constellation mark
 │   │   │   ├── views/             ← dashboard, goals, goal-detail, my-tasks,
 │   │   │   │                        activity, team, settings (7 views)
 │   │   │   └── dialogs/           ← new-goal (3-step wizard), goal-edit, add-task,
 │   │   │                            task-edit, task-detail, invite-member
-│   │   └── ui/                    ← shadcn/ui primitives (vendored)
-│   ├── hooks/                     ← use-toast, use-mobile
+│   │   └── ui/                    ← shadcn/ui primitives (vendored, 12 in use)
+│   ├── hooks/                     ← use-toast
 │   └── lib/
 │       ├── orbital.ts             ← domain types, DTOs, status metadata
 │       ├── router.ts              ← view ↔ path mapping (ADR-001) + unit tests
 │       ├── clarify.ts             ← wizard questions: bounds + fallback
 │       ├── plan-sanitizer.ts      ← AI plan bounds + template fallback
 │       ├── checkin.ts             ← check-in → task-status mapping
+│       ├── rate-limit.ts          ← fixed-window auth throttling (ADR-009)
+│       ├── team.ts                ← invite/agent form normalization — unit tested
 │       ├── api.ts                 ← ok()/fail() envelope + requireSession()
 │       ├── auth.ts                ← scrypt + HMAC sessions (ADR-003)
 │       ├── db.ts                  ← Prisma singleton + URL normalization
@@ -454,6 +477,7 @@ Deliberately restrained, all CSS-based: the mobile bottom tab bar, the MORE bott
 | 6 | SQL injection is structurally impossible | All queries through Prisma's parameterized client |
 | 7 | No secrets in the repository | `.gitignore` rejects `.env`, `*.key`, `ssh-key.txt`; keys supplied out-of-band per the SSH-wrapper runbook |
 | 8 | LLM output is treated as untrusted | `sanitizeTasks()` clamps count/lengths/hours in `generate-tasks` |
+| 9 | Auth endpoints are throttled per IP | Fixed-window limiter (ADR-009): 10 attempts/15 min → `429 RATE_LIMITED` + `Retry-After`; in-memory, single-node |
 
 ### 6.2 Security Utilities
 
@@ -464,6 +488,7 @@ Deliberately restrained, all CSS-based: the mobile bottom tab bar, the MORE bott
 | `setSessionCookie` / `clearSessionCookie` | `src/lib/auth.ts` | Cookie lifecycle with hardening flags |
 | `requireSession` | `src/lib/api.ts` | Route-handler guard returning the session user |
 | `sanitizeTasks` | `generate-tasks/route.ts` | Bounds LLM-generated data before persistence |
+| `checkRate` / `authRateLimit` / `clientIpOf` | `src/lib/rate-limit.ts` | Fixed-window per-IP throttling for the auth routes (ADR-009) |
 | `resolveDatabaseUrl` | `src/lib/db.ts` | Path normalization (prevents accidental cross-location DB access) |
 
 ### 6.3 Authentication & Authorization
@@ -475,7 +500,7 @@ Single-workspace model with no RBAC: any authenticated user has full read/write 
 | Vector | Mitigation | Residual risk |
 |--------|------------|---------------|
 | Session forgery | HMAC-SHA256 + timing-safe compare; 64-hex signatures | Weak `AUTH_SECRET` in prod if operator ignores the README warning |
-| Password brute force | scrypt (memory-hard) per attempt | **No rate limiting** — open item in §10 |
+| Password brute force | scrypt (memory-hard) per attempt + per-IP rate limit (ADR-009) | Buckets are per-process — a multi-instance deploy needs a shared store |
 | CSRF | `SameSite=Lax` + JSON-only bodies (no form-encoded mutations) | Lax allows top-level GET navigations only; all mutations are POST/PATCH/DELETE with JSON |
 | XSS | React auto-escaping; no `dangerouslySetInnerHTML` anywhere in `src/` | None known |
 | SQLi | Prisma parameterization throughout | None known |
@@ -490,26 +515,27 @@ Single-workspace model with no RBAC: any authenticated user has full read/write 
 
 | Category | Files | Checks | Location | Framework |
 |----------|-------|--------|----------|-----------|
-| End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 27 | `scripts/` | Bash + curl + python3 (no test framework needed) |
-| Unit (pure domain seams) | 3 (`src/lib/*.test.ts`) | 43 | `src/lib/` | Vitest 5 (`bun run test`) |
+| End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 30 | `scripts/` | Bash + curl + python3 (no test framework needed) |
+| Unit (pure domain seams) | 5 (`src/lib/*.test.ts`) | 61 | `src/lib/` | Vitest 5 (`bun run test`) |
 
 ### 7.2 Test Patterns
 
-The unit layer (`bun run test`, ~0.4s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule). All v1.1 logic changes were written red → green at these seams.
+The unit layer (`bun run test`, ~0.7s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule), `rate-limit.test.ts` (fixed-window accounting, expired-bucket eviction, limit boundary, retry-after math), `team.test.ts` (email → display-name derivation, agent-field normalization bounds). All v1.1/v1.2 logic changes were written red → green at these seams.
 
-The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` each return the app shell; an unknown path must 404), and the **clarify endpoint** (three questions returned; title-less payload rejected 400). Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
+The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` each return the app shell; an unknown path must 404), the **clarify endpoint** (three questions returned; title-less payload rejected 400), **team validation** (invite with an invalid email rejected 400; agent without a name rejected 400), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
 
 ### 7.3 Coverage Thresholds
 
-- **Gate (mandatory before push):** `bun run lint` → `bun run test` (**43/43**) → `bun run build` → `./scripts/smoke-test.sh` with **27/27 PASS**. There is no hosted CI; this local gate is the only gate.
+- **Gate (mandatory before push):** `bun run lint` → `bun run typecheck` → `bun run test` (**61/61**) → `bun run build` → `./scripts/smoke-test.sh` with **30/30 PASS**. There is no hosted CI; this local gate is the only gate. The `typecheck` step is not optional: `next.config.ts` sets `ignoreBuildErrors`, so the build alone will not surface type errors.
 - Line/branch coverage is not measured — the seam list is small and deliberately complete (see ADR-008).
 
 ### 7.4 Pre-Push Checklist
 
 - [ ] `bun run lint` exits 0
+- [ ] `bun run typecheck` exits 0
 - [ ] `bun run build` compiles clean
-- [ ] `bun run test` → 43/43 PASS
-- [ ] `./scripts/smoke-test.sh` → 27/27 PASS
+- [ ] `bun run test` → 61/61 PASS
+- [ ] `./scripts/smoke-test.sh` → 30/30 PASS
 - [ ] New/changed endpoints write their `ActivityLog` entries (Pattern D)
 - [ ] Schema changes regenerated (`bunx prisma generate`) and reseeded (`db:push` + `db:seed`)
 - [ ] No `.env`, keys, or `db/*.db` staged (`git status` review)
@@ -561,7 +587,7 @@ bun run db:seed            # canonical demo workspace
 bun run dev                # http://localhost:3000
 ```
 
-Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 27/27 PASS; unit layer via `bun run test`, 43/43).
+Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 30/30 PASS; unit layer via `bun run test`, 61/61).
 
 ### 9.2 Common Commands
 
@@ -571,12 +597,13 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `bun run build` | Production build + standalone assembly |
 | `bun run start` | Serve the standalone build (from repo root only) |
 | `bun run lint` | ESLint (flat config; `skills/`, `docs/` build dirs ignored) |
+| `bun run typecheck` | `tsc --noEmit` — the type gate (build sets `ignoreBuildErrors`) |
 | `bunx prisma generate` | Regenerate the client after schema edits |
 | `bun run db:push` | Apply schema changes to SQLite |
 | `bun run db:seed` | Idempotent reset to demo data |
 | `bunx prisma studio` | Inspect data in a browser (optional convenience) |
-| `bun run test` | Vitest unit suite (43 checks, pure seams) |
-| `./scripts/smoke-test.sh` | 27-check E2E suite against the production build |
+| `bun run test` | Vitest unit suite (61 checks, pure seams) |
+| `./scripts/smoke-test.sh` | 30-check E2E suite against the production build |
 
 ### 9.3 Code Style Rules
 
@@ -597,13 +624,13 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 
 | Priority | Issue | Impact | Status |
 |----------|-------|--------|--------|
-| HIGH | No rate limiting on `/api/auth/login` / `/api/auth/register` | Online brute-force surface | Open — add per-IP throttling middleware |
+| ~~HIGH~~ | ~~No rate limiting on `/api/auth/login` / `/api/auth/register`~~ | ~~Online brute-force surface~~ | **Closed in v1.2** — ADR-009 fixed-window limiter (in-memory, single-node; swap for a shared store if scaling out) |
 | MEDIUM | Open registration (any visitor can create an account) | Workspace open to the public internet once deployed | Open — gate behind invite codes or an `ALLOW_REGISTRATION` env flag |
 | LOW | Unit layer covers pure seams only (no component tests) | View-layer regressions surface via the smoke suite, not a fast unit run | Partially closed in v1.1 (ADR-008); component tests remain open |
-| LOW | Template dependencies unused in `package.json` (zod, framer-motion, React Query, dnd-kit, react-hook-form beyond one dialog, next-auth, recharts beyond one chart, …) | Larger install footprint; misleading stack claims | Open — prune on next dependency pass |
+| ~~LOW~~ | ~~Template dependencies unused in `package.json`~~ | ~~Larger install footprint; misleading stack claims~~ | **Closed in v1.2** — pruned 859 → 193 packages; 35 unused vendored ui components and the dead `use-mobile` hook deleted |
 | LOW | `tsconfig.json` sets `noImplicitAny: false` | Weaker inference checks than full strict | Accepted (template default); tighten when convenient |
-| LOW | No `prefers-reduced-motion` handling | Accessibility gap in animations | Open |
-| LOW | No Dockerfile / hosted CI | Deployment and gate rely on the operator machine | Open — standalone artifact is Docker-ready; a lint+build+smoke workflow mirrors §7.3 |
+| ~~LOW~~ | ~~No `prefers-reduced-motion` handling~~ | ~~Accessibility gap in animations~~ | **Closed** — `globals.css` ships the media query (animations/transitions disabled) |
+| LOW | No Dockerfile / hosted CI | Deployment and gate rely on the operator machine | Open — standalone artifact is Docker-ready; a lint+typecheck+build+smoke workflow mirrors §7.3 |
 | INFO | AI generation falls back to the 8-step template when the SDK is unavailable | Generic (but usable) plans offline | By design (ADR-005) |
 | INFO | `AUTH_SECRET` dev fallback constant | Insecure sessions if deployed without setting it | By design; README + §8.2 warn loudly |
 
@@ -613,20 +640,30 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `src/components/orbital/store.ts` | 347 | The Zustand store: all server state, `call()` envelope client, every action + refresh set |
+| `src/components/orbital/store.ts` | 356 | The Zustand store: all server state, `call()` envelope client, every action + refresh set |
 | `prisma/seed.ts` | 265 | Idempotent demo workspace: user, 10 people, 3 goals, 31 tasks, 22 activity rows |
-| `src/components/orbital/views/dashboard-view.tsx` | 253 | Dashboard: greeting card, user menu, progress ring, stats, activity preview |
-| `src/components/orbital/orbital-app.tsx` | 171 | Authenticated shell: desktop sidebar, mobile bottom tab bar + MORE sheet, popstate wiring |
+| `src/components/orbital/views/dashboard-view.tsx` | 259 | Dashboard: greeting card, unified stats, faint done ring, activity preview |
+| `src/components/orbital/orbital-app.tsx` | 201 | Authenticated shell: collapsible desktop sidebar, mobile bottom tab bar + MORE sheet, popstate wiring |
+| `src/components/orbital/sidebar.tsx` | 181 | Collapsible nav: sections, clock + tasks-status row, chevron toggle |
 | `src/lib/router.ts` | 91 | View ↔ path mapping (`parseUrl` / `toPath`), legacy link support — unit tested |
-| `src/lib/orbital.ts` | 152 | Domain types, DTOs, status metadata (labels + colors), overdue helper |
+| `src/lib/orbital.ts` | 154 | Domain types, DTOs, status metadata (labels + colors), overdue helper |
 | `src/app/api/goals/[id]/generate-tasks/route.ts` | 130 | AI planner: SDK call (with clarifying answers), sanitizer, template fallback, assignment + scheduling |
 | `src/app/api/goals/clarify/route.ts` | 81 | Wizard step: AI clarifying questions + fallback + `goal_analyzed` activity |
-| `src/app/globals.css` | 198 | Tailwind 4 `@theme` tokens, `--orb-*` palette, base styles |
-| `scripts/smoke-test.sh` | 139 | 27-check E2E suite against the production server |
-| `prisma/schema.prisma` | 121 | 8 models, relations, indexes, referential actions |
+| `src/app/globals.css` | 202 | Tailwind 4 `@theme` tokens, `--orb-*` palette, base styles, reduced-motion query |
+| `src/lib/rate-limit.ts` | 59 | Fixed-window per-IP auth throttling (ADR-009) — unit tested |
+| `scripts/smoke-test.sh` | 166 | 30-check E2E suite against the production server |
+| `prisma/schema.prisma` | 123 | 8 models (TeamMember incl. agent description/instructions), relations, indexes |
 | `src/lib/auth.ts` | 91 | scrypt hashing, HMAC session tokens, cookie lifecycle |
+| `src/components/orbital/sidebar-clock.tsx` | 69 | Neumorphic analog clock (SVG, 15s tick) |
 | `src/lib/plan-sanitizer.ts` | 54 | AI task-plan bounds + deterministic template — unit tested |
-| `src/components/orbital/user-menu.tsx` | 48 | Avatar popover with identity + Log Out |
+| `src/components/orbital/user-menu.tsx` | 55 | Avatar popover with identity + Log Out (router.refresh swap) |
+| `src/components/orbital/views/goal-detail-view.tsx` | 238 | Goal detail: 2-stat row, inline ADD TASK, task cards |
+| `src/components/orbital/views/goals-view.tsx` | 230 | Goals grid: redesigned cards, filter chips, NEW GOAL outline pill |
+| `src/components/orbital/views/settings-view.tsx` | 204 | Settings: 2-column layout (Workspace + Hours / AI Assistant) |
+| `src/components/orbital/dialogs/invite-member-dialog.tsx` | 207 | Invite Member (email + role) / Create AI Agent (name/description/instructions) |
+| `src/components/orbital/dialogs/new-goal-dialog.tsx` | 274 | 3-step AI wizard: describe → clarifying questions → generate |
+| `src/components/orbital/sidebar-collapse.ts` | 37 | Collapse state: `useSyncExternalStore` + localStorage |
+| `src/lib/team.ts` | 35 | Invite/agent form normalization — unit tested |
 | `src/lib/db.ts` | 51 | Prisma singleton + SQLite URL normalization (Pattern B) |
 | `src/lib/clarify.ts` | 36 | Wizard question fallback + LLM bounds — unit tested |
 | `src/lib/api.ts` | 30 | `ok()` / `fail()` envelope + `requireSession()` guard |
@@ -643,11 +680,11 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | **Task** | A unit of work inside a goal, with status, deadline, assignee, estimated hours, and an AI-attribution flag (`createdByAi`) |
 | **Check-in (TaskUpdate)** | A status report posted on a task (`on_track` / `blocked` / `need_help` / `done`, optional note); also flips the task's live status |
 | **Person** | An assignable entity — seeded demo people plus one linked to each login user (`userId`), which powers "My Tasks" |
-| **TeamMember** | An invited human or a configured AI agent (`kind`, `agentRole`) shown on the Team page |
+| **TeamMember** | An invited human or a configured AI agent (`kind`, `agentRole`, optional `description`/`instructions`) shown on the Team page |
 | **ActivityLog** | The append-only feed narrating every mutation (create/assign/status/invite/settings) |
 | **Envelope** | The uniform API response `{ ok, data }` or `{ ok, error: { code, message } }` |
 | **The planner** | `POST /api/goals/[id]/generate-tasks` — LLM-backed task-plan generation (clarifying answers in, sanitized tasks out) with deterministic fallback |
 | **Deep link** | A shareable view URL (`/goals/<id>`, `/my-tasks`, …) — rewrites serve the shell, `router.ts` restores the view (legacy `?view=` links still resolve) |
-| **Smoke suite** | `scripts/smoke-test.sh` — the 27-check production-server verification gate |
+| **Smoke suite** | `scripts/smoke-test.sh` — the 30-check production-server verification gate |
 | **SSH wrapper** | `docs/ssh_git_wrapper_v3.py` — key-materializing authenticated push tool with post-push remote verification |
 

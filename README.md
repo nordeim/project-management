@@ -20,12 +20,12 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | 🎯 **Goals with AI task planning** | Three-step conversational wizard: describe the goal → answer the agent's clarifying questions → get a 6–9 task plan (LLM via `z-ai-web-dev-sdk`, deterministic fallback — never hard-fails) |
 | ✅ **Task lifecycle** | Five task statuses (pending / in progress / blocked / need help / done), deadlines, assignees, estimated hours, AI-attribution badge |
 | 💬 **Status check-ins** | Post on-track / blocked / need-help / done updates with notes; updates history on every task |
-| 📊 **Dashboard** | Greeting + date card, progress ring, stat cards (total / done / blocked / completed), tasks-status panel, recent agent activity |
-| 👥 **Team of humans + AI agents** | Invite members or configure AI agents with roles; person directory drives assignment |
+| 📊 **Dashboard** | Greeting + date card, unified stats card, progress ring with faint done state, tasks-status panel, recent agent activity |
+| 👥 **Team of humans + AI agents** | Invite members by email with a role toggle, or configure AI agents with name, description and instructions; person directory drives assignment |
 | 📜 **Agent activity feed** | Every mutation logs a typed, human-readable activity entry with full log view |
-| 🔐 **Cookie-session auth** | scrypt password hashing + HMAC-signed sessions, zero external auth dependencies |
+| 🔐 **Cookie-session auth** | scrypt password hashing + HMAC-signed sessions, per-IP rate limiting on login/register (429 with `Retry-After`), zero external auth dependencies |
 | 🧭 **Path-based deep links** | Real URLs — `/goals/<id>`, `/my-tasks`, `/activity` — with working browser back/forward (single-page app under the hood) |
-| 📱 **Responsive SPA** | Desktop sidebar; mobile bottom tab bar (Home / Goals / My Tasks / Agent / More) with a More sheet |
+| 📱 **Responsive SPA** | Collapsible desktop sidebar with live analog clock; mobile bottom tab bar (Home / Goals / My Tasks / Agent / More) with a More sheet |
 | 🌱 **One-command demo data** | Idempotent seed mirrors the reference workspace (3 goals, 31 tasks, 22 activity entries) |
 
 ## Screenshots
@@ -65,7 +65,7 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | Styling | Tailwind CSS | 4 | Utility styling + design tokens |
 | Components | shadcn/ui on Radix | — | Accessible primitives (dialog, select, radio, …) |
 | State | Zustand | 5 | Single client store; server state via fetch + refresh |
-| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping |
+| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms |
 | ORM | Prisma | 6 | Schema, client, `db push`, seed |
 | Database | SQLite | — | Zero-config local persistence (`db/custom.db`) |
 | Auth | Node `crypto` (scrypt + HMAC) | — | Cookie sessions, no external auth service |
@@ -97,7 +97,7 @@ The page at `/` resolves the session once and hands off to the client app. All d
   📄 orbital-logo.svg       # Brand mark
   📄 dusk-hills.jpg         # Login/dashboard backdrop (OSS)
 📂 scripts/
-  📄 smoke-test.sh          # 27-check E2E suite + unit tests via `bun run test` (boots prod server)
+  📄 smoke-test.sh          # 30-check E2E suite + unit tests via `bun run test` (boots prod server)
 📂 src/
   📂 app/
     📄 page.tsx             # Single route: session check → OrbitalApp | LoginScreen
@@ -109,7 +109,9 @@ The page at `/` resolves the session once and hands off to the client app. All d
       📄 orbital-app.tsx    # Authenticated shell: sidebar + view switcher + mobile tab bar
       📄 login-screen.tsx   # Sign-in / sign-up
       📄 store.ts           # Zustand store: all server state + actions
-      📄 sidebar.tsx        # Desktop navigation
+      📄 sidebar.tsx        # Desktop navigation (collapsible; clock + tasks status)
+      📄 sidebar-clock.tsx  # Neumorphic analog clock (SVG, 15s tick)
+      📄 sidebar-collapse.ts# Collapse state: useSyncExternalStore + localStorage
       📄 user-menu.tsx      # Avatar popover with Log Out
       📂 views/             # dashboard, goals, goal-detail, my-tasks, activity, team, settings
       📂 dialogs/           # new-goal (3-step wizard), goal-edit, add-task, task-edit, task-detail, invite-member
@@ -120,6 +122,8 @@ The page at `/` resolves the session once and hands off to the client app. All d
     📄 clarify.ts           # Wizard clarifying questions: LLM sanitizer + fallback — unit tested
     📄 plan-sanitizer.ts    # AI task-plan bounds + template fallback — unit tested
     📄 checkin.ts           # Check-in → task-status mapping — unit tested
+    📄 rate-limit.ts        # Fixed-window per-IP auth throttling — unit tested
+    📄 team.ts              # Invite/agent form normalization — unit tested
     📄 api.ts               # ok()/fail() envelope helpers + session guard
     📄 auth.ts              # scrypt hashing, HMAC session tokens, cookie handling
     📄 db.ts                # Prisma client + SQLite URL normalization
@@ -159,7 +163,7 @@ Open <http://localhost:3000> and sign in with the seeded demo account:
 curl http://localhost:3000/api/health
 # {"status":"ok","app":"orbital","ts":"…"}
 
-# Full end-to-end verification (27 checks: auth, CRUD, validation, routing, logout)
+# Full end-to-end verification (30 checks: auth, CRUD, validation, routing, rate limit, logout)
 ./scripts/smoke-test.sh    # builds must exist: run `bun run build` first
 ```
 
@@ -184,8 +188,8 @@ All endpoints return `{ "ok": true, "data": … }` or `{ "ok": false, "error": {
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/health` | GET | Liveness probe |
-| `/api/auth/register` | POST | Create account (name, email, password) |
-| `/api/auth/login` | POST | Sign in, sets session cookie |
+| `/api/auth/register` | POST | Create account (name, email, password) — rate-limited |
+| `/api/auth/login` | POST | Sign in, sets session cookie — rate-limited (10 attempts/IP/15 min, then `429 RATE_LIMITED`) |
 | `/api/auth/logout` | POST | Clear session |
 | `/api/auth/me` | GET | Current user |
 | `/api/stats` 🔒 | GET | Dashboard stats (totals, completion rate) |
@@ -196,7 +200,7 @@ All endpoints return `{ "ok": true, "data": … }` or `{ "ok": false, "error": {
 | `/api/tasks` 🔒 | GET / POST | List (filters: `assignee=me\|<personId>`, `status`, `goal`) / create |
 | `/api/tasks/[id]` 🔒 | GET / PATCH / ⚠️ DELETE | Task detail / update / delete |
 | `/api/tasks/[id]/updates` 🔒 | POST | Post a status check-in (flips task status, logs activity) |
-| `/api/team` 🔒 | GET / POST | People + members / invite member or AI agent |
+| `/api/team` 🔒 | GET / POST | People + members / invite member (email + role) or create AI agent (name + description + instructions) |
 | `/api/activity` 🔒 | GET | Activity feed (latest 50) |
 | `/api/settings` 🔒 | GET / PATCH | Workspace settings (name, working hours, ping frequency, AI tone) |
 
@@ -218,13 +222,13 @@ Typography: **DM Sans** (UI) and **DM Mono** (numeric/date accents), loaded via 
 ## Testing
 
 ```bash
-bun run test              # unit tests — 43 checks on the pure domain seams
-./scripts/smoke-test.sh   # E2E — 27 checks against the production build
+bun run test              # unit tests — 61 checks on the pure domain seams
+./scripts/smoke-test.sh   # E2E — 30 checks against the production build
 ```
 
-The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), and the check-in status mapping (`src/lib/checkin.ts`).
+The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), and the team-form normalization (`src/lib/team.ts`).
 
-The smoke suite boots the production standalone server, then runs **27 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), and the **clarify endpoint** (3 questions + validation). It exits non-zero on any failure and cleans up after itself.
+The smoke suite boots the production standalone server, then runs **30 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), the **clarify endpoint** (3 questions + validation), **team validation** (invite with invalid email, agent without a name), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). It exits non-zero on any failure and cleans up after itself.
 
 ## Troubleshooting
 
@@ -233,6 +237,7 @@ The smoke suite boots the production standalone server, then runs **27 checks**:
 | `Error code 14: Unable to open the database file` | Server started from a directory other than the project root | Start via `bun run start` / `bun run dev` (npm scripts always run from the root) |
 | `Is port 3000 in use?` | Stale dev/prod server | `pkill -f "next dev"` or `pkill -f "standalone/server.js"` |
 | Login loops back to the sign-in screen | `AUTH_SECRET` changed between server restarts | Keep `AUTH_SECRET` stable in production |
+| Login suddenly returns 429 | Per-IP rate limit engaged (10 attempts / 15 min) | Wait for the window to reset (see `Retry-After`) or restart the server to clear in-memory buckets |
 | Prisma `P1003` / missing tables | Database not initialized | `bun run db:push && bun run db:seed` |
 | AI generation returns a generic 8-step plan | SDK unavailable/malformed output — deterministic fallback engaged | Expected behavior; configure the SDK environment to get LLM plans |
 

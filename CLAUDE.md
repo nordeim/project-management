@@ -24,7 +24,7 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 2. **PLAN** — Map the change across the four layers it will touch: schema (`prisma/schema.prisma`) → route handler (`src/app/api/…`) → domain types (`src/lib/orbital.ts` / pure lib modules) → store action + view/dialog.
 3. **VALIDATE** — Confirm the plan preserves the API envelope and the activity-feed invariant before coding. Pure logic goes in `src/lib/*.ts` with a Vitest test — write the failing test first.
 4. **IMPLEMENT** — One layer at a time; keep the build green (`bun run build`) between layers.
-5. **VERIFY** — Run the full gate: `bun run lint && bun run test && bun run build && ./scripts/smoke-test.sh` (43 unit + 27 smoke checks required).
+5. **VERIFY** — Run the full gate: `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh` (61 unit + 30 smoke checks required).
 6. **DELIVER** — Conventional Commit on `main`, push via the SSH wrapper runbook.
 
 ### Project-Specific Principles
@@ -33,7 +33,8 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 - **Every mutation narrates itself.** An API change without its `ActivityLog` write is incomplete.
 - **The AI features may degrade, never fail.** `clarify` (wizard questions) and `generate-tasks` fall back to deterministic outputs; preserve that guarantee when touching them.
 - **No new state libraries.** Server state flows through the Zustand store's refresh pattern.
-- **Test at the pure seams.** Router mapping, clarify questions, plan sanitization and check-in mapping live in `src/lib/*.ts` with Vitest specs — TDD (red → green) is the default for changes there.
+- **Test at the pure seams.** Router mapping, clarify questions, plan sanitization, check-in mapping, auth rate limiting and team-form normalization live in `src/lib/*.ts` with Vitest specs — TDD (red → green) is the default for changes there.
+- **Auth endpoints are rate-limited; auth navigation uses `router.refresh()`.** 10 attempts/IP/15 min on login + register (`429 RATE_LIMITED`); login success and Log Out swap the shell via a server session re-resolve, never `window.location` assignments.
 
 ## Implementation Standards
 
@@ -78,23 +79,25 @@ bun run dev          # http://localhost:3000 — demo@orbital.app / Demo1234!
 | `bun run build` | Production build + standalone assembly |
 | `bun run start` | Serve the standalone build (must run from repo root) |
 | `bun run lint` | ESLint (flat config) |
+| `bun run typecheck` | `tsc --noEmit` — the build sets `ignoreBuildErrors`, so this is the type gate |
 | `bunx prisma generate` | Regenerate client after schema edits |
 | `bun run db:push` | Apply schema to SQLite (no migrations folder) |
 | `bun run db:seed` | Idempotent demo data reset |
 
 ## Testing Strategy
 
-- **Unit layer** (`bun run test`, Vitest): 43 checks pinning the pure domain seams — `src/lib/router.test.ts` (view ↔ path mapping incl. legacy `?view=` links), `clarify.test.ts` (wizard questions: fallback + LLM bounds), `domain.test.ts` (plan sanitizer, template fallback, check-in status mapping).
-- **End-to-end smoke suite** (`scripts/smoke-test.sh`): boots the production standalone server and runs 27 checks — health, auth (valid/invalid/unauthenticated), all read endpoints, task create, invalid-status rejection, check-in round-trip (status flip + update recorded), delete, logout invalidation, page render, path-route serving (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` + 404 guard), and the clarify endpoint (3 questions + validation). Exits non-zero on failure.
-- **Pre-push gate** (mandatory, no CI exists): `bun run lint && bun run test && bun run build && ./scripts/smoke-test.sh`.
+- **Unit layer** (`bun run test`, Vitest): 61 checks pinning the pure domain seams — `src/lib/router.test.ts` (view ↔ path mapping incl. legacy `?view=` links), `clarify.test.ts` (wizard questions: fallback + LLM bounds), `domain.test.ts` (plan sanitizer, template fallback, check-in status mapping), `rate-limit.test.ts` (fixed-window buckets, eviction, retry-after), `team.test.ts` (email → display-name derivation, agent-field normalization).
+- **End-to-end smoke suite** (`scripts/smoke-test.sh`): boots the production standalone server and runs 30 checks — health, auth (valid/invalid/unauthenticated), all read endpoints, task create, invalid-status rejection, check-in round-trip (status flip + update recorded), delete, logout invalidation, page render, path-route serving (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` + 404 guard), the clarify endpoint (3 questions + validation), team validation (invalid email, agent without name), and the login rate limit (429 `RATE_LIMITED`). Exits non-zero on failure.
+- **Pre-push gate** (mandatory, no CI exists): `bun run lint && bun run typecheck && bun run test && bun run build && ./scripts/smoke-test.sh`.
 - Manual QA matrix: every changed dialog must be exercised in both desktop and mobile layouts (bottom tab bar + MORE sheet below `lg`).
 
 ## Code Quality Standards
 
 ```bash
-bun run lint     # must exit 0 with no errors
-bun run test     # 43 unit checks must pass
-bun run build    # must compile clean
+bun run lint        # must exit 0 with no errors
+bun run typecheck   # must exit 0 (the build won't catch type errors)
+bun run test        # 61 unit checks must pass
+bun run build       # must compile clean
 ```
 
 - No `TODO`/`FIXME`/placeholder text in shipped code (form `placeholder=` attributes are fine).
@@ -132,7 +135,7 @@ REST-ish resource routes under `/api` (auth, goals, clarify, tasks, team, activi
 
 ### Data Layer
 
-Prisma + SQLite at `db/custom.db` (gitignored; recreate with `db:push` + `db:seed`). Eight models; `Task.goal` cascades on goal delete; `Task.assignee` nulls on person delete. `WorkspaceSetting` is a fixed `singleton` row.
+Prisma + SQLite at `db/custom.db` (gitignored; recreate with `db:push` + `db:seed`). Eight models; `Task.goal` cascades on goal delete; `Task.assignee` nulls on person delete. `TeamMember` carries optional `description`/`instructions` for AI agents (v1.2). `WorkspaceSetting` is a fixed `singleton` row.
 
 ### Environment Variables
 
