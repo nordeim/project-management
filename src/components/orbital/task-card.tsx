@@ -2,16 +2,11 @@
 
 // Task card used in goal detail and My Tasks lists: status dot + label,
 // AI badge, title, description, assignee, deadline (overdue aware),
-// estimated hours, and an actions menu (edit / delete).
+// estimated hours, and direct edit / delete icon buttons on hover —
+// mirroring the reference app's two-button row actions.
 
-import { CalendarDays, Clock, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { CalendarDays, Clock, Pencil, Trash2 } from "lucide-react";
 import { AvatarBubble, AiBadge } from "@/components/orbital/widgets";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { isOverdue, TASK_STATUS_META, type TaskDTO } from "@/lib/orbital";
 import { cn } from "@/lib/utils";
 
@@ -75,25 +70,24 @@ export function TaskCard({
           </div>
         </button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-orb-muted opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 hover:bg-black/[0.06] hover:text-orb-heading"
-              aria-label={`Actions for ${task.title}`}
-            >
-              <MoreHorizontal size={17} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="rounded-xl">
-            <DropdownMenuItem onSelect={() => onEdit(task)}>
-              <Pencil size={14} /> Edit task
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onSelect={() => onDelete(task)}>
-              <Trash2 size={14} /> Delete task
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={() => onEdit(task)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted hover:bg-black/[0.06] hover:text-orb-heading"
+            aria-label={`Edit task ${task.title}`}
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(task)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted hover:bg-orb-coral/15 hover:text-orb-coral-deep"
+            aria-label={`Delete task ${task.title}`}
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       </div>
     </div>
   );

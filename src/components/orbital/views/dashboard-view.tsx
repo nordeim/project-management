@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { ProgressRing } from "@/components/orbital/progress-ring";
-import { AvatarBubble } from "@/components/orbital/widgets";
+import { UserMenu } from "@/components/orbital/user-menu";
 import { greetingFor, relativeTime, type ActivityDTO } from "@/lib/orbital";
 import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
 
@@ -104,7 +104,6 @@ function ActivityRow({ entry }: { entry: ActivityDTO }) {
 }
 
 export function DashboardView() {
-  const user = useOrbital((s) => s.user);
   const stats = useOrbital((s) => s.stats);
   const goals = useOrbital((s) => s.goals);
   const activity = useOrbital((s) => s.activity);
@@ -112,7 +111,6 @@ export function DashboardView() {
   const [newGoalOpen, setNewGoalOpen] = useState(false);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
-  const emailPrefix = user.email.split("@")[0] ?? "";
 
   const nextPlanned = useMemo(() => {
     const blocked = activity.find((a) => a.type === "status_update" && a.detail?.includes("Blocked"));
@@ -126,13 +124,10 @@ export function DashboardView() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-normal tracking-tight text-orb-heading sm:text-[32px]">{greeting}</h1>
-          <p className="mt-1 text-[14px] text-orb-muted">Here&apos;s what&apos;s happening across your workspace.</p>
+          <p className="mt-1 text-[14px] text-orb-muted">Here&apos;s what&apos;s happening across your projects today.</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="flex h-10 items-center gap-2 rounded-full bg-orb-pink/60 pl-1.5 pr-4 text-[13px] font-medium text-orb-heading">
-            <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={30} />
-            <span className="max-w-[140px] truncate">{emailPrefix}</span>
-          </span>
+          <UserMenu />
           <button type="button" className="orb-pill" onClick={() => setNewGoalOpen(true)}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -165,7 +160,7 @@ export function DashboardView() {
           <StatCard
             label="Blocked Tasks"
             value={stats?.blockedTasks ?? 0}
-            sub={`${stats?.overdueTasks ?? 0} overdue`}
+            sub={`${stats?.doneTasks ?? 0} completed`}
             onClick={() => navigate("my-tasks")}
           />
           <StatCard

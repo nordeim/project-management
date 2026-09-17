@@ -1,13 +1,14 @@
 "use client";
 
-// New Goal: a two-step conversational wizard like the reference app.
+// New Goal: a three-step conversational wizard like the reference app.
 // Step 1 — the AI assistant bubble + goal details form (title, description,
-// target date). Step 2 — the agent "thinks" and generates the task plan
-// (LLM-backed with deterministic fallback on the server), then hands off
-// to the goal detail page.
+// target date). Step 2 — the agent asks up to three clarifying questions
+// (LLM-backed with deterministic fallback on the server) with optional
+// answers. Step 3 — the agent generates the task plan, then hands off to
+// the goal detail page.
 
 import { useState } from "react";
-import { CalendarDays, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, CalendarDays, Loader2, Plus, Sparkles } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,15 +17,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 
+type Step = "details" | "questions" | "generating";
+
 export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const createGoal = useOrbital((s) => s.createGoal);
+  const clarifyGoal = useOrbital((s) => s.clarifyGoal);
   const generateTasks = useOrbital((s) => s.generateTasks);
   const navigate = useOrbital((s) => s.navigate);
 
-  const [step, setStep] = useState<"details" | "generating">("details");
+  const [step, setStep] = useState<Step>("details");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState("");
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
   function reset() {
@@ -32,11 +38,30 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     setTitle("");
     setDescription("");
     setTargetDate("");
+    setQuestions([]);
+    setAnswers([]);
     setBusy(false);
   }
 
-  async function submit(event: React.FormEvent) {
+  // Step 1 -> Step 2: the agent analyzes the draft and asks clarifying
+  // questions (server-side LLM with deterministic fallback).
+  async function continueToQuestions(event: React.FormEvent) {
     event.preventDefault();
+    if (busy) return;
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    const qs = await clarifyGoal({ title: trimmed, description: description.trim() || undefined });
+    setBusy(false);
+    if (!qs) return; // toast already surfaced by call()
+    setQuestions(qs);
+    setAnswers(qs.map(() => ""));
+    setStep("questions");
+  }
+
+  // Step 2 -> Step 3: create the goal, then generate its plan with the
+  // clarifying answers folded into the prompt.
+  async function generate() {
     if (busy) return;
     const trimmed = title.trim();
     if (!trimmed) return;
@@ -51,7 +76,10 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       return;
     }
     setStep("generating");
-    const created = await generateTasks(goalId);
+    const created = await generateTasks(
+      goalId,
+      answers.map((a) => a.trim()).filter(Boolean),
+    );
     setBusy(false);
     onOpenChange(false);
     reset();
@@ -62,6 +90,12 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       });
     }
     navigate("goal-detail", goalId);
+  }
+
+  function backToDetails() {
+    setStep("details");
+    setQuestions([]);
+    setAnswers([]);
   }
 
   return (
@@ -86,13 +120,13 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               </span>
               <div className="rounded-2xl rounded-tl-sm bg-orb-inset/80 px-4 py-3">
                 <p className="text-[14px] leading-relaxed text-orb-body">
-                  Tell me about your goal. What do you want to achieve? I&apos;ll draft a task plan for it right
-                  after.
+                  Tell me about your goal. What do you want to achieve? I&apos;ll ask a few questions
+                  before creating a plan.
                 </p>
               </div>
             </div>
 
-            <form onSubmit={submit} className="mt-6 space-y-4">
+            <form onSubmit={continueToQuestions} className="mt-6 space-y-4">
               <p className="orb-label">Goal Details</p>
               <div className="space-y-2">
                 <Label htmlFor="goal-title" className="orb-label">
@@ -159,7 +193,67 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               </div>
             </form>
           </div>
-        ) : (
+        ) : null}
+
+        {step === "questions" ? (
+          <div className="p-6 sm:p-7">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orb-purple/15 text-orb-purple-deep" aria-hidden="true">
+                <Sparkles size={18} />
+              </span>
+              <div className="rounded-2xl rounded-tl-sm bg-orb-inset/80 px-4 py-3">
+                <p className="text-[14px] leading-relaxed text-orb-body">
+                  Before I draft the plan, a few questions — answer any you care about.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-5">
+              {questions.map((question, index) => (
+                <div key={index} className="space-y-2">
+                  <p className="text-[14px] font-medium leading-relaxed text-orb-body" id={`clarify-q-${index}`}>
+                    {question}
+                  </p>
+                  <Textarea
+                    aria-labelledby={`clarify-q-${index}`}
+                    value={answers[index] ?? ""}
+                    onChange={(e) =>
+                      setAnswers((prev) => prev.map((a, i) => (i === index ? e.target.value : a)))
+                    }
+                    placeholder="Your answer..."
+                    rows={2}
+                    maxLength={500}
+                    className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                  />
+                </div>
+              ))}
+
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-10 rounded-full px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-muted"
+                  onClick={backToDetails}
+                  disabled={busy}
+                >
+                  <ArrowLeft size={14} aria-hidden="true" />
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  className="orb-pill"
+                  onClick={() => void generate()}
+                  disabled={busy}
+                >
+                  {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} aria-hidden="true" />}
+                  Generate Tasks
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {step === "generating" ? (
           <div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
             <span className="relative flex h-14 w-14 items-center justify-center" aria-hidden="true">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orb-purple/25" />
@@ -172,7 +266,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               The AI agent is breaking &quot;{title}&quot; into concrete tasks, assigning owners and deadlines.
             </p>
           </div>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );

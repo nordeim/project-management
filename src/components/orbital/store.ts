@@ -7,6 +7,7 @@
 
 import { create } from "zustand";
 import { toast } from "@/hooks/use-toast";
+import { parseUrl, toPath, type ViewId } from "@/lib/router";
 import type {
   ActivityDTO,
   DashboardStats,
@@ -17,14 +18,7 @@ import type {
   WorkspaceSettingsDTO,
 } from "@/lib/orbital";
 
-export type ViewId =
-  | "dashboard"
-  | "goals"
-  | "goal-detail"
-  | "my-tasks"
-  | "activity"
-  | "team"
-  | "settings";
+export type { ViewId } from "@/lib/router";
 
 export interface SessionUser {
   id: string;
@@ -79,6 +73,7 @@ interface OrbitalState {
 
   navigate: (view: ViewId, goalId?: string | null) => void;
   syncUrl: () => void;
+  applyUrlState: () => void;
   boot: () => Promise<void>;
   refreshGoals: () => Promise<void>;
   refreshGoalDetail: (goalId: string) => Promise<void>;
@@ -89,7 +84,8 @@ interface OrbitalState {
   refreshSettings: () => Promise<void>;
 
   createGoal: (input: { title: string; description?: string; targetDate?: string }) => Promise<string | null>;
-  generateTasks: (goalId: string) => Promise<number | null>;
+  clarifyGoal: (input: { title: string; description?: string }) => Promise<string[] | null>;
+  generateTasks: (goalId: string, answers?: string[]) => Promise<number | null>;
   updateGoal: (
     goalId: string,
     patch: { title?: string; description?: string; status?: string; targetDate?: string | null },
@@ -114,12 +110,7 @@ interface OrbitalState {
 
 function readUrlState(): { view: ViewId; goalId: string | null } {
   if (typeof window === "undefined") return { view: "dashboard", goalId: null };
-  const params = new URLSearchParams(window.location.search);
-  const raw = params.get("view");
-  const goal = params.get("goal");
-  const allowed: ViewId[] = ["dashboard", "goals", "goal-detail", "my-tasks", "activity", "team", "settings"];
-  const view = raw && allowed.includes(raw as ViewId) ? (raw as ViewId) : "dashboard";
-  return { view: view === "goal-detail" && !goal ? "goals" : view, goalId: goal };
+  return parseUrl(window.location.pathname, window.location.search);
 }
 
 export const useOrbital = create<OrbitalState>((set, get) => ({
@@ -145,12 +136,16 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
   syncUrl: () => {
     if (typeof window === "undefined") return;
     const { view, goalId } = get();
-    const params = new URLSearchParams();
-    if (view !== "dashboard") params.set("view", view);
-    if (view === "goal-detail" && goalId) params.set("goal", goalId);
-    const qs = params.toString();
-    const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
-    window.history.replaceState(null, "", url);
+    // pushState (not replaceState): every view switch is a real history
+    // entry, so browser back/forward walks the app like the reference SPA.
+    window.history.pushState(null, "", toPath(view, goalId));
+  },
+
+  applyUrlState: () => {
+    if (typeof window === "undefined") return;
+    const { view, goalId } = parseUrl(window.location.pathname, window.location.search);
+    set({ view, goalId });
+    if (view === "goal-detail" && goalId) void get().refreshGoalDetail(goalId);
   },
 
   boot: async () => {
@@ -219,9 +214,20 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
     return created.id;
   },
 
-  generateTasks: async (goalId) => {
+  clarifyGoal: async (input) => {
+    const payload = await call<{ questions: string[] }>("/api/goals/clarify", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    if (!payload) return null;
+    await get().refreshActivity();
+    return payload.questions;
+  },
+
+  generateTasks: async (goalId, answers = []) => {
     const result = await call<{ created: number }>(`/api/goals/${goalId}/generate-tasks`, {
       method: "POST",
+      body: JSON.stringify({ answers }),
     });
     if (!result) return null;
     await Promise.all([

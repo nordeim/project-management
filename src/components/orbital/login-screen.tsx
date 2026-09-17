@@ -59,7 +59,7 @@ export function LoginScreen() {
           <div className="mb-8 flex flex-col items-center gap-4 text-center">
             <LogoMark size={44} />
             <h1 className="text-2xl font-normal tracking-tight text-orb-heading">
-              Welcome to <span className="font-bold">Orbital</span>
+              Welcome to <span className="font-bold">Project Management App</span>
             </h1>
             <p className="text-sm text-orb-muted">Sign in to continue</p>
           </div>

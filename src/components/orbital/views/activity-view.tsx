@@ -19,6 +19,8 @@ function typeBadge(type: string): string {
       return "Status Update";
     case "goal_created":
       return "Goal Created";
+    case "goal_analyzed":
+      return "Goal Analyzed";
     case "goal_completed":
       return "Goal Completed";
     case "member_invited":

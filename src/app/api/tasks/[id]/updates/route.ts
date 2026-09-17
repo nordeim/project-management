@@ -6,6 +6,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { ok, fail, requireSession } from "@/lib/api";
+import { mapCheckinToTaskStatus, type CheckinStatus, type TaskWorkflowStatus } from "@/lib/checkin";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -35,11 +36,10 @@ export async function POST(request: NextRequest, { params }: Params) {
   const task = await db.task.findUnique({ where: { id }, include: { goal: true, assignee: true } });
   if (!task) return fail("NOT_FOUND", "Task not found", 404);
 
-  let nextTaskStatus = task.status;
-  if (status === "done") nextTaskStatus = "done";
-  else if (status === "blocked") nextTaskStatus = "blocked";
-  else if (status === "need_help") nextTaskStatus = "need_help";
-  else if (task.status === "blocked" || task.status === "need_help") nextTaskStatus = "in_progress";
+  const nextTaskStatus: TaskWorkflowStatus = mapCheckinToTaskStatus(
+    status as CheckinStatus,
+    task.status as TaskWorkflowStatus,
+  );
 
   const update = await db.taskUpdate.create({
     data: { taskId: id, status, note: trimmedNote || null },

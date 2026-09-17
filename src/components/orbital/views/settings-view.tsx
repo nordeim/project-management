@@ -173,7 +173,6 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
 
 export function SettingsView() {
   const settings = useOrbital((s) => s.settings);
-  const signOut = useOrbital((s) => s.signOut);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -189,17 +188,6 @@ export function SettingsView() {
           Loading settings…
         </p>
       )}
-
-      <div className="mt-2">
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-10 rounded-full text-[13px] font-medium text-orb-muted hover:bg-black/[0.04] hover:text-orb-heading"
-          onClick={() => void signOut()}
-        >
-          Sign out
-        </Button>
-      </div>
     </div>
   );
 }

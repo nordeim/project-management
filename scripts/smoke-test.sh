@@ -105,6 +105,33 @@ if [ "$code" = "401" ]; then ok "post-logout stats blocked (401)"; else bad "pos
 code=$(curl -s -o /tmp/smoke-page.html -w "%{http_code}" --max-time 15 "$BASE/")
 if [ "$code" = "200" ] && grep -q "<!DOCTYPE html" /tmp/smoke-page.html; then ok "page renders (200)"; else bad "page render -> $code"; fi
 
+# ---- 14. path-based SPA routes serve the app shell (rewrites) ----
+for path in goals my-tasks activity team settings; do
+  code=$(curl -s -o /tmp/smoke-path.html -w "%{http_code}" --max-time 10 "$BASE/$path")
+  if [ "$code" = "200" ] && grep -q "<!DOCTYPE html" /tmp/smoke-path.html; then ok "GET /$path serves the SPA (200)"; else bad "GET /$path -> $code"; fi
+done
+code=$(curl -s -o /tmp/smoke-path.html -w "%{http_code}" --max-time 10 "$BASE/goals/$GOAL_ID")
+if [ "$code" = "200" ] && grep -q "<!DOCTYPE html" /tmp/smoke-path.html; then ok "GET /goals/<id> serves the SPA (200)"; else bad "GET /goals/<id> -> $code"; fi
+code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$BASE/not-a-real-page")
+if [ "$code" = "404" ]; then ok "unknown path 404s (no blanket rewrite)"; else bad "unknown path -> $code"; fi
+
+# ---- 15. wizard clarify endpoint (auth + envelope + 3 questions) ----
+# Re-login: step 11 logged us out.
+curl -s -o /dev/null --max-time 10 -c "$CJ" -X POST "$BASE/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@orbital.app","password":"Demo1234!"}'
+code=$(curl -s -o /tmp/smoke-clarify.json -w "%{http_code}" --max-time 30 -b "$CJ" \
+  -X POST "$BASE/api/goals/clarify" -H "Content-Type: application/json" \
+  -d '{"title":"Smoke clarify goal","description":"verify the wizard step"}')
+if [ "$code" = "200" ] && python3 -c "import json,sys; d=json.load(open('/tmp/smoke-clarify.json')); sys.exit(0 if (d.get('ok') is True and len(d['data']['questions'])==3) else 1)"; then
+  ok "POST /api/goals/clarify (3 questions)"
+else
+  bad "clarify -> $code $(cat /tmp/smoke-clarify.json)"
+fi
+code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -b "$CJ" \
+  -X POST "$BASE/api/goals/clarify" -H "Content-Type: application/json" -d '{"description":"no title"}')
+if [ "$code" = "400" ]; then ok "clarify without title rejected (400)"; else bad "clarify no-title -> $code"; fi
+
 # ---- shutdown ----
 kill $SRV 2>/dev/null
 say ""

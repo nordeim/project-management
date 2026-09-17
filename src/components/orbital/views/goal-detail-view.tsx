@@ -10,7 +10,6 @@ import { TaskCard } from "@/components/orbital/task-card";
 import { AddTaskDialog } from "@/components/orbital/dialogs/add-task-dialog";
 import { TaskDetailDialog } from "@/components/orbital/dialogs/task-detail-dialog";
 import { TaskEditDialog } from "@/components/orbital/dialogs/task-edit-dialog";
-import { GoalEditDialog } from "@/components/orbital/dialogs/goal-edit-dialog";
 import { EmptyState } from "@/components/orbital/empty-state";
 import {
   AlertDialog,
@@ -35,7 +34,6 @@ export function GoalDetailView() {
   const [addOpen, setAddOpen] = useState(false);
   const [detailTask, setDetailTask] = useState<TaskDTO | null>(null);
   const [editTask, setEditTask] = useState<TaskDTO | null>(null);
-  const [editGoal, setEditGoal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<TaskDTO | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -104,15 +102,6 @@ export function GoalDetailView() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setEditGoal(true)}
-            className="orb-ghost-pill h-9"
-            aria-label={`Edit goal ${goal.title}`}
-          >
-            <PencilGlyph />
-            Edit
-          </button>
-          <button
-            type="button"
             onClick={() => setConfirmDelete(true)}
             className="inline-flex h-9 items-center gap-2 rounded-full border border-orb-coral/40 bg-orb-coral/10 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-coral-deep transition-colors hover:bg-orb-coral/20"
           >
@@ -154,7 +143,11 @@ export function GoalDetailView() {
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="orb-label">Tasks · {goal.taskCount} total</h2>
-        <button type="button" className="orb-ghost-pill h-9" onClick={() => setAddOpen(true)}>
+        <button
+          type="button"
+          className="inline-flex h-9 items-center gap-2 rounded-full border border-black/[0.14] bg-orb-card px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading transition-colors hover:bg-black/[0.04]"
+          onClick={() => setAddOpen(true)}
+        >
           <Plus size={13} aria-hidden="true" />
           Add Task
         </button>
@@ -188,7 +181,6 @@ export function GoalDetailView() {
       <AddTaskDialog goalId={goal.id} open={addOpen} onOpenChange={setAddOpen} />
       {detailTask ? <TaskDetailDialog task={detailTask} onClose={() => setDetailTask(null)} /> : null}
       {editTask ? <TaskEditDialog task={editTask} onClose={() => setEditTask(null)} /> : null}
-      {editGoal ? <GoalEditDialog goal={goal} onClose={() => setEditGoal(false)} /> : null}
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent className="rounded-3xl">
@@ -246,18 +238,5 @@ export function GoalDetailView() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-}
-
-function PencilGlyph() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <path
-        d="M9.9 1.7l2.4 2.4L4.6 11.8l-3 .6.6-3L9.9 1.7z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

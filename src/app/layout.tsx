@@ -16,7 +16,7 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Orbital | Project Management App",
+  title: "Project Management App",
   description:
     "ORBITAL is an AI-assisted project workspace: goals, tasks, agent activity and team check-ins in one calm dashboard.",
   icons: {

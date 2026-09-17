@@ -1,23 +1,27 @@
 "use client";
 
 // Goals: filter chips (All / Active / Done / Draft / Paused) + goal cards
-// with status chip, task progress, target date and edit/delete actions.
+// with status chip, task progress, target date and direct edit / delete
+// icon-button actions (the reference app's two-button row pattern).
 
 import { useMemo, useState } from "react";
-import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { ProgressRing } from "@/components/orbital/progress-ring";
 import { EmptyState } from "@/components/orbital/empty-state";
 import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
 import { GoalEditDialog } from "@/components/orbital/dialogs/goal-edit-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { GOAL_STATUS_META, type GoalDTO, type GoalStatus } from "@/lib/orbital";
-import { cn } from "@/lib/utils";
 
 const FILTERS: Array<{ id: "all" | GoalStatus; label: string }> = [
   { id: "all", label: "All" },
@@ -35,9 +39,12 @@ function formatDate(iso: string | null): string {
 export function GoalsView() {
   const goals = useOrbital((s) => s.goals);
   const navigate = useOrbital((s) => s.navigate);
+  const deleteGoal = useOrbital((s) => s.deleteGoal);
   const [filter, setFilter] = useState<"all" | GoalStatus>("all");
   const [newGoalOpen, setNewGoalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GoalDTO | null>(null);
+  const [goalToDelete, setGoalToDelete] = useState<GoalDTO | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const counts = useMemo(() => {
     const map = new Map<string, number>([["all", goals.length]]);
@@ -73,12 +80,12 @@ export function GoalsView() {
               type="button"
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
-              className={cn(
-                "h-9 rounded-full px-4 text-[13px] font-medium transition-colors",
-                active
+              className={
+                "h-9 rounded-full px-4 text-[13px] font-medium transition-colors " +
+                (active
                   ? "bg-primary text-primary-foreground"
-                  : "bg-black/[0.045] text-orb-muted hover:bg-black/[0.07] hover:text-orb-heading",
-              )}
+                  : "bg-black/[0.045] text-orb-muted hover:bg-black/[0.07] hover:text-orb-heading")
+              }
             >
               {f.label} ({count})
             </button>
@@ -136,23 +143,23 @@ export function GoalsView() {
                   </div>
                 </button>
 
-                <div className="absolute right-4 top-4 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-orb-muted hover:bg-black/[0.06] hover:text-orb-heading"
-                        aria-label={`Actions for ${goal.title}`}
-                      >
-                        <MoreHorizontal size={17} />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl">
-                      <DropdownMenuItem onSelect={() => setEditingGoal(goal)}>
-                        <Pencil size={14} /> Edit goal
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <div className="absolute right-4 top-4 flex items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => setEditingGoal(goal)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted hover:bg-black/[0.06] hover:text-orb-heading"
+                    aria-label={`Edit goal ${goal.title}`}
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGoalToDelete(goal)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted hover:bg-orb-coral/15 hover:text-orb-coral-deep"
+                    aria-label={`Delete goal ${goal.title}`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             );
@@ -162,6 +169,35 @@ export function GoalsView() {
 
       <NewGoalDialog open={newGoalOpen} onOpenChange={setNewGoalOpen} />
       {editingGoal ? <GoalEditDialog goal={editingGoal} onClose={() => setEditingGoal(null)} /> : null}
+
+      <AlertDialog open={goalToDelete !== null} onOpenChange={(open) => !open && setGoalToDelete(null)}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this goal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              &quot;{goalToDelete?.title}&quot; and its {goalToDelete?.taskCount ?? 0} tasks will be permanently
+              removed. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-full bg-destructive text-white hover:bg-destructive/90"
+              disabled={deleting}
+              onClick={async (event) => {
+                event.preventDefault();
+                if (!goalToDelete) return;
+                setDeleting(true);
+                const done = await deleteGoal(goalToDelete.id);
+                setDeleting(false);
+                if (done) setGoalToDelete(null);
+              }}
+            >
+              {deleting ? "Deleting…" : "Delete goal"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
