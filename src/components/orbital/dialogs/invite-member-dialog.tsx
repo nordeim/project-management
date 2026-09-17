@@ -1,15 +1,22 @@
 "use client";
 
-// Invite Member / New Agent dialog.
+// Invite Member / New Agent dialog, matching the reference forms:
+// humans — Email + Member/Lead role toggle; agents — NAME / DESCRIPTION /
+// INSTRUCTIONS ("Create AI Agent"). Name derivation and bounds live in the
+// pure seam src/lib/team.ts (unit tested there).
 
 import { useState } from "react";
-import { Bot, Loader2, UserPlus } from "lucide-react";
+import { Bot, Loader2, Mail } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function InviteMemberDialog({
   kind,
@@ -22,16 +29,21 @@ export function InviteMemberDialog({
 }) {
   const inviteMember = useOrbital((s) => s.inviteMember);
 
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState<"member" | "lead">("member");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [instructions, setInstructions] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Fields reset on close and after a successful invite — no effect needed.
+  const isAgent = kind === "agent";
+
   function reset() {
-    setName("");
     setEmail("");
-    setRole("");
+    setRole("member");
+    setName("");
+    setDescription("");
+    setInstructions("");
     setBusy(false);
   }
 
@@ -43,32 +55,28 @@ export function InviteMemberDialog({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (busy) return;
-    const trimmed = name.trim();
-    if (!trimmed) return;
     setBusy(true);
-    const done = await inviteMember({
-      name: trimmed,
-      email: email.trim() || undefined,
-      role: kind === "human" ? role.trim() || undefined : undefined,
-      kind,
-      agentRole: kind === "agent" ? role.trim() || "Project Assistant" : undefined,
-    });
+    const done = await inviteMember(
+      isAgent
+        ? { kind: "agent", name, description, instructions }
+        : { kind: "human", email, role },
+    );
     if (done) {
       onOpenChange(false);
       reset();
       toast({
-        title: kind === "agent" ? "Agent created" : "Invitation sent",
-        description:
-          kind === "agent"
-            ? `The AI agent "${trimmed}" is now part of your workspace.`
-            : `${trimmed} can now be assigned to tasks.`,
+        title: isAgent ? "Agent created" : "Invitation sent",
+        description: isAgent
+          ? `The AI agent "${name.trim()}" is now part of your workspace.`
+          : `${email.trim()} can now be assigned to tasks.`,
       });
     } else {
       setBusy(false);
     }
   }
 
-  const isAgent = kind === "agent";
+  const emailValid = EMAIL_RE.test(email.trim());
+  const canSubmit = isAgent ? name.trim().length > 0 && !busy : emailValid && !busy;
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy && !next) close(); }}>
@@ -76,73 +84,103 @@ export function InviteMemberDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-full ${isAgent ? "bg-orb-purple/15 text-orb-purple-deep" : "bg-black/[0.05]"}`}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full",
+                isAgent ? "bg-orb-purple/15 text-orb-purple-deep" : "bg-black/[0.05] text-orb-muted",
+              )}
               aria-hidden="true"
             >
-              {isAgent ? <Bot size={15} /> : <UserPlus size={15} />}
+              {isAgent ? <Bot size={15} /> : <Mail size={15} />}
             </span>
-            {isAgent ? "New AI Agent" : "Invite Member"}
+            {isAgent ? "Create AI Agent" : "Invite Team Member"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="member-name" className="orb-label">
-              {isAgent ? "Agent Name" : "Full Name"} *
-            </Label>
-            <Input
-              id="member-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={isAgent ? "e.g. Research Assistant" : "e.g. Priya Sharma"}
-              required
-              maxLength={100}
-              className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
-            />
-          </div>
-
           {isAgent ? (
-            <div className="space-y-2">
-              <Label htmlFor="member-agent-role" className="orb-label">
-                Agent Role *
-              </Label>
-              <Input
-                id="member-agent-role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. Project Assistant"
-                required
-                maxLength={100}
-                className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
-              />
-            </div>
-          ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="member-email" className="orb-label">
-                  Email <span className="normal-case tracking-normal">(optional)</span>
+                <Label htmlFor="agent-name" className="orb-label">
+                  Name *
                 </Label>
                 <Input
-                  id="member-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="teammate@company.com"
+                  id="agent-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Project Manager"
+                  required
+                  maxLength={100}
                   className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="member-role" className="orb-label">
-                  Role <span className="normal-case tracking-normal">(optional)</span>
+                <Label htmlFor="agent-description" className="orb-label">
+                  Description
                 </Label>
                 <Input
-                  id="member-role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  placeholder="e.g. Designer"
-                  maxLength={100}
+                  id="agent-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What does this agent do?"
+                  maxLength={200}
                   className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="agent-instructions" className="orb-label">
+                  Instructions
+                </Label>
+                <Textarea
+                  id="agent-instructions"
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  placeholder="Describe how the agent should behave and what it should focus on..."
+                  rows={3}
+                  maxLength={1000}
+                  className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="invite-email" className="orb-label">
+                  Email
+                </Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="colleague@company.com"
+                  required
+                  maxLength={200}
+                  className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="orb-label">Role</Label>
+                <div className="grid grid-cols-2 gap-2" role="group" aria-label="Role">
+                  {(["member", "lead"] as const).map((option) => {
+                    const active = role === option;
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setRole(option)}
+                        aria-pressed={active}
+                        className={cn(
+                          "h-11 rounded-2xl border text-[14px] font-medium capitalize transition-colors",
+                          active
+                            ? "border-orb-purple/50 bg-orb-purple/10 text-orb-purple-deep"
+                            : "border-black/[0.08] bg-orb-inset/60 text-orb-muted hover:bg-black/[0.04]",
+                        )}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </>
           )}
@@ -157,7 +195,7 @@ export function InviteMemberDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-pill" disabled={busy || !name.trim() || (isAgent && !role.trim())}>
+            <Button type="submit" className="orb-pill" disabled={!canSubmit}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               {isAgent ? "Create Agent" : "Send Invite"}
             </Button>

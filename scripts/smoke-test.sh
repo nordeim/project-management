@@ -132,6 +132,33 @@ code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -b "$CJ" \
   -X POST "$BASE/api/goals/clarify" -H "Content-Type: application/json" -d '{"description":"no title"}')
 if [ "$code" = "400" ]; then ok "clarify without title rejected (400)"; else bad "clarify no-title -> $code"; fi
 
+# ---- 16. team endpoint validation (reference-app form contracts) ----
+code=$(curl -s -o /tmp/smoke-team-bad.json -w "%{http_code}" --max-time 10 -b "$CJ" \
+  -X POST "$BASE/api/team" -H "Content-Type: application/json" \
+  -d '{"kind":"human","email":"not-an-email","role":"member"}')
+if [ "$code" = "400" ]; then ok "invite with invalid email rejected (400)"; else bad "invite bad email -> $code"; fi
+
+code=$(curl -s -o /tmp/smoke-team-agent.json -w "%{http_code}" --max-time 10 -b "$CJ" \
+  -X POST "$BASE/api/team" -H "Content-Type: application/json" \
+  -d '{"kind":"agent","name":"   "}')
+if [ "$code" = "400" ]; then ok "agent without name rejected (400)"; else bad "agent no name -> $code"; fi
+
+# ---- 17. rate limiting on /api/auth/login (10 attempts / 15 min / IP) ----
+# Steps 2, 3 and 15 consumed 3 attempts; 7 more reach the limit, so attempt
+# 11 must answer 429 RATE_LIMITED with a Retry-After header.
+limited=0
+for i in $(seq 1 8); do
+  code=$(curl -s -o /tmp/smoke-rl.json -w "%{http_code}" --max-time 10 \
+    -X POST "$BASE/api/auth/login" -H "Content-Type: application/json" \
+    -d '{"email":"demo@orbital.app","password":"WrongPassword!"}')
+  if [ "$code" = "429" ]; then limited=$((limited+1)); fi
+done
+if [ "$limited" -ge 1 ] && grep -q 'RATE_LIMITED' /tmp/smoke-rl.json; then
+  ok "login rate limit engages (429 RATE_LIMITED)"
+else
+  bad "rate limit -> last code $code $(cat /tmp/smoke-rl.json)"
+fi
+
 # ---- shutdown ----
 kill $SRV 2>/dev/null
 say ""

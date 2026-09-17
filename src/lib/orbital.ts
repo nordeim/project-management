@@ -21,6 +21,8 @@ export interface TeamMemberDTO {
   avatarColor: string;
   kind: "human" | "agent";
   agentRole: string | null;
+  description: string | null;
+  instructions: string | null;
 }
 
 export interface GoalDTO {

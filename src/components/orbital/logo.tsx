@@ -1,7 +1,13 @@
-// ORBITAL logo mark: four orbiting dots around a core, echoing the
-// reference brand without copying assets.
+// ORBITAL logo mark: eight dots in a ring (the reference brand mark — a
+// constellation circle), purple on the app surface. The wordmark pairs it
+// with the ORBITAL label.
 
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
+  // 8 points on a circle of r=14 centered at (20,20), starting at -90°.
+  const dots = Array.from({ length: 8 }, (_, i) => {
+    const angle = (-90 + i * 45) * (Math.PI / 180);
+    return { cx: 20 + 14 * Math.cos(angle), cy: 20 + 14 * Math.sin(angle) };
+  });
   return (
     <svg
       width={size}
@@ -11,12 +17,9 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
       aria-hidden="true"
       className={className}
     >
-      <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#3A3A3A" />
-      <circle cx="20" cy="20" r="4.2" fill="#2ECC8A" />
-      <ellipse cx="20" cy="20" rx="12.5" ry="5.5" stroke="#F8F5F1" strokeWidth="1.6" opacity="0.9" transform="rotate(-24 20 20)" />
-      <ellipse cx="20" cy="20" rx="12.5" ry="5.5" stroke="#996CE4" strokeWidth="1.6" opacity="0.9" transform="rotate(52 20 20)" />
-      <circle cx="30.6" cy="15.2" r="2.1" fill="#FF8077" />
-      <circle cx="10.4" cy="25.8" r="2.1" fill="#C4996A" />
+      {dots.map((d, i) => (
+        <circle key={i} cx={d.cx} cy={d.cy} r={2.7} fill="#996CE4" />
+      ))}
     </svg>
   );
 }

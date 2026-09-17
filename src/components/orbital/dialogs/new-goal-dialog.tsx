@@ -8,7 +8,7 @@
 // the goal detail page.
 
 import { useState } from "react";
-import { ArrowLeft, CalendarDays, Loader2, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, Bot, CalendarDays, Loader2, Sparkles } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -115,8 +115,8 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         {step === "details" ? (
           <div className="p-6 sm:p-7">
             <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orb-purple/15 text-orb-purple-deep" aria-hidden="true">
-                <Plus size={18} />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_1px_3px_rgba(47,40,35,0.10)]" aria-hidden="true">
+                <Bot size={18} className="text-orb-purple-deep" />
               </span>
               <div className="rounded-2xl rounded-tl-sm bg-orb-inset/80 px-4 py-3">
                 <p className="text-[14px] leading-relaxed text-orb-body">
@@ -176,7 +176,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex items-center justify-between pt-2">
                 <Button
                   type="button"
                   variant="ghost"
@@ -198,17 +198,18 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         {step === "questions" ? (
           <div className="p-6 sm:p-7">
             <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orb-purple/15 text-orb-purple-deep" aria-hidden="true">
-                <Sparkles size={18} />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_1px_3px_rgba(47,40,35,0.10)]" aria-hidden="true">
+                <Bot size={18} className="text-orb-purple-deep" />
               </span>
               <div className="rounded-2xl rounded-tl-sm bg-orb-inset/80 px-4 py-3">
                 <p className="text-[14px] leading-relaxed text-orb-body">
-                  Before I draft the plan, a few questions — answer any you care about.
+                  Great! Before I break this into tasks, I have a few questions:
                 </p>
               </div>
             </div>
 
             <div className="mt-6 space-y-5">
+              <p className="orb-label">Clarifying Questions</p>
               {questions.map((question, index) => (
                 <div key={index} className="space-y-2">
                   <p className="text-[14px] font-medium leading-relaxed text-orb-body" id={`clarify-q-${index}`}>

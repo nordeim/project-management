@@ -46,6 +46,8 @@ model TeamMember {
   avatarColor String   @default("#996CE4")
   kind        String   @default("human") // "human" | "agent"
   agentRole   String? // e.g. "Project Assistant"
+  description String? // agent: what it does (New Agent form)
+  instructions String? // agent: how it should behave (New Agent form)
   createdAt   DateTime @default(now())
 }
 

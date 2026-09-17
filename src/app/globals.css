@@ -172,6 +172,10 @@
   .orb-ghost-pill {
     @apply inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-transparent px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading transition-colors hover:bg-black/[0.04] disabled:pointer-events-none disabled:opacity-40;
   }
+  /* Primary action in the reference app: white pill with a subtle border */
+  .orb-pill-outline {
+    @apply inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03] disabled:pointer-events-none disabled:opacity-40;
+  }
 }
 
 /* Soft, unobtrusive scrollbars for long lists */

@@ -5,9 +5,9 @@
 // goals preview list — mirroring the reference layout.
 
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
-import { ProgressRing } from "@/components/orbital/progress-ring";
+import { FaintRing, ProgressRing } from "@/components/orbital/progress-ring";
 import { UserMenu } from "@/components/orbital/user-menu";
 import { greetingFor, relativeTime, type ActivityDTO } from "@/lib/orbital";
 import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
@@ -63,7 +63,7 @@ function DateCard() {
   );
 }
 
-function StatCard({
+function StatColumn({
   label,
   value,
   sub,
@@ -78,11 +78,13 @@ function StatCard({
     <button
       type="button"
       onClick={onClick}
-      className="orb-card flex min-h-[210px] flex-1 flex-col items-start justify-between p-5 text-left transition-transform hover:-translate-y-0.5"
+      className="flex min-w-0 flex-1 flex-col items-start justify-between gap-6 self-stretch p-5 text-left transition-colors first:pl-5 hover:bg-black/[0.02] sm:gap-8"
     >
       <p className="orb-label">{label}</p>
-      <p className="text-[44px] font-normal leading-none text-orb-heading">{value}</p>
-      <p className="text-[13px] text-orb-muted">{sub}</p>
+      <div>
+        <p className="text-[44px] font-normal leading-none text-orb-heading">{value}</p>
+        <p className="mt-1.5 text-[13px] text-orb-muted">{sub}</p>
+      </div>
     </button>
   );
 }
@@ -114,9 +116,11 @@ export function DashboardView() {
 
   const nextPlanned = useMemo(() => {
     const blocked = activity.find((a) => a.type === "status_update" && a.detail?.includes("Blocked"));
-    return blocked?.message
-      ? `Follow up on a blocked item: ${blocked.message.replace(" checked in on", " —")}.`
-      : "Ping the team for a status check-in on active goals.";
+    if (blocked?.message) {
+      const task = blocked.message.replace(/ checked in on "(.+?)"/, "$1");
+      if (task && task !== blocked.message) return `Resolve blocker on "${task}"`;
+    }
+    return "Ping the team for a status check-in on active goals.";
   }, [activity]);
 
   return (
@@ -128,7 +132,7 @@ export function DashboardView() {
         </div>
         <div className="flex items-center gap-3">
           <UserMenu />
-          <button type="button" className="orb-pill" onClick={() => setNewGoalOpen(true)}>
+          <button type="button" className="orb-pill-outline" onClick={() => setNewGoalOpen(true)}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
@@ -145,25 +149,27 @@ export function DashboardView() {
           className="orb-card flex min-h-[210px] w-full flex-col items-center justify-center gap-1 p-5 transition-transform hover:-translate-y-0.5 md:w-[240px]"
           aria-label={`${stats?.completionRate ?? 0}% of all tasks done. Open goals.`}
         >
-          <ProgressRing value={stats?.completionRate ?? 0} size={118} thickness={11}>
-            <span className="text-[26px] font-normal leading-none text-orb-heading">{stats?.completionRate ?? 0}%</span>
+          <FaintRing value={stats?.completionRate ?? 0} size={118} thickness={10}>
+            <span className="text-[30px] font-normal leading-none text-orb-heading">{stats?.completionRate ?? 0}%</span>
             <span className="orb-label mt-1">done</span>
-          </ProgressRing>
+          </FaintRing>
         </button>
-        <div className="flex flex-1 flex-col gap-4 sm:flex-row" aria-label="Statistics">
-          <StatCard
+        {/* One unified stats card with three columns (reference layout:
+            whitespace between columns, no divider lines) */}
+        <div className="orb-card flex min-h-[210px] flex-1 items-stretch gap-1 p-1" aria-label="Statistics">
+          <StatColumn
             label="Active Goals"
             value={stats?.activeGoals ?? 0}
             sub={`${stats?.totalTasks ?? 0} total tasks`}
             onClick={() => navigate("goals")}
           />
-          <StatCard
+          <StatColumn
             label="Blocked Tasks"
             value={stats?.blockedTasks ?? 0}
             sub={`${stats?.doneTasks ?? 0} completed`}
             onClick={() => navigate("my-tasks")}
           />
-          <StatCard
+          <StatColumn
             label="Completed Tasks"
             value={stats?.doneTasks ?? 0}
             sub={`${stats?.completionRate ?? 0}% of total`}
@@ -180,14 +186,14 @@ export function DashboardView() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orb-green opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-orb-green" />
               </span>
-              Agent Activity
+              <span className="orb-label !text-[12px] !font-semibold">Agent Activity</span>
             </h2>
             <button
               type="button"
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
               onClick={() => navigate("activity")}
             >
-              Full log <ArrowUpRight size={14} />
+              Full log <ArrowRight size={14} />
             </button>
           </div>
 
@@ -211,13 +217,13 @@ export function DashboardView() {
 
         <div className="orb-card p-5 sm:p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold text-orb-heading">Goals</h2>
+            <h2 className="orb-label !text-[12px] !font-semibold">Goals</h2>
             <button
               type="button"
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
               onClick={() => navigate("goals")}
             >
-              View all <ArrowUpRight size={14} />
+              Full log <ArrowRight size={14} />
             </button>
           </div>
           <ul className="mt-3">

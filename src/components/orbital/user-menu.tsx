@@ -5,11 +5,13 @@
 // reference app (sign-out lives here, not in Settings).
 
 import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useOrbital } from "@/components/orbital/store";
 import { AvatarBubble } from "@/components/orbital/widgets";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export function UserMenu() {
+  const router = useRouter();
   const user = useOrbital((s) => s.user);
   const signOut = useOrbital((s) => s.signOut);
   const emailPrefix = user.email.split("@")[0] ?? "";
@@ -36,7 +38,12 @@ export function UserMenu() {
         </div>
         <button
           type="button"
-          onClick={() => void signOut()}
+          onClick={async () => {
+            await signOut();
+            // Re-resolve the session server-side: page.tsx swaps the app
+            // shell for the login screen without a full page reload.
+            router.refresh();
+          }}
           className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-[13.5px] font-medium text-orb-muted transition-colors hover:bg-black/[0.04] hover:text-orb-heading"
         >
           <LogOut size={15} aria-hidden="true" />

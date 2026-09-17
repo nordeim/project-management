@@ -103,7 +103,7 @@ export function GoalDetailView() {
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
-            className="inline-flex h-9 items-center gap-2 rounded-full border border-orb-coral/40 bg-orb-coral/10 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-coral-deep transition-colors hover:bg-orb-coral/20"
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03] hover:text-orb-heading"
           >
             <Trash2 size={13} aria-hidden="true" />
             Delete
@@ -111,7 +111,9 @@ export function GoalDetailView() {
         </div>
       </header>
 
-      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[1.4fr_0.8fr_0.8fr]" aria-label="Goal statistics">
+      {/* Two stat cards (reference layout); the task total lives in the
+          TASKS header row below. */}
+      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[1.4fr_0.8fr]" aria-label="Goal statistics">
         <div className="orb-card p-5">
           <div className="flex items-baseline justify-between">
             <p className="orb-label">Progress</p>
@@ -132,12 +134,6 @@ export function GoalDetailView() {
           <p className="text-[30px] font-normal leading-none" style={{ color: goal.blockedCount > 0 ? "#C9574E" : "#3A3A3A" }}>
             {goal.blockedCount}
           </p>
-          <p className="text-[12px] text-orb-muted">tasks need attention</p>
-        </div>
-        <div className="orb-card flex flex-col justify-between p-5">
-          <p className="orb-label">Tasks</p>
-          <p className="text-[30px] font-normal leading-none text-orb-heading">{goal.taskCount}</p>
-          <p className="text-[12px] text-orb-muted">total</p>
         </div>
       </section>
 
@@ -145,7 +141,7 @@ export function GoalDetailView() {
         <h2 className="orb-label">Tasks · {goal.taskCount} total</h2>
         <button
           type="button"
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-black/[0.14] bg-orb-card px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading transition-colors hover:bg-black/[0.04]"
+          className="inline-flex h-9 items-center gap-2 rounded-full border border-black/[0.08] bg-white px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03]"
           onClick={() => setAddOpen(true)}
         >
           <Plus size={13} aria-hidden="true" />
@@ -160,7 +156,7 @@ export function GoalDetailView() {
             title="No tasks yet"
             description="Add tasks manually or let the AI assistant draft a plan when you create a goal."
             action={
-              <button type="button" className="orb-pill" onClick={() => setAddOpen(true)}>
+              <button type="button" className="orb-pill-outline" onClick={() => setAddOpen(true)}>
                 <Plus size={14} /> Add Task
               </button>
             }

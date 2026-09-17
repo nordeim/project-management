@@ -4,6 +4,7 @@
 // "Continue with Google" (demo notice), email + password form.
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { LogoMark } from "@/components/orbital/logo";
 
 export function LoginScreen() {
+  const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,7 +42,9 @@ export function LoginScreen() {
         });
         return;
       }
-      window.location.href = "/";
+      // Re-resolve the session server-side: page.tsx (force-dynamic) swaps
+      // this login screen for the app shell without a full page reload.
+      router.refresh();
     } catch {
       toast({
         title: "Network error",

@@ -1,14 +1,30 @@
 "use client";
 
 // Task card used in goal detail and My Tasks lists: status dot + label,
-// AI badge, title, description, assignee, deadline (overdue aware),
-// estimated hours, and direct edit / delete icon buttons on hover —
-// mirroring the reference app's two-button row actions.
+// AI badge, title, description, assignee (person outline glyph, like the
+// reference), deadline (overdue aware), estimated hours, and direct edit /
+// delete icon buttons — always visible, top-right of the card.
 
 import { CalendarDays, Clock, Pencil, Trash2 } from "lucide-react";
-import { AvatarBubble, AiBadge } from "@/components/orbital/widgets";
+import { AiBadge } from "@/components/orbital/widgets";
 import { isOverdue, TASK_STATUS_META, type TaskDTO } from "@/lib/orbital";
 import { cn } from "@/lib/utils";
+
+function PersonGlyph({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+      className="shrink-0 text-orb-muted"
+    >
+      <circle cx="8" cy="5.2" r="2.6" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M2.8 13.6c.8-2.5 2.8-3.8 5.2-3.8s4.4 1.3 5.2 3.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export function TaskCard({
   task,
@@ -25,7 +41,7 @@ export function TaskCard({
   const overdue = isOverdue(task.deadline, task.status);
 
   return (
-    <div className="orb-card group p-4 transition-transform hover:-translate-y-0.5 sm:p-5">
+    <div className="orb-card p-4 transition-transform hover:-translate-y-0.5 sm:p-5">
       <div className="flex items-start gap-3">
         <button
           type="button"
@@ -50,7 +66,7 @@ export function TaskCard({
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12.5px] text-orb-muted">
             {task.assignee ? (
               <span className="flex items-center gap-1.5">
-                <AvatarBubble name={task.assignee.name} color={task.assignee.avatarColor} size={20} />
+                <PersonGlyph />
                 {task.assignee.name}
               </span>
             ) : null}
@@ -70,11 +86,12 @@ export function TaskCard({
           </div>
         </button>
 
-        <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+        {/* Direct actions — always visible (reference pattern) */}
+        <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
             onClick={() => onEdit(task)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted hover:bg-black/[0.06] hover:text-orb-heading"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:bg-black/[0.06] hover:text-orb-heading"
             aria-label={`Edit task ${task.title}`}
           >
             <Pencil size={16} />
@@ -82,7 +99,7 @@ export function TaskCard({
           <button
             type="button"
             onClick={() => onDelete(task)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted hover:bg-orb-coral/15 hover:text-orb-coral-deep"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:bg-orb-coral/15 hover:text-orb-coral-deep"
             aria-label={`Delete task ${task.title}`}
           >
             <Trash2 size={16} />

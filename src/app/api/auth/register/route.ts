@@ -1,11 +1,23 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
 import { ok, fail, isEmail } from "@/lib/api";
+import { authRateLimit, clientIpOf } from "@/lib/rate-limit";
 
 const MIN_PASSWORD_LENGTH = 8;
 
 export async function POST(request: NextRequest) {
+  const retryAfter = authRateLimit(clientIpOf(request.headers));
+  if (retryAfter !== null) {
+    return new NextResponse(
+      JSON.stringify({
+        ok: false,
+        error: { code: "RATE_LIMITED", message: `Too many attempts. Try again in ${retryAfter}s.` },
+      }),
+      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

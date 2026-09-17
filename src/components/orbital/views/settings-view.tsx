@@ -1,8 +1,8 @@
 "use client";
 
-// Settings: workspace name, working hours window, and AI assistant
-// behaviour (ping frequency, tone). The form is a child component that
-// mounts fresh with the loaded settings (no sync effect needed).
+// Settings: two-column layout matching the reference — Workspace + Working
+// Hours cards on the left, AI Assistant on the right, white inputs with a
+// subtle inner shadow, Title Case labels, save bar below.
 
 import { useState } from "react";
 import { Save } from "lucide-react";
@@ -35,6 +35,10 @@ const TONE_OPTIONS: Array<{ value: Tone; label: string }> = [
   { value: "concise", label: "Concise" },
 ];
 
+const FIELD =
+  "h-11 rounded-2xl border border-black/[0.06] bg-white shadow-[inset_1px_1px_2px_rgba(47,40,35,0.04)]";
+const FIELD_LABEL = "text-[13px] font-medium text-orb-body";
+
 function hourOptions(): string[] {
   return Array.from({ length: 25 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
 }
@@ -61,108 +65,115 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
 
   return (
     <>
-      <section className="orb-card mt-6 p-6" aria-label="Workspace">
-        <h2 className="text-[15px] font-semibold text-orb-heading">Workspace</h2>
+      <div className="mt-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_1fr]">
+        {/* Left column: Workspace + Working Hours */}
+        <div className="space-y-4">
+          <section className="orb-card p-6" aria-label="Workspace">
+            <h2 className="text-[15px] font-semibold text-orb-heading">Workspace</h2>
 
-        <div className="mt-5 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="workspace-name" className="orb-label">
-              Workspace Name
-            </Label>
-            <Input
-              id="workspace-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="My Team"
-              maxLength={100}
-              className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
-            />
-          </div>
+            <div className="mt-5 space-y-2">
+              <Label htmlFor="workspace-name" className={FIELD_LABEL}>
+                Workspace Name
+              </Label>
+              <Input
+                id="workspace-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="My Team"
+                maxLength={100}
+                className={FIELD}
+              />
+            </div>
+          </section>
 
-          <div className="space-y-2">
-            <p className="orb-label">Working Hours</p>
-            <p className="text-[13px] text-orb-muted">Active Window — the AI will only send pings during these hours</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="work-start" className="text-[12.5px] text-orb-muted">
-                  Start
-                </Label>
-                <Select value={workStart} onValueChange={setWorkStart}>
-                  <SelectTrigger id="work-start" className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {hourOptions().map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="work-end" className="text-[12.5px] text-orb-muted">
-                  End
-                </Label>
-                <Select value={workEnd} onValueChange={setWorkEnd}>
-                  <SelectTrigger id="work-end" className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {hourOptions().map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <section className="orb-card p-6" aria-label="Working hours">
+            <h2 className="text-[15px] font-semibold text-orb-heading">Working Hours</h2>
+
+            <div className="mt-5 space-y-4">
+              <p className="text-[13px] leading-relaxed text-orb-muted">AI will only send pings during these hours</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="work-start" className={FIELD_LABEL}>
+                    Start
+                  </Label>
+                  <Select value={workStart} onValueChange={setWorkStart}>
+                    <SelectTrigger id="work-start" className={FIELD}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {hourOptions().map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="work-end" className={FIELD_LABEL}>
+                    End
+                  </Label>
+                  <Select value={workEnd} onValueChange={setWorkEnd}>
+                    <SelectTrigger id="work-end" className={FIELD}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {hourOptions().map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
         </div>
-      </section>
 
-      <section className="orb-card mt-4 p-6" aria-label="AI assistant">
-        <h2 className="text-[15px] font-semibold text-orb-heading">AI Assistant</h2>
+        {/* Right column: AI Assistant */}
+        <section className="orb-card p-6" aria-label="AI assistant">
+          <h2 className="text-[15px] font-semibold text-orb-heading">AI Assistant</h2>
 
-        <div className="mt-5 space-y-5">
-          <div className="space-y-2">
-            <p className="orb-label">Ping Frequency</p>
-            <p className="text-[13px] text-orb-muted">How often the AI checks in with team members</p>
-            <Select value={pingFrequency} onValueChange={setPingFrequency}>
-              <SelectTrigger className="h-11 w-full rounded-2xl border-black/[0.08] bg-orb-inset/60 sm:w-64">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                {FREQUENCY_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="mt-5 space-y-5">
+            <div className="space-y-2">
+              <Label className={FIELD_LABEL}>Ping Frequency</Label>
+              <p className="text-[13px] leading-relaxed text-orb-muted">How often the AI checks in with team members</p>
+              <Select value={pingFrequency} onValueChange={(v) => setPingFrequency(v as Frequency)}>
+                <SelectTrigger className={`${FIELD} w-full`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {FREQUENCY_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className={FIELD_LABEL}>AI Tone</Label>
+              <Select value={aiTone} onValueChange={(v) => setAiTone(v as Tone)}>
+                <SelectTrigger className={`${FIELD} w-full`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {TONE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+        </section>
+      </div>
 
-          <div className="space-y-2">
-            <p className="orb-label">AI Tone</p>
-            <Select value={aiTone} onValueChange={setAiTone}>
-              <SelectTrigger className="h-11 w-full rounded-2xl border-black/[0.08] bg-orb-inset/60 sm:w-64">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                {TONE_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </section>
-
-      <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-        <Button type="button" className="orb-pill" disabled={saving} onClick={() => void save()}>
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <Button type="button" className="orb-pill-outline" disabled={saving} onClick={() => void save()}>
           <Save size={14} aria-hidden="true" />
           {saving ? "Saving…" : "Save Settings"}
         </Button>
@@ -175,7 +186,7 @@ export function SettingsView() {
   const settings = useOrbital((s) => s.settings);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-4xl">
       <header>
         <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Settings</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Configure your AI assistant and workspace</p>

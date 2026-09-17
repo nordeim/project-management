@@ -1,11 +1,14 @@
 "use client";
 
-// Sidebar navigation: brand, WORKSPACE + MANAGEMENT sections, and the
-// Tasks Status card (blocked / overdue) that links to My Tasks.
+// Sidebar navigation: brand, WORKSPACE + MANAGEMENT sections, and the bottom
+// row with the analog clock + Tasks Status card (blocked / overdue, links to
+// My Tasks) — mirroring the reference app. Supports an icon-only collapsed
+// rail driven by the app shell (desktop collapse chevron sits at the bottom).
 
-import { LayoutDashboard, Target, CheckSquare, Bot, Users, Settings, PanelLeftClose } from "lucide-react";
+import { Activity, LayoutDashboard, Target, CheckSquare, Users, Settings } from "lucide-react";
 import { useOrbital, type ViewId } from "@/components/orbital/store";
 import { LogoMark } from "@/components/orbital/logo";
+import { SidebarClock } from "@/components/orbital/sidebar-clock";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -22,7 +25,7 @@ const workspaceItems: NavItem[] = [
 ];
 
 const managementItems: NavItem[] = [
-  { id: "activity", label: "Agent Activity", icon: <Bot size={17} strokeWidth={1.8} /> },
+  { id: "activity", label: "Agent Activity", icon: <Activity size={17} strokeWidth={1.8} /> },
   { id: "team", label: "Team", icon: <Users size={17} strokeWidth={1.8} /> },
   { id: "settings", label: "Settings", icon: <Settings size={17} strokeWidth={1.8} /> },
 ];
@@ -33,7 +36,13 @@ function isActive(current: ViewId, target: ViewId, goalId: string | null): boole
   return current === target;
 }
 
-export function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
+export function Sidebar({
+  collapsed = false,
+  onCollapse,
+}: {
+  collapsed?: boolean;
+  onCollapse?: () => void;
+}) {
   const view = useOrbital((s) => s.view);
   const goalId = useOrbital((s) => s.goalId);
   const navigate = useOrbital((s) => s.navigate);
@@ -53,8 +62,11 @@ export function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
           onCollapse?.();
         }}
         aria-current={active ? "page" : undefined}
+        title={collapsed ? item.label : undefined}
+        aria-label={collapsed ? item.label : undefined}
         className={cn(
-          "flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[14px] transition-colors",
+          "flex min-h-11 w-full items-center rounded-xl transition-colors",
+          collapsed ? "justify-center px-0" : "gap-3 px-3 text-[14px]",
           active
             ? "bg-black/[0.055] font-semibold text-orb-heading"
             : "font-medium text-orb-muted hover:bg-black/[0.03] hover:text-orb-heading",
@@ -63,8 +75,35 @@ export function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         <span className={cn(active ? "text-orb-heading" : "text-orb-muted")} aria-hidden="true">
           {item.icon}
         </span>
-        {item.label}
+        {collapsed ? null : item.label}
       </button>
+    );
+  }
+
+  if (collapsed) {
+    // Icon-only rail: logo, nav icons, clock. Tasks status card is hidden.
+    return (
+      <div className="flex h-full w-full flex-col items-center px-2 py-5">
+        <button
+          type="button"
+          onClick={() => navigate("dashboard")}
+          className="flex h-11 w-11 items-center justify-center rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+          aria-label="Orbital home"
+        >
+          <LogoMark size={28} />
+        </button>
+
+        <nav className="mt-6 flex w-full flex-col gap-1" aria-label="Workspace">
+          {workspaceItems.map(renderNavItem)}
+        </nav>
+        <nav className="mt-5 flex w-full flex-col gap-1" aria-label="Management">
+          {managementItems.map(renderNavItem)}
+        </nav>
+
+        <div className="mt-auto pb-1">
+          <SidebarClock />
+        </div>
+      </div>
     );
   }
 
@@ -87,7 +126,7 @@ export function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             className="flex h-10 w-10 items-center justify-center rounded-xl text-orb-muted hover:bg-black/[0.04] hover:text-orb-heading lg:hidden"
             aria-label="Close menu"
           >
-            <PanelLeftClose size={18} />
+            <PanelLeftCloseGlyph />
           </button>
         ) : null}
       </div>
@@ -102,41 +141,41 @@ export function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         {managementItems.map(renderNavItem)}
       </nav>
 
-      <div className="mt-auto px-4 pb-4">
+      <div className="mt-auto flex items-center gap-3 px-4 pb-4">
+        <SidebarClock />
         <button
           type="button"
           onClick={() => {
             navigate("my-tasks");
             onCollapse?.();
           }}
-          className="orb-card w-full rounded-2xl p-4 text-left transition-transform hover:-translate-y-0.5"
+          className="orb-card min-w-0 flex-1 rounded-2xl p-3.5 text-left transition-transform hover:-translate-y-0.5"
           aria-label={`Tasks status: ${blocked} blocked, ${overdue} overdue. Open My Tasks.`}
         >
-          <div className="flex items-start justify-between">
-            <p className="orb-label">Tasks Status</p>
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true" className="text-orb-muted">
-              <circle cx="13" cy="13" r="11" stroke="currentColor" strokeWidth="1.6" opacity="0.5" />
-              <path d="M13 7.5V13l3.5 2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div className="mt-3 space-y-1.5">
-            <div className="flex items-baseline gap-2">
-              <span className="text-[22px] font-normal leading-none text-orb-heading">{blocked}</span>
-              <span className="flex items-center gap-1.5 text-[13px] text-orb-muted">
-                <span className="h-1.5 w-1.5 rounded-full bg-orb-coral" aria-hidden="true" />
-                Blocked
-              </span>
+          <p className="orb-label whitespace-nowrap text-[10.5px]">Tasks Status</p>
+          <div className="mt-2.5 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-orb-coral" aria-hidden="true" />
+              <span className="text-[18px] font-normal leading-none text-orb-heading">{blocked}</span>
+              <span className="text-[12.5px] text-orb-muted">Blocked</span>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-[22px] font-normal leading-none text-orb-heading">{overdue}</span>
-              <span className="flex items-center gap-1.5 text-[13px] text-orb-muted">
-                <span className="h-1.5 w-1.5 rounded-full bg-orb-amber" aria-hidden="true" />
-                Overdue
-              </span>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-orb-amber" aria-hidden="true" />
+              <span className="text-[18px] font-normal leading-none text-orb-heading">{overdue}</span>
+              <span className="text-[12.5px] text-orb-muted">Overdue</span>
             </div>
           </div>
         </button>
       </div>
     </div>
+  );
+}
+
+function PanelLeftCloseGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M9 3v18" />
+    </svg>
   );
 }

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { ok, fail, requireSession } from "@/lib/api";
+import { ok, fail, requireSession, isEmail } from "@/lib/api";
+import { deriveDisplayName, normalizeAgentInput } from "@/lib/team";
 import type { PersonDTO, TeamMemberDTO } from "@/lib/orbital";
 
 export async function GET() {
@@ -27,6 +28,8 @@ export async function GET() {
     avatarColor: m.avatarColor,
     kind: m.kind === "agent" ? "agent" : "human",
     agentRole: m.agentRole,
+    description: m.description,
+    instructions: m.instructions,
   }));
 
   return ok({ people: peopleDTO, members: memberDTO });
@@ -42,43 +45,74 @@ export async function POST(request: NextRequest) {
   } catch {
     return fail("BAD_REQUEST", "Invalid JSON body", 400);
   }
-  const { name, email, role, kind, agentRole } = (body ?? {}) as {
+  const { name, email, role, kind, agentRole, description, instructions } = (body ?? {}) as {
     name?: string;
     email?: string;
     role?: string;
     kind?: string;
     agentRole?: string;
+    description?: string;
+    instructions?: string;
   };
 
-  const trimmed = name?.trim();
-  if (!trimmed) return fail("BAD_REQUEST", "Name is required", 400);
-  if (trimmed.length > 100) return fail("BAD_REQUEST", "Name is too long (max 100)", 400);
   if (kind && !["human", "agent"].includes(kind)) return fail("BAD_REQUEST", "kind must be human or agent", 400);
-
   const memberKind = kind === "agent" ? "agent" : "human";
-  if (memberKind === "agent" && !agentRole?.trim()) {
-    return fail("BAD_REQUEST", "Agent role is required for AI agents", 400);
-  }
 
   const palette = ["#996CE4", "#2ECC8A", "#FF8077", "#C4996A", "#FFCBDE", "#C9B3F5"];
+
+  let memberName: string;
+  let memberEmail: string | null = null;
+  let memberRole: string | null = null;
+  let agentDescription: string | null = null;
+  let agentInstructions: string | null = null;
+
+  if (memberKind === "agent") {
+    // New Agent form: NAME + DESCRIPTION + INSTRUCTIONS (pure-seam bounds).
+    const normalized = normalizeAgentInput({
+      name: name ?? "",
+      description: description ?? "",
+      instructions: instructions ?? "",
+    });
+    if (!normalized) return fail("BAD_REQUEST", "A name (max 100), description (max 200) and instructions (max 1000) are required bounds", 400);
+    memberName = normalized.name;
+    agentDescription = normalized.description || null;
+    agentInstructions = normalized.instructions || null;
+    memberRole = role?.trim() || agentRole?.trim() || null;
+  } else {
+    // Invite Member form: Email + Member/Lead toggle; name derives from email.
+    const trimmedEmail = email?.trim() ?? "";
+    if (!trimmedEmail) return fail("BAD_REQUEST", "Email is required", 400);
+    if (!isEmail(trimmedEmail)) return fail("BAD_REQUEST", "Enter a valid email address", 400);
+    const derived = deriveDisplayName(trimmedEmail);
+    if (!derived) return fail("BAD_REQUEST", "Could not derive a name from that email", 400);
+    memberName = derived;
+    memberEmail = trimmedEmail.toLowerCase();
+    if (role && !["member", "lead"].includes(role)) {
+      return fail("BAD_REQUEST", "Role must be member or lead", 400);
+    }
+    memberRole = role === "lead" ? "Lead" : "Member";
+  }
+
   const avatarColor = palette[Math.floor(Math.random() * palette.length)]!;
 
   const member = await db.teamMember.create({
     data: {
-      name: trimmed,
-      email: email?.trim() || null,
-      role: role?.trim() || null,
+      name: memberName,
+      email: memberEmail,
+      role: memberRole,
       kind: memberKind,
-      agentRole: memberKind === "agent" ? agentRole!.trim() : null,
+      agentRole: memberKind === "agent" ? memberRole : null,
+      description: agentDescription,
+      instructions: agentInstructions,
       avatarColor,
     },
   });
 
   // Invited humans also become assignable persons.
   if (memberKind === "human") {
-    const existingPerson = await db.person.findFirst({ where: { name: trimmed } });
+    const existingPerson = await db.person.findFirst({ where: { name: memberName } });
     if (!existingPerson) {
-      await db.person.create({ data: { name: trimmed, avatarColor } });
+      await db.person.create({ data: { name: memberName, avatarColor } });
     }
   }
 
@@ -87,12 +121,12 @@ export async function POST(request: NextRequest) {
       type: memberKind === "agent" ? "agent_created" : "member_invited",
       message:
         memberKind === "agent"
-          ? `AI agent "${trimmed}" created`
-          : `${trimmed} invited to the workspace`,
+          ? `AI agent "${memberName}" created`
+          : `${memberName} invited to the workspace`,
       detail:
         memberKind === "agent"
-          ? `The AI agent "${trimmed}" (${agentRole!.trim()}) joined the workspace.`
-          : `${session.name} invited ${trimmed}${email ? ` (${email.trim()})` : ""} to the workspace.`,
+          ? `The AI agent "${memberName}"${agentDescription ? ` — ${agentDescription}` : ""} joined the workspace.`
+          : `${session.name} invited ${memberName}${memberEmail ? ` (${memberEmail})` : ""} to the workspace as ${memberRole ?? "Member"}.`,
     },
   });
 

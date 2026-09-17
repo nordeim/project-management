@@ -103,7 +103,14 @@ interface OrbitalState {
   updateTask: (taskId: string, goalId: string, patch: Record<string, unknown>) => Promise<boolean>;
   deleteTask: (taskId: string, goalId: string) => Promise<boolean>;
   postUpdate: (taskId: string, goalId: string, status: string, note?: string) => Promise<boolean>;
-  inviteMember: (input: { name: string; email?: string; role?: string; kind?: string; agentRole?: string }) => Promise<boolean>;
+  inviteMember: (input: {
+    kind: "human" | "agent";
+    email?: string;
+    role?: string;
+    name?: string;
+    description?: string;
+    instructions?: string;
+  }) => Promise<boolean>;
   saveSettings: (patch: Partial<WorkspaceSettingsDTO>) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
@@ -341,7 +348,9 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
   },
 
   signOut: async () => {
+    // Navigation is owned by the calling component (user-menu), which calls
+    // router.refresh() after this resolves so the server re-evaluates the
+    // session and renders the login shell.
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/";
   },
 }));

@@ -125,7 +125,7 @@ export function TeamView() {
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-[15px] font-semibold text-orb-heading">{m.name}</p>
-                  <p className="truncate text-[13px] text-orb-muted">{m.agentRole ?? "AI agent"}</p>
+                  <p className="truncate text-[13px] text-orb-muted">{m.description ?? m.agentRole ?? "AI agent"}</p>
                 </div>
               </li>
             ))}

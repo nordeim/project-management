@@ -62,3 +62,34 @@ export function ProgressRing({
     </div>
   );
 }
+
+/**
+ * The dashboard DONE card's ring in the reference app is a faint engraved
+ * circle, not a colored gauge — same geometry, whisper-quiet stroke.
+ */
+export function FaintRing({
+  value,
+  size = 120,
+  thickness = 10,
+  children,
+  label,
+}: {
+  value: number;
+  size?: number;
+  thickness?: number;
+  children?: React.ReactNode;
+  label?: string;
+}) {
+  return (
+    <ProgressRing
+      value={value}
+      size={size}
+      thickness={thickness}
+      color="rgba(47,40,35,0.12)"
+      trackColor="rgba(47,40,35,0.05)"
+      label={label}
+    >
+      {children}
+    </ProgressRing>
+  );
+}
