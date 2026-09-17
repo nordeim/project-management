@@ -1,14 +1,15 @@
 "use client";
 
-// Root of the authenticated SPA: boots the store, lays out the rounded app
-// panel (sidebar + main), and switches views client-side. Desktop keeps the
-// sidebar; mobile navigates via the bottom tab bar (HOME / GOALS / MY
-// TASKS / AGENT / MORE) — MORE opens a bottom sheet with Tasks, Team and
-// Settings — mirroring the reference app.
+// Root of the SPA: boots the store, lays out the neumorphic shell
+// (raised sidebar + transparent main on the canvas), and switches views
+// client-side. Desktop keeps the sidebar; mobile navigates via the bottom
+// tab bar (HOME / GOALS / MY TASKS / AGENT / MORE) — MORE opens a bottom
+// sheet with Tasks, Team and Settings. Signed-out visitors see the same
+// shell with a LOG IN button (reference behavior, v1.4).
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Activity, CheckSquare, ChevronLeft, LayoutGrid, Menu, Settings, Target, Users, X } from "lucide-react";
-import { useOrbital } from "@/components/orbital/store";
+import { Activity, CheckSquare, ChevronRight, LayoutGrid, Menu, Settings, Target, Users, X } from "lucide-react";
+import { useOrbital, type SessionUser } from "@/components/orbital/store";
 import { Sidebar } from "@/components/orbital/sidebar";
 import { DashboardView } from "@/components/orbital/views/dashboard-view";
 import { GoalsView } from "@/components/orbital/views/goals-view";
@@ -18,6 +19,7 @@ import { ActivityView } from "@/components/orbital/views/activity-view";
 import { TeamView } from "@/components/orbital/views/team-view";
 import { SettingsView } from "@/components/orbital/views/settings-view";
 import { LogoMark } from "@/components/orbital/logo";
+import { UserMenuOrLogin } from "@/components/orbital/user-menu";
 import { sidebarCollapsedStore, toggleSidebarCollapsed } from "@/components/orbital/sidebar-collapse";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -35,7 +37,7 @@ function tabActive(current: ViewId, target: ViewId): boolean {
   return current === target;
 }
 
-export function OrbitalApp({ user }: { user: { id: string; email: string; name: string; avatarColor: string } }) {
+export function OrbitalApp({ user }: { user: SessionUser | null }) {
   const boot = useOrbital((s) => s.boot);
   const view = useOrbital((s) => s.view);
   const navigate = useOrbital((s) => s.navigate);
@@ -67,31 +69,34 @@ export function OrbitalApp({ user }: { user: { id: string; email: string; name: 
   }
 
   return (
-    <div className="min-h-screen bg-orb-canvas p-0 sm:p-3 lg:p-4">
-      <div className="mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1500px] overflow-hidden rounded-none bg-orb-surface sm:rounded-[28px] lg:h-[calc(100vh-2rem)] lg:min-h-0">
-        {/* Desktop sidebar: a white rounded panel inset in the surface
-            (reference layout), collapsible to an icon rail. */}
+    <div className="min-h-screen bg-orb-canvas p-6">
+      <div className="flex min-h-[calc(100vh-3rem)] gap-6">
+        {/* Desktop sidebar: a raised neumorphic panel on the canvas
+            (reference layout, v1.4), collapsible to a 64px icon rail. */}
         <aside
           className={cn(
-            "hidden shrink-0 flex-col p-2 lg:flex",
-            collapsed ? "w-[92px]" : "w-[268px]",
+            "hidden shrink-0 flex-col pt-7 pb-4 lg:flex",
+            collapsed ? "w-16" : "w-[240px]",
           )}
         >
-          <div className="flex min-h-0 flex-1 flex-col rounded-[26px] bg-white shadow-[0_1px_2px_rgba(47,40,35,0.04),0_10px_28px_-16px_rgba(47,40,35,0.14)]">
+          <div className="orb-raised-lg flex min-h-0 flex-1 flex-col">
             <Sidebar collapsed={collapsed} />
-            {/* Collapse chevron, bottom center — mirrors the reference app */}
-            <div className="flex shrink-0 justify-center pb-3">
+            {/* Collapse bar: full-width neumorphic raised control at the
+                sidebar bottom — the reference pattern. Chevron points left
+                while expanded (chevron-right rotated 180°) and right when
+                collapsed. */}
+            <div className="shrink-0 px-4 pb-4">
               <button
                 type="button"
                 onClick={toggleSidebarCollapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 aria-pressed={collapsed}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-orb-muted transition-colors hover:bg-black/[0.05] hover:text-orb-heading"
+                className="flex h-[30px] w-full items-center justify-center rounded-[10px] bg-orb-raised text-orb-muted shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_10px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-heading"
               >
-                <ChevronLeft
-                  size={16}
-                  strokeWidth={1.8}
-                  className={cn("transition-transform duration-200", collapsed && "rotate-180")}
+                <ChevronRight
+                  size={14}
+                  strokeWidth={1.5}
+                  className={cn("transition-transform duration-200", !collapsed && "rotate-180")}
                 />
               </button>
             </div>
@@ -99,7 +104,7 @@ export function OrbitalApp({ user }: { user: { id: string; email: string; name: 
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="orb-scroll min-w-0 flex-1 overflow-y-auto px-4 pb-28 pt-5 sm:px-7 sm:pt-6 lg:px-9 lg:pb-10 lg:pt-8">
+          <main className="orb-scroll min-w-0 flex-1 overflow-y-auto px-4 pb-28 pt-5 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-7">
             {view === "dashboard" ? <DashboardView /> : null}
             {view === "goals" ? <GoalsView /> : null}
             {view === "goal-detail" ? <GoalDetailView /> : null}

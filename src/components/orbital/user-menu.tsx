@@ -1,8 +1,11 @@
 "use client";
 
-// User menu: the avatar pill in the dashboard header opens a small popover
-// with the signed-in identity and a Log Out action — mirroring the
-// reference app (sign-out lives here, not in Settings).
+// User menu (dashboard header): authenticated visitors get a neumorphic
+// inset trigger (avatar + email prefix) that opens a small raised card with
+// a single red "Log Out" action — the reference pattern (v1.4). Signed-out
+// visitors get a raised "LOG IN" button that routes to /login and back
+// (from_url). The identity row (name/email) the v1.3 popover carried was
+// removed: the reference popover shows only the Log Out action.
 
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -10,10 +13,27 @@ import { useOrbital } from "@/components/orbital/store";
 import { AvatarBubble } from "@/components/orbital/widgets";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-export function UserMenu() {
+export function UserMenuOrLogin() {
   const router = useRouter();
   const user = useOrbital((s) => s.user);
   const signOut = useOrbital((s) => s.signOut);
+
+  if (!user) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          const from = window.location.pathname + window.location.search;
+          router.push(`/login?from_url=${encodeURIComponent(from)}`);
+        }}
+        className="inline-flex h-10 items-center justify-center rounded-xl bg-orb-raised px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+        aria-label="Log in"
+      >
+        Log In
+      </button>
+    );
+  }
+
   const emailPrefix = user.email.split("@")[0] ?? "";
 
   return (
@@ -21,30 +41,23 @@ export function UserMenu() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-full bg-orb-pink/60 pl-1.5 pr-4 text-[13px] font-medium text-orb-heading transition-transform hover:-translate-y-0.5"
+          className="flex h-11 items-center gap-2.5 rounded-xl bg-orb-well px-4 py-2.5 shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
           aria-label={`Account menu for ${user.name || emailPrefix}`}
         >
-          <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={30} />
-          <span className="max-w-[140px] truncate">{emailPrefix}</span>
+          <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={22} />
+          <span className="max-w-[140px] truncate text-[13px] font-medium text-orb-heading">{emailPrefix}</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-56 rounded-2xl p-3">
-        <div className="flex items-center gap-2.5 px-1 pb-3">
-          <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={34} />
-          <div className="min-w-0">
-            <p className="truncate text-[14px] font-semibold text-orb-heading">{user.name || emailPrefix}</p>
-            <p className="truncate text-[12px] text-orb-muted">{user.email}</p>
-          </div>
-        </div>
+      <PopoverContent align="end" className="w-[160px] rounded-xl border-0 bg-orb-raised p-0 shadow-[-6px_-6px_12px_rgba(255,250,244,0.78),6px_6px_14px_rgba(160,143,126,0.31)]">
         <button
           type="button"
           onClick={async () => {
             await signOut();
-            // Re-resolve the session server-side: page.tsx swaps the app
-            // shell for the login screen without a full page reload.
+            // Re-resolve the session server-side: the shell stays mounted
+            // and the header swaps to LOG IN without a full page reload.
             router.refresh();
           }}
-          className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-[13.5px] font-medium text-orb-muted transition-colors hover:bg-black/[0.04] hover:text-orb-heading"
+          className="flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-[13px] font-medium text-[#bd3228] transition-colors hover:bg-black/[0.03]"
         >
           <LogOut size={15} aria-hidden="true" />
           Log Out

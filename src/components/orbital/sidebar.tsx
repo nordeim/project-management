@@ -65,10 +65,10 @@ export function Sidebar({
         title={collapsed ? item.label : undefined}
         aria-label={collapsed ? item.label : undefined}
         className={cn(
-          "flex min-h-11 w-full items-center rounded-xl transition-colors",
+          "flex min-h-11 w-full items-center rounded-[10px] transition-colors",
           collapsed ? "justify-center px-0" : "gap-3 px-3 text-[14px]",
           active
-            ? "bg-black/[0.055] font-semibold text-orb-heading"
+            ? "bg-orb-well font-medium text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
             : "font-medium text-orb-muted hover:bg-black/[0.03] hover:text-orb-heading",
         )}
       >
@@ -141,26 +141,26 @@ export function Sidebar({
         {managementItems.map(renderNavItem)}
       </nav>
 
-      <div className="mt-auto flex items-center gap-3 px-4 pb-4">
-        <SidebarClock />
+      <div className="mt-auto flex items-center gap-3 px-2 pb-3">
+        <SidebarClock size={80} />
         <button
           type="button"
           onClick={() => {
             navigate("my-tasks");
             onCollapse?.();
           }}
-          className="orb-card min-w-0 flex-1 rounded-2xl p-3.5 text-left transition-transform hover:-translate-y-0.5"
+          className="orb-well min-w-0 flex-1 rounded-xl p-3.5 text-left transition-transform hover:-translate-y-0.5"
           aria-label={`Tasks status: ${blocked} blocked, ${overdue} overdue. Open My Tasks.`}
         >
           <p className="orb-label whitespace-nowrap text-[10.5px]">Tasks Status</p>
           <div className="mt-2.5 space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-orb-coral" aria-hidden="true" />
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-coral" aria-hidden="true" />
               <span className="text-[18px] font-normal leading-none text-orb-heading">{blocked}</span>
               <span className="text-[12.5px] text-orb-muted">Blocked</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-orb-amber" aria-hidden="true" />
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-tan" aria-hidden="true" />
               <span className="text-[18px] font-normal leading-none text-orb-heading">{overdue}</span>
               <span className="text-[12.5px] text-orb-muted">Overdue</span>
             </div>

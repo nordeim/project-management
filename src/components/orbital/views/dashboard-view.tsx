@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { FaintRing, ProgressRing } from "@/components/orbital/progress-ring";
-import { UserMenu } from "@/components/orbital/user-menu";
+import { UserMenuOrLogin } from "@/components/orbital/user-menu";
 import { greetingFor, relativeTime, type ActivityDTO } from "@/lib/orbital";
 import { nextPlannedAction } from "@/lib/next-action";
 import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
@@ -66,13 +66,19 @@ function DateCard() {
 
 function StatColumn({
   label,
+  labelShort,
   value,
   sub,
+  subShort,
   onClick,
 }: {
   label: string;
+  /** Compact label shown below sm (reference: "BLOCKED" / "COMPLETED"). */
+  labelShort: string;
   value: number;
   sub: string;
+  /** Compact sub shown below sm (reference: "26 done", "84% total"). */
+  subShort: string;
   onClick: () => void;
 }) {
   return (
@@ -81,10 +87,16 @@ function StatColumn({
       onClick={onClick}
       className="flex min-w-0 flex-1 flex-col items-start justify-between gap-6 self-stretch p-5 text-left transition-colors first:pl-5 hover:bg-black/[0.02] sm:gap-8"
     >
-      <p className="orb-label">{label}</p>
+      <p className="orb-label">
+        <span className="sm:hidden">{labelShort}</span>
+        <span className="hidden sm:inline">{label}</span>
+      </p>
       <div>
         <p className="text-[44px] font-normal leading-none text-orb-heading">{value}</p>
-        <p className="mt-1.5 text-[13px] text-orb-muted">{sub}</p>
+        <p className="mt-1.5 text-[13px] text-orb-muted">
+          <span className="sm:hidden">{subShort}</span>
+          <span className="hidden sm:inline">{sub}</span>
+        </p>
       </div>
     </button>
   );
@@ -118,14 +130,14 @@ export function DashboardView() {
   const nextPlanned = useMemo(() => nextPlannedAction(activity), [activity]);
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-normal tracking-tight text-orb-heading sm:text-[32px]">{greeting}</h1>
           <p className="mt-1 text-[14px] text-orb-muted">Here&apos;s what&apos;s happening across your projects today.</p>
         </div>
         <div className="flex items-center gap-3">
-          <UserMenu />
+          <UserMenuOrLogin />
           <button type="button" className="orb-pill-outline" onClick={() => setNewGoalOpen(true)}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -140,33 +152,45 @@ export function DashboardView() {
         <button
           type="button"
           onClick={() => navigate("goals")}
-          className="orb-card flex min-h-[210px] w-full flex-col items-center justify-center gap-1 p-5 transition-transform hover:-translate-y-0.5 md:w-[240px]"
+          className="orb-card flex min-h-[210px] w-full flex-col items-center justify-center gap-1 p-5 transition-transform hover:-translate-y-0.5 md:w-[280px]"
           aria-label={`${stats?.completionRate ?? 0}% of all tasks done. Open goals.`}
         >
-          <FaintRing value={stats?.completionRate ?? 0} size={118} thickness={10}>
-            <span className="text-[30px] font-normal leading-none text-orb-heading">{stats?.completionRate ?? 0}%</span>
-            <span className="orb-label mt-1">done</span>
-          </FaintRing>
+          {/* 156px inset neumorphic circle (measured from the reference) */}
+          <div
+            className="flex items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.8),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
+            style={{ width: 156, height: 156 }}
+          >
+            <FaintRing value={stats?.completionRate ?? 0} size={118} thickness={10}>
+              <span className="text-[30px] font-normal leading-none text-orb-heading">{stats?.completionRate ?? 0}%</span>
+              <span className="orb-label mt-1">done</span>
+            </FaintRing>
+          </div>
         </button>
         {/* One unified stats card with three columns (reference layout:
             whitespace between columns, no divider lines) */}
         <div className="orb-card flex min-h-[210px] flex-1 items-stretch gap-1 p-1" aria-label="Statistics">
           <StatColumn
             label="Active Goals"
+            labelShort="Active Goals"
             value={stats?.activeGoals ?? 0}
             sub={`${stats?.totalTasks ?? 0} total tasks`}
+            subShort={`${stats?.totalTasks ?? 0} tasks`}
             onClick={() => navigate("goals")}
           />
           <StatColumn
             label="Blocked Tasks"
+            labelShort="Blocked"
             value={stats?.blockedTasks ?? 0}
             sub={`${stats?.doneTasks ?? 0} completed`}
+            subShort={`${stats?.doneTasks ?? 0} done`}
             onClick={() => navigate("my-tasks")}
           />
           <StatColumn
             label="Completed Tasks"
+            labelShort="Completed"
             value={stats?.doneTasks ?? 0}
             sub={`${stats?.completionRate ?? 0}% of total`}
+            subShort={`${stats?.completionRate ?? 0}% total`}
             onClick={() => navigate("goals")}
           />
         </div>
@@ -191,7 +215,7 @@ export function DashboardView() {
             </button>
           </div>
 
-          <div className="mt-4 rounded-2xl bg-orb-inset/70 p-4">
+          <div className="orb-well mt-4 rounded-2xl p-4">
             <p className="orb-label">Next planned action</p>
             <p className="mt-1.5 text-[14px] leading-relaxed text-orb-body">{nextPlanned}</p>
           </div>

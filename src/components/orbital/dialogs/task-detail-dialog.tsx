@@ -36,20 +36,13 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
 
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="max-w-md rounded-3xl">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-left text-[17px] leading-snug text-orb-heading">{task.title}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-1.5 text-[13.5px] text-orb-muted">
           {task.assignee ? <p>Assigned to: {task.assignee.name}</p> : <p>Unassigned</p>}
-          {task.goalTitle ? <p>Goal: {task.goalTitle}</p> : null}
-          {task.deadline ? (
-            <p>
-              Deadline:{" "}
-              {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-            </p>
-          ) : null}
         </div>
 
         {task.description ? (
@@ -59,7 +52,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
         ) : null}
 
         <div className="space-y-3">
-          <p className="orb-label">Post status update</p>
+          <p className="orb-label">Post Status Update</p>
           <RadioGroup
             value={status ?? undefined}
             onValueChange={(v) => setStatus(v as UpdateStatus)}
@@ -88,7 +81,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
             placeholder="Add a note (optional)..."
             rows={2}
             maxLength={1000}
-            className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+            className=""
             aria-label="Status update note"
           />
 

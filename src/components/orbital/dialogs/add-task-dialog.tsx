@@ -82,7 +82,7 @@ export function AddTaskDialog({
         if (!next) reset();
       }}
     >
-      <DialogContent className="max-w-md rounded-3xl">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-[16px] font-semibold text-orb-heading">Add Task</DialogTitle>
         </DialogHeader>
@@ -99,7 +99,7 @@ export function AddTaskDialog({
               placeholder="Task title"
               required
               maxLength={200}
-              className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+              className=" h-11"
             />
           </div>
 
@@ -114,7 +114,7 @@ export function AddTaskDialog({
               placeholder="Optional description"
               rows={3}
               maxLength={1000}
-              className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+              className=""
             />
           </div>
 
@@ -122,7 +122,7 @@ export function AddTaskDialog({
             <div className="space-y-2">
               <Label className="orb-label">Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
-                <SelectTrigger className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60">
+                <SelectTrigger className=" h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -143,7 +143,7 @@ export function AddTaskDialog({
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                className=" h-11"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export function AddTaskDialog({
             <div className="space-y-2">
               <Label className="orb-label">Assignee</Label>
               <Select value={assigneeId} onValueChange={setAssigneeId}>
-                <SelectTrigger className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60">
+                <SelectTrigger className=" h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-56 rounded-xl">
@@ -178,7 +178,7 @@ export function AddTaskDialog({
                 value={hours}
                 onChange={(e) => setHours(e.target.value)}
                 placeholder="e.g. 3"
-                className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                className=" h-11"
               />
             </div>
           </div>

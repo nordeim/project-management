@@ -80,7 +80,7 @@ export function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy && !next) close(); }}>
-      <DialogContent className="max-w-md rounded-3xl">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
             <span
@@ -110,7 +110,7 @@ export function InviteMemberDialog({
                   placeholder="e.g. Project Manager"
                   required
                   maxLength={100}
-                  className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                  className=" h-11"
                 />
               </div>
               <div className="space-y-2">
@@ -123,7 +123,7 @@ export function InviteMemberDialog({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What does this agent do?"
                   maxLength={200}
-                  className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                  className=" h-11"
                 />
               </div>
               <div className="space-y-2">
@@ -137,7 +137,7 @@ export function InviteMemberDialog({
                   placeholder="Describe how the agent should behave and what it should focus on..."
                   rows={3}
                   maxLength={1000}
-                  className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                  className=""
                 />
               </div>
             </>
@@ -155,7 +155,7 @@ export function InviteMemberDialog({
                   placeholder="colleague@company.com"
                   required
                   maxLength={200}
-                  className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                  className=" h-11"
                 />
               </div>
               <div className="space-y-2">
@@ -173,7 +173,7 @@ export function InviteMemberDialog({
                           "h-11 rounded-2xl border text-[14px] font-medium capitalize transition-colors",
                           active
                             ? "border-orb-purple/50 bg-orb-purple/10 text-orb-purple-deep"
-                            : "border-black/[0.08] bg-orb-inset/60 text-orb-muted hover:bg-black/[0.04]",
+                            : " text-orb-muted hover:bg-black/[0.04]",
                         )}
                       >
                         {option}

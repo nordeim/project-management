@@ -56,7 +56,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
 
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="max-w-md rounded-3xl">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05]" aria-hidden="true">
@@ -77,7 +77,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={200}
-              className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+              className=" h-11"
             />
           </div>
 
@@ -91,7 +91,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               maxLength={1000}
-              className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+              className=""
             />
           </div>
 
@@ -99,7 +99,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
             <div className="space-y-2">
               <Label className="orb-label">Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as GoalStatus)}>
-                <SelectTrigger className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60">
+                <SelectTrigger className=" h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -120,7 +120,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
                 type="date"
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
-                className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                className=" h-11"
               />
             </div>
           </div>

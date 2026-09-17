@@ -57,7 +57,7 @@ async function call<T>(url: string, init?: RequestInit): Promise<T | null> {
 }
 
 interface OrbitalState {
-  user: SessionUser;
+  user: SessionUser | null;
   view: ViewId;
   goalId: string | null;
   loading: boolean;
@@ -121,7 +121,7 @@ function readUrlState(): { view: ViewId; goalId: string | null } {
 }
 
 export const useOrbital = create<OrbitalState>((set, get) => ({
-  user: { id: "", email: "", name: "", avatarColor: "#996CE4" },
+  user: null,
   view: "dashboard",
   goalId: null,
   loading: false,
@@ -158,6 +158,24 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
   boot: async () => {
     const { view, goalId } = readUrlState();
     set({ view, goalId, loading: true });
+    // Signed-out visitors get the shell without data (reference behavior,
+    // v1.4): reads stay session-gated server-side, so skip them entirely
+    // and clear anything a previous session left in the store.
+    if (!get().user) {
+      set({
+        goals: [],
+        goalTasks: {},
+        myTasks: [],
+        activity: [],
+        people: [],
+        members: [],
+        settings: null,
+        stats: null,
+        booted: true,
+        loading: false,
+      });
+      return;
+    }
     await Promise.all([
       get().refreshGoals(),
       get().refreshActivity(),

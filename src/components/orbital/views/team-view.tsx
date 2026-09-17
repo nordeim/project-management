@@ -19,7 +19,7 @@ export function TeamView() {
   const agents = members.filter((m) => m.kind === "agent");
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto w-full max-w-[1100px]">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Team</h1>

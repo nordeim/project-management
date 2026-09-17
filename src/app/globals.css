@@ -47,6 +47,9 @@
   --color-orb-surface: var(--orb-surface);
   --color-orb-card: var(--orb-card);
   --color-orb-inset: var(--orb-inset);
+  --color-orb-raised: var(--orb-raised);
+  --color-orb-well: var(--orb-well);
+  --color-orb-track: var(--orb-track);
   --color-orb-heading: var(--orb-heading);
   --color-orb-body: var(--orb-body);
   --color-orb-muted: var(--orb-muted);
@@ -66,13 +69,16 @@
   --radius: 1rem;
 
   /* ORBITAL warm-cream design system (sampled from the reference app) */
-  --orb-canvas: #ebe7e2; /* page canvas behind the app panel */
-  --orb-surface: #eeeae6; /* app panel + sidebar */
-  --orb-card: #f8f5f1; /* elevated cards */
-  --orb-inset: #e9e3dc; /* inset wells (progress tracks, chat bubbles) */
+  --orb-canvas: #ebe7e2; /* page canvas — also the inset-well tone */
+  --orb-surface: #eeeae6; /* raised neumorphic panels */
+  --orb-card: #eeeae6; /* elevated cards (neumorphic raised, v1.4) */
+  --orb-inset: #ebe7e2; /* inset wells (inputs, chips, tracks) */
+  --orb-raised: #eeeae6; /* raised surface (sidebar, cards, buttons) */
+  --orb-well: #ebe7e2; /* inset surface */
+  --orb-track: #ddd8d0; /* goal-card progress track */
   --orb-heading: #3a3a3a;
   --orb-body: #2f2823;
-  --orb-muted: #8f8981;
+  --orb-muted: #6e6e6e;
   --orb-green: #2ecc8a;
   --orb-purple: #996ce4;
   --orb-coral: #ff8077;
@@ -163,18 +169,145 @@
   .orb-label {
     @apply text-[11px] font-medium uppercase tracking-[0.08em] text-orb-muted;
   }
+
+  /* ---- Neumorphic primitive system (measured from the reference, v1.4) ----
+     Raised surfaces (#EEEAE6) carry dual outer shadows; inset wells
+     (#EBE7E2) carry the same pair inverted. Shadow values were sampled
+     from the live app's computed styles. Plain CSS (not @apply of custom
+     classes) so Tailwind 4 can statically resolve every rule. */
+  .orb-raised {
+    border-radius: 16px;
+    background-color: var(--orb-raised);
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+  }
+  /* Big raised panels (sidebar, dialogs, dashboard stat blocks) */
+  .orb-raised-lg {
+    border-radius: 20px;
+    background-color: var(--orb-raised);
+    box-shadow: -8px -8px 16px rgba(255, 250, 244, 0.78), 8px 8px 18px rgba(160, 143, 126, 0.31);
+  }
+  /* Buttons: raised rect, radius 12, charcoal text (reference pattern) */
+  .orb-raised-btn {
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 12px;
+    padding: 11px 20px;
+    background-color: var(--orb-raised);
+    color: var(--orb-heading);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+    transition: color 150ms ease, box-shadow 150ms ease;
+  }
+  .orb-raised-btn:hover:not(:disabled) {
+    color: var(--orb-body);
+  }
+  .orb-raised-btn:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  /* Inset well: inputs, chips, icon squares, clock face */
+  .orb-well {
+    border-radius: 10px;
+    background-color: var(--orb-well);
+    box-shadow: inset -3px -3px 6px rgba(255, 250, 244, 0.68), inset 3px 3px 6px rgba(160, 143, 126, 0.24);
+  }
+  /* Inset pill: filter chips, status chips */
+  .orb-well-pill {
+    border-radius: 999px;
+    background-color: var(--orb-well);
+    box-shadow: inset -3px -3px 6px rgba(255, 250, 244, 0.68), inset 3px 3px 6px rgba(160, 143, 126, 0.24);
+  }
+
+  /* Legacy aliases kept so the view migration stays mechanical:
+     every card becomes a neumorphic raised panel. */
   .orb-card {
-    @apply rounded-3xl border border-black/[0.04] bg-orb-card shadow-[0_1px_2px_rgba(47,40,35,0.04),0_8px_24px_-12px_rgba(47,40,35,0.12)];
+    border-radius: 16px;
+    background-color: var(--orb-raised);
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+  }
+  /* Blocked task card (measured from the reference): deeper raised pair
+     plus a soft coral inset ring. Declared AFTER .orb-card on purpose —
+     custom classes in this layer are emitted after Tailwind's generated
+     utilities, so an arbitrary shadow-[...] utility on the same element
+     would lose to .orb-card; this class wins by source order instead. */
+  .orb-task-blocked {
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.92), 5px 5px 12px rgba(160, 143, 126, 0.36), inset 0 0 0 1px rgba(255, 128, 119, 0.18);
   }
   .orb-pill {
-    @apply inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-primary-foreground transition-colors hover:bg-black disabled:pointer-events-none disabled:opacity-40;
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 12px;
+    padding: 11px 20px;
+    background-color: var(--orb-raised);
+    color: var(--orb-heading);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+    transition: color 150ms ease;
+  }
+  .orb-pill:hover:not(:disabled) {
+    color: var(--orb-body);
+  }
+  .orb-pill:disabled {
+    pointer-events: none;
+    opacity: 0.4;
   }
   .orb-ghost-pill {
-    @apply inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-transparent px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading transition-colors hover:bg-black/[0.04] disabled:pointer-events-none disabled:opacity-40;
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    gap: 8px;
+    border-radius: 12px;
+    padding: 11px 20px;
+    color: var(--orb-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: color 150ms ease;
   }
-  /* Primary action in the reference app: white pill with a subtle border */
+  .orb-ghost-pill:hover:not(:disabled) {
+    color: var(--orb-heading);
+  }
+  .orb-ghost-pill:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  /* Primary action (reference: neumorphic raised rect, radius 12) */
   .orb-pill-outline {
-    @apply inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03] disabled:pointer-events-none disabled:opacity-40;
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 12px;
+    padding: 11px 20px;
+    background-color: var(--orb-raised);
+    color: var(--orb-heading);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+    transition: color 150ms ease;
+  }
+  .orb-pill-outline:hover:not(:disabled) {
+    color: var(--orb-body);
+  }
+  .orb-pill-outline:disabled {
+    pointer-events: none;
+    opacity: 0.4;
   }
 }
 

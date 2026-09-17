@@ -8,9 +8,10 @@
 // the goal detail page.
 
 import { useState } from "react";
-import { ArrowLeft, Bot, CalendarDays, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Bot, Loader2, Sparkles } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,7 +108,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         if (!next) reset();
       }}
     >
-      <DialogContent className="max-w-lg rounded-3xl p-0 overflow-hidden">
+      <DialogContent className="p-0 overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>Create a new goal</DialogTitle>
         </DialogHeader>
@@ -139,7 +140,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                   placeholder="e.g., Launch new landing page by end of month"
                   required
                   maxLength={200}
-                  className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                  className=" h-11"
                 />
               </div>
               <div className="space-y-2">
@@ -153,27 +154,14 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                   placeholder="Add more context about what success looks like..."
                   rows={3}
                   maxLength={1000}
-                  className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                  className=""
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="goal-target" className="orb-label">
                   Target Date
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="goal-target"
-                    type="date"
-                    value={targetDate}
-                    onChange={(e) => setTargetDate(e.target.value)}
-                    className="h-11 rounded-2xl border-black/[0.08] bg-orb-inset/60 pr-10"
-                  />
-                  <CalendarDays
-                    size={15}
-                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-orb-muted"
-                    aria-hidden="true"
-                  />
-                </div>
+                <DatePicker value={targetDate} onChange={setTargetDate} disabled={busy} ariaLabel="Pick a deadline" />
               </div>
 
               <div className="flex items-center justify-between pt-2">
@@ -224,7 +212,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                     placeholder="Your answer..."
                     rows={2}
                     maxLength={500}
-                    className="rounded-2xl border-black/[0.08] bg-orb-inset/60"
+                    className=""
                   />
                 </div>
               ))}

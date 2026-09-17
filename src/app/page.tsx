@@ -1,19 +1,17 @@
 // Single-route application shell. The reference app is a browser SPA; this
-// clone keeps the same architecture — one route, client-side view switching
-// driven by URL search params (deep-linkable: ?view=goals&goal=<id>).
-// The page is a server component that resolves the session once and hands
-// the user to the client app (or the login screen when signed out).
+// clone keeps the same architecture — one page, client-side view switching
+// at real paths (deep-linkable: /goals/<id>). The page is a server
+// component that resolves the session once and hands the (nullable) user
+// to the client app: signed-out visitors get the workspace shell with a
+// LOG IN button (reference behavior, v1.4); the actual auth form lives at
+// the real /login route.
 
 import { getSessionUser } from "@/lib/auth";
 import { OrbitalApp } from "@/components/orbital/orbital-app";
-import { LoginScreen } from "@/components/orbital/login-screen";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const user = await getSessionUser();
-  if (!user) {
-    return <LoginScreen />;
-  }
   return <OrbitalApp user={user} />;
 }

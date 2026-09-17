@@ -36,7 +36,7 @@ const TONE_OPTIONS: Array<{ value: Tone; label: string }> = [
 ];
 
 const FIELD =
-  "h-11 rounded-2xl border border-black/[0.06] bg-white shadow-[inset_1px_1px_2px_rgba(47,40,35,0.04)]";
+  "h-11 rounded-[10px] border-0 bg-orb-well shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]";
 const FIELD_LABEL = "text-[13px] font-medium text-orb-body";
 
 function hourOptions(): string[] {
@@ -186,7 +186,7 @@ export function SettingsView() {
   const settings = useOrbital((s) => s.settings);
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto w-full max-w-[1100px]">
       <header>
         <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Settings</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Configure your AI assistant and workspace</p>

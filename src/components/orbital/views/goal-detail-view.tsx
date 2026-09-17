@@ -38,7 +38,7 @@ export function GoalDetailView() {
 
   if (!goal) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="w-full">
         <EmptyState
           icon={<ArrowLeft size={22} />}
           title="Goal not found"
@@ -57,7 +57,7 @@ export function GoalDetailView() {
   const pct = goal.taskCount > 0 ? Math.round((goal.doneCount / goal.taskCount) * 100) : 0;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <button
         type="button"
         onClick={() => navigate("goals")}
@@ -119,7 +119,7 @@ export function GoalDetailView() {
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="inline-flex h-9 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03] hover:text-orb-heading"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-orb-raised px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#bd3228] shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-coral-deep"
             >
               <Trash2 size={13} aria-hidden="true" />
               Delete
@@ -138,7 +138,7 @@ export function GoalDetailView() {
               {goal.doneCount}/{goal.taskCount} tasks done
             </p>
           </div>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-orb-inset" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-orb-track shadow-[inset_-1px_-1px_2px_rgba(255,250,244,0.68),inset_1px_1px_2px_rgba(160,143,126,0.24)]" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
             <div
               className="h-full rounded-full bg-orb-green transition-[width] duration-700"
               style={{ width: `${pct}%` }}
@@ -158,7 +158,7 @@ export function GoalDetailView() {
         <h2 className="orb-label">Tasks · {goal.taskCount} total</h2>
         <button
           type="button"
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-black/[0.08] bg-white px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[0_1px_2px_rgba(47,40,35,0.05)] transition-colors hover:bg-black/[0.03]"
+          className="inline-flex h-9 items-center gap-2 rounded-xl bg-orb-raised px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
           onClick={() => setAddOpen(true)}
         >
           <Plus size={13} aria-hidden="true" />

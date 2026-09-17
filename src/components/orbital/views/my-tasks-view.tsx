@@ -41,7 +41,7 @@ export function MyTasksView() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <header>
         <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">My Tasks</h1>
         <p className="mt-1 text-[14px] text-orb-muted">
@@ -60,10 +60,10 @@ export function MyTasksView() {
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
               className={cn(
-                "h-9 rounded-full px-4 text-[13px] font-medium transition-colors",
+                "h-8 rounded-full px-4 text-[12px] font-medium transition-colors",
                 active
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-black/[0.045] text-orb-muted hover:bg-black/[0.07] hover:text-orb-heading",
+                  ? "orb-well-pill font-semibold text-orb-heading"
+                  : "text-orb-muted hover:text-orb-heading",
               )}
             >
               {f.label} ({count})
@@ -77,7 +77,7 @@ export function MyTasksView() {
           <EmptyState
             icon={<CheckSquare size={22} />}
             title="No tasks assigned"
-            description="Tasks will show up here once goals are created and assigned to you."
+            description="Tasks will show up here once goals are created and assigned."
           />
         ) : (
           visible.map((task) => (

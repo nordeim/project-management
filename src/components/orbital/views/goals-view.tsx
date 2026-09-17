@@ -64,7 +64,7 @@ function GoalCard({
         >
           <div className="flex items-center gap-2">
             <span
-              className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+              className="orb-well-pill flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
               style={{ color: meta.color }}
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: meta.color }} aria-hidden="true" />
@@ -81,9 +81,9 @@ function GoalCard({
           </div>
           <p className="mt-1.5 truncate text-[16px] font-semibold text-orb-heading">{goal.title}</p>
 
-          {/* Horizontal progress bar (reference pattern) */}
+          {/* Horizontal progress bar on the inset track (reference pattern) */}
           <div
-            className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]"
+            className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-1px_-1px_2px_rgba(255,250,244,0.68),inset_1px_1px_2px_rgba(160,143,126,0.24)]"
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
@@ -98,6 +98,9 @@ function GoalCard({
 
           <p className="mt-2.5 text-[13px] text-orb-muted">
             {goal.doneCount}/{goal.taskCount} tasks · {pct}%
+            {goal.blockedCount > 0 && goal.status === "active" ? (
+              <span className="sm:hidden"> · {goal.blockedCount} blocked</span>
+            ) : null}
             {goal.targetDate ? <span className="ml-3">{formatDate(goal.targetDate)}</span> : null}
           </p>
         </button>
@@ -134,7 +137,7 @@ function GoalCard({
               <button
                 type="button"
                 onClick={() => onEdit(goal)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-orb-muted transition-colors hover:bg-black/[0.06] hover:text-orb-heading"
+                className="orb-well flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:text-orb-heading"
                 aria-label={`Edit goal ${goal.title}`}
               >
                 <Pencil size={15} />
@@ -142,7 +145,7 @@ function GoalCard({
               <button
                 type="button"
                 onClick={() => setConfirming(true)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-orb-muted transition-colors hover:bg-orb-coral/15 hover:text-orb-coral-deep"
+                className="orb-well flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:text-orb-coral-deep"
                 aria-label={`Delete goal ${goal.title}`}
               >
                 <Trash2 size={15} />
@@ -174,7 +177,7 @@ export function GoalsView() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Goals</h1>
@@ -186,7 +189,7 @@ export function GoalsView() {
         </button>
       </header>
 
-      <div className="mt-6 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter goals by status">
+      <div className="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filter goals by status">
         {FILTERS.map((f) => {
           const count = counts.get(f.id) ?? 0;
           const active = filter === f.id;
@@ -197,10 +200,10 @@ export function GoalsView() {
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
               className={cn(
-                "h-9 rounded-full px-4 text-[13px] font-medium transition-colors",
+                "h-8 rounded-full px-4 text-[12px] font-medium transition-colors",
                 active
-                  ? "border border-black/[0.08] bg-white font-semibold text-orb-heading shadow-[0_1px_2px_rgba(47,40,35,0.06)]"
-                  : "text-orb-muted hover:bg-black/[0.04] hover:text-orb-heading",
+                  ? "orb-well-pill font-semibold text-orb-heading"
+                  : "text-orb-muted hover:text-orb-heading",
               )}
             >
               {f.label} ({count})

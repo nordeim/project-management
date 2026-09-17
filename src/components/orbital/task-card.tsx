@@ -56,7 +56,12 @@ export function TaskCard({
   }
 
   return (
-    <div className="orb-card p-4 transition-transform hover:-translate-y-0.5 sm:p-5">
+    <div
+      className={cn(
+        "orb-card rounded-[14px] p-4 transition-transform hover:-translate-y-0.5 sm:p-5",
+        task.status === "blocked" && "orb-task-blocked",
+      )}
+    >
       <div className="flex items-start gap-3">
         <button
           type="button"
@@ -136,7 +141,7 @@ export function TaskCard({
               <button
                 type="button"
                 onClick={() => onEdit(task)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-black/[0.045] text-orb-muted transition-colors hover:bg-black/[0.09] hover:text-orb-heading"
+                className="orb-well flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:text-orb-heading"
                 aria-label={`Edit task ${task.title}`}
               >
                 <Pencil size={16} />
@@ -144,7 +149,7 @@ export function TaskCard({
               <button
                 type="button"
                 onClick={() => setConfirming(true)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-black/[0.045] text-orb-muted transition-colors hover:bg-orb-coral/15 hover:text-orb-coral-deep"
+                className="orb-well flex h-9 w-9 items-center justify-center rounded-xl text-orb-muted transition-colors hover:text-orb-coral-deep"
                 aria-label={`Delete task ${task.title}`}
               >
                 <Trash2 size={16} />

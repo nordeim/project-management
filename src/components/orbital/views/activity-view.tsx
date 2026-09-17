@@ -74,7 +74,7 @@ export function ActivityView() {
   }, [activity]);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <header>
         <h1 className="text-[28px] font-normal tracking-tight text-orb-heading">Agent Activity</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Full transparency — every action the agent takes</p>

@@ -23,7 +23,7 @@ function getServerBucket(): number {
   return 0;
 }
 
-export function SidebarClock() {
+export function SidebarClock({ size = 80 }: { size?: number }) {
   const bucket = useSyncExternalStore(subscribe, getBucket, getServerBucket);
   const now = bucket === 0 ? null : new Date(bucket * BUCKET_MS);
 
@@ -34,13 +34,14 @@ export function SidebarClock() {
 
   return (
     <div
-      className="flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-full bg-white shadow-[inset_2px_2px_5px_rgba(47,40,35,0.10),inset_-2px_-2px_5px_rgba(255,255,255,0.9),0_1px_2px_rgba(47,40,35,0.06)]"
+      className="flex shrink-0 items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.8),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
+      style={{ width: size, height: size }}
       role="img"
       aria-label={now ? `Current time ${now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Clock"}
     >
-      <svg width="58" height="58" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+      <svg width={Math.round(size * 0.72)} height={Math.round(size * 0.72)} viewBox="0 0 52 52" fill="none" aria-hidden="true">
         {/* face */}
-        <circle cx="26" cy="26" r="24" fill="#FFFFFF" stroke="rgba(47,40,35,0.06)" strokeWidth="1" />
+        <circle cx="26" cy="26" r="24" fill="#EBE7E2" stroke="rgba(47,40,35,0.06)" strokeWidth="1" />
         {/* hands (no numerals, no ticks — reference style) */}
         <line
           x1="26"
