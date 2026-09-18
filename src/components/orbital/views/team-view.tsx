@@ -4,9 +4,8 @@
 // workspace (like the reference); INVITE MEMBER and NEW AGENT populate it.
 
 import { useState } from "react";
-import { Bot, Plus, Users } from "lucide-react";
+import { Bot, Plus, Sparkles, Users } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
-import { EmptyState } from "@/components/orbital/empty-state";
 import { AvatarBubble } from "@/components/orbital/widgets";
 import { InviteMemberDialog } from "@/components/orbital/dialogs/invite-member-dialog";
 
@@ -20,9 +19,11 @@ export function TeamView() {
 
   return (
     <div className="w-full">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      {/* v1.8 (measured): the Invite Member button aligns with the h1 top
+          (y=48 on live) — items-start. */}
+      <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">Team</h1>
+          <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Team</h1>
           <p className="mt-1 text-[14px] text-orb-muted">
             {humans.length} team member{humans.length === 1 ? "" : "s"}
           </p>
@@ -41,24 +42,29 @@ export function TeamView() {
       </header>
 
       {humans.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            icon={<Users size={22} color="#B3B3B3" />}
-            title="No team members yet"
-            description="Invite your team to get started."
-            action={
-              <button
-                type="button"
-                className="flex h-[38px] items-center gap-2 rounded-[12px] bg-orb-raised px-[18px] text-[13px] font-medium text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
-                onClick={() => {
-                  setInviteKind("human");
-                  setInviteOpen(true);
-                }}
-              >
-                <Plus size={14} aria-hidden="true" /> Invite Member
-              </button>
-            }
-          />
+        // v1.8 (re-measured — corrects v1.7): the members empty state
+        // centers the 22px Users glyph inside a 52px INSET-WELL CIRCLE
+        // (radius 50%, inset pair −4px 0.68 / 4px 0.28 on #EBE7E2), with
+        // the title 16px below the circle and a 13px #767676 caption.
+        <div className="mt-6 flex flex-col items-center pt-6">
+          <span
+            className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
+            aria-hidden="true"
+          >
+            <Users size={22} color="#B3B3B3" />
+          </span>
+          <p className="mt-4 text-[15px] font-normal text-orb-heading">No team members yet</p>
+          <p className="mt-1.5 text-[13px] font-normal text-[#767676]">Invite your team to get started.</p>
+          <button
+            type="button"
+            className="mt-4 flex h-[38px] items-center gap-2 rounded-[12px] bg-orb-raised px-[18px] text-[13px] font-medium text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+            onClick={() => {
+              setInviteKind("human");
+              setInviteOpen(true);
+            }}
+          >
+            <Plus size={14} aria-hidden="true" /> Invite Member
+          </button>
         </div>
       ) : (
         <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -95,13 +101,12 @@ export function TeamView() {
         </div>
 
         {agents.length === 0 ? (
-          // Reference (v1.6, measured; v1.7 re-measured): the AI-Agents empty
-          // state sits in an inset well card (radius 16, p 32px 24px) holding
-          // ONLY the icon and two compact text lines — no action button (the
-          // NEW AGENT action lives in the section header above) and no extra
-          // inner padding beyond the well's own.
+          // v1.8 (re-measured): the AI-Agents empty state sits in an inset
+          // well card (radius 16) holding the 22px SPARKLES glyph (#B3B3B3 —
+          // not Bot) and two compact text lines — no action button (the
+          // NEW AGENT action lives in the section header above).
           <div className="mt-4 flex flex-col items-center justify-center rounded-2xl bg-orb-well px-6 py-8 shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.24)]">
-            <Bot size={22} color="#B3B3B3" aria-hidden="true" />
+            <Sparkles size={22} color="#B3B3B3" aria-hidden="true" />
             <p className="mt-2.5 text-[14px] font-normal text-orb-heading">No agents yet</p>
             <p className="mt-1 text-[12px] font-normal text-[#767676]">Create an AI agent to automate project tasks.</p>
           </div>

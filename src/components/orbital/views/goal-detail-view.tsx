@@ -67,18 +67,21 @@ export function GoalDetailView() {
       </button>
 
       <header className="mt-5 flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
+        {/* v1.8 (measured): the header content starts ~5px lower than the
+            column top (live chip at y=97 inside a 92 header) — pt-[5px]. */}
+        <div className="min-w-0 pt-[5px]">
           {/* v1.7 (measured): the status chip text is GRAY (the dot keeps the
               status color, 7px) — not painted in the status color. */}
           <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-orb-muted">
             <span className="h-[7px] w-[7px] rounded-full" style={{ backgroundColor: meta.color }} aria-hidden="true" />
             {meta.label}
           </span>
-          <h1 className="mt-2 text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">{goal.title}</h1>
-          {goal.description ? <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-orb-muted">{goal.description}</p> : null}
+          <h1 className="mt-2 text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">{goal.title}</h1>
+          {goal.description ? <p className="mt-2 max-w-xl text-[14px] leading-[21px] text-orb-muted">{goal.description}</p> : null}
           {goal.targetDate ? (
-            <p className="mt-3 flex items-center gap-1.5 text-[13.5px] text-orb-muted">
-              <CalendarDays size={14} aria-hidden="true" />
+            // v1.8 (measured): 13px #767676 with a 13px calendar glyph.
+            <p className="mt-3 flex items-center gap-1.5 text-[13px] text-[#767676]">
+              <CalendarDays size={13} aria-hidden="true" />
               Target:{" "}
               {new Date(goal.targetDate).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -147,12 +150,12 @@ export function GoalDetailView() {
           <p className="mt-3 text-[24px] font-normal leading-none tracking-[-0.02em] text-orb-heading">{pct}%</p>
         </div>
         <div className="orb-panel flex flex-col items-center justify-center p-[20px_16px]">
-          {/* v1.7 (measured): the blocked count block is CENTERED — label
-              above a 64px number wrapper (the count's line box is 39px). */}
+          {/* v1.8 (measured): the blocked count sits inside a 64px INSET
+              WELL square (r12, flex-centered) below the label. */}
           <div className="flex flex-col items-center">
             <p className="orb-label">Blocked</p>
-            <div className="mt-[6px] flex h-[64px] items-center">
-              <p className="text-[26px] font-normal leading-[1.5] tracking-[-0.02em]" style={{ color: goal.blockedCount > 0 ? "#FF7043" : "#3A3A3A" }}>
+            <div className="orb-well mt-[8px] flex h-[64px] w-[64px] items-center justify-center rounded-[12px]">
+              <p className="text-[26px] font-normal leading-none tracking-[-0.02em]" style={{ color: goal.blockedCount > 0 ? "#FF7043" : "#3A3A3A" }}>
                 {goal.blockedCount}
               </p>
             </div>
@@ -160,19 +163,22 @@ export function GoalDetailView() {
         </div>
       </section>
 
+      {/* v1.8 (measured): the tasks header row is 31px tall — the TASKS
+          label on the left, "N total" + ADD TASK grouped on the RIGHT with
+          a 12px gap. */}
       <div className="mt-8 flex items-center justify-between">
-        <h2 className="flex items-baseline gap-2">
-          <span className="orb-label">Tasks</span>
+        <h2 className="orb-label">Tasks</h2>
+        <div className="flex items-center gap-3">
           <span className="text-[13px] font-normal text-orb-muted">{goal.taskCount} total</span>
-        </h2>
-        <button
-          type="button"
-          className="inline-flex h-[31px] items-center gap-2 rounded-[12px] bg-orb-raised px-[14px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
-          onClick={() => setAddOpen(true)}
-        >
-          <Plus size={13} aria-hidden="true" />
-          Add Task
-        </button>
+          <button
+            type="button"
+            className="inline-flex h-[31px] items-center gap-2 rounded-[12px] bg-orb-raised px-[14px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+            onClick={() => setAddOpen(true)}
+          >
+            <Plus size={13} aria-hidden="true" />
+            Add Task
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 space-y-3">
@@ -182,7 +188,7 @@ export function GoalDetailView() {
             title="No tasks yet"
             description="Add tasks manually or let the AI assistant draft a plan when you create a goal."
             action={
-              <button type="button" className="orb-pill-outline" onClick={() => setAddOpen(true)}>
+              <button type="button" className="orb-pill-outline orb-pill-compact" onClick={() => setAddOpen(true)}>
                 <Plus size={14} /> Add Task
               </button>
             }

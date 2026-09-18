@@ -65,12 +65,14 @@ export function Sidebar({
         title={collapsed ? item.label : undefined}
         aria-label={collapsed ? item.label : undefined}
         className={cn(
-          // v1.7 (measured): live nav rows are 39px tall; inactive items
-          // are 14px/400 (not 500) — the active row keeps the well + 500.
-          "flex min-h-[39px] w-full items-center rounded-[10px] transition-colors",
-          collapsed ? "justify-center px-0" : "gap-3 px-3 text-[14px]",
+          // v1.8 (re-measured): nav rows pad 9px 14px (39px tall at 14px
+          // text), full content width, 4px gaps between rows; inactive
+          // items are 14px/400. The ACTIVE row carries the brighter
+          // .orb-nav-active inset pair (255,252,248@0.75 / 180,165,150@0.32).
+          "flex w-full items-center rounded-[10px] py-[9px] text-[14px] transition-colors",
+          collapsed ? "justify-center px-0" : "gap-3 px-[14px]",
           active
-            ? "bg-orb-well font-medium text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
+            ? "orb-nav-active font-medium text-orb-heading"
             : "font-normal text-orb-muted hover:bg-black/[0.03] hover:text-orb-heading",
         )}
       >
@@ -111,18 +113,19 @@ export function Sidebar({
 
   return (
     <div className="flex h-full w-full flex-col">
-      {/* v1.7 (measured): the brand row sits flush at the panel's top
-          padding — a compact ~16px six-dot mark beside "ORBITAL" at
-          13px/600/ls 2.34px (0.18em) in #2F2823. */}
+      {/* v1.8 (measured): brand row — an 11px six-dot mark beside
+          "ORBITAL" set in ARCHIVO 600 at 13px/ls 2.34px in #2F2823 (the
+          live app loads Archivo for the wordmark; DM Sans measures 3px
+          narrower at the same size). */}
       <div className="flex items-center justify-between px-4 pb-2 pt-0">
         <button
           type="button"
           onClick={() => navigate("dashboard")}
-          className="flex items-center gap-2 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+          className="flex items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
           aria-label="Orbital home"
         >
-          <LogoMark size={16} />
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-orb-body">Orbital</span>
+          <LogoMark size={11} />
+          <span className="font-archivo text-[13px] font-semibold uppercase leading-[13px] tracking-[0.18em] text-orb-body">Orbital</span>
         </button>
         {onCollapse ? (
           <button
@@ -136,20 +139,20 @@ export function Sidebar({
         ) : null}
       </div>
 
-      <p className="orb-label-sm px-5 pt-6 pb-2">Workspace</p>
-      <nav className="flex flex-col gap-0.5 px-3" aria-label="Workspace">
+      <p className="orb-label-sm px-6 pb-2 pt-6">Workspace</p>
+      <nav className="flex flex-col gap-1 px-4" aria-label="Workspace">
         {workspaceItems.map(renderNavItem)}
       </nav>
 
-      <p className="orb-label-sm px-5 pt-6 pb-2">Management</p>
-      <nav className="flex flex-col gap-0.5 px-3" aria-label="Management">
+      <p className="orb-label-sm px-6 pb-2 pt-5">Management</p>
+      <nav className="flex flex-col gap-1 px-4" aria-label="Management">
         {managementItems.map(renderNavItem)}
       </nav>
 
-      {/* v1.7 (measured): the Tasks Status block is a PLAIN link (no well) —
-          10px/600 label, 11px/700 numbers, 11px/400 #767676 captions —
-          sitting beside the 80px clock with a 10px gap, at the panel's own
-          16px horizontal padding. */}
+      {/* v1.8 (re-measured — corrects v1.7): the Tasks Status block IS an
+          INSET WELL — 80px tall (clock-aligned), radius 10, pad 0 12px, flex
+          column — holding the 10px/600 label, 11px/700 numbers and 11px/400
+          captions. It sits beside the 80px clock with a 10px gap. */}
       <div className="mt-auto flex items-center gap-[10px] px-4 pb-3">
         <SidebarClock size={80} />
         <button
@@ -158,21 +161,19 @@ export function Sidebar({
             navigate("my-tasks");
             onCollapse?.();
           }}
-          className="min-w-0 flex-1 text-left"
+          className="orb-well flex h-[80px] min-w-0 flex-1 flex-col justify-center gap-2 px-3 text-left"
           aria-label={`Tasks status: ${blocked} blocked, ${overdue} overdue. Open My Tasks.`}
         >
           <p className="orb-label-sm whitespace-nowrap">Tasks Status</p>
-          <div className="mt-2 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-coral" aria-hidden="true" />
-              <span className="text-[11px] font-bold leading-none text-orb-heading">{blocked}</span>
-              <span className="text-[11px] font-normal text-[#767676]">Blocked</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-tan" aria-hidden="true" />
-              <span className="text-[11px] font-bold leading-none text-orb-heading">{overdue}</span>
-              <span className="text-[11px] font-normal text-[#767676]">Overdue</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-coral" aria-hidden="true" />
+            <span className="text-[11px] font-bold leading-none text-orb-heading">{blocked}</span>
+            <span className="text-[11px] font-normal text-[#767676]">Blocked</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orb-tan" aria-hidden="true" />
+            <span className="text-[11px] font-bold leading-none text-orb-heading">{overdue}</span>
+            <span className="text-[11px] font-normal text-[#767676]">Overdue</span>
           </div>
         </button>
       </div>

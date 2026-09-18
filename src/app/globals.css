@@ -8,6 +8,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-dm-mono);
+  /* v1.8: the brand wordmark face (measured Archivo 600 on the live app). */
+  --font-archivo: var(--font-archivo);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -160,7 +162,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "ss01" on;
+    /* v1.8 (measured): the live app ships NO font-feature overrides — the
+       v1.0-era "ss01" stylistic set widened the digits (18 → 44px vs the
+       live 38px at 50.4px/300). Default features only. */
   }
 }
 
@@ -287,7 +291,7 @@
     border-radius: 14px;
     padding: 0 20px;
     background-color: #2f2823;
-    color: #ffffff;
+    color: #f2f2f2;
     font-size: 12px;
     font-weight: 500;
     box-shadow: -3px -3px 7px rgba(255, 250, 244, 0.5), 4px 4px 10px rgba(160, 143, 126, 0.36);
@@ -323,6 +327,30 @@
     color: var(--orb-heading);
   }
   .orb-btn-cancel:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  /* v1.8 (measured): the Add/Edit form dialogs' Cancel is a 12px Title-Case
+     well button — unlike the wizard's 11px uppercase CANCEL. */
+  .orb-btn-cancel-plain {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 0 16px;
+    background-color: var(--orb-well);
+    color: var(--orb-muted);
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: inset -2px -2px 5px rgba(255, 250, 244, 0.68), inset 2px 2px 5px rgba(160, 143, 126, 0.24);
+    transition: color 150ms ease;
+  }
+  .orb-btn-cancel-plain:hover:not(:disabled) {
+    color: var(--orb-heading);
+  }
+  .orb-btn-cancel-plain:disabled {
     pointer-events: none;
     opacity: 0.4;
   }
@@ -401,18 +429,19 @@
     pointer-events: none;
     opacity: 0.4;
   }
-  /* Primary action (reference: neumorphic raised rect, radius 12) */
+  /* Primary action (v1.8, re-measured): neumorphic raised rect, radius 12,
+     11px/600 uppercase — pad 9px 18px gives the live app's 34.5px content
+     height (the v1.4-era 40px/12px reading was 5px too big). */
   .orb-pill-outline {
     display: inline-flex;
-    height: 40px;
     align-items: center;
     justify-content: center;
     gap: 8px;
     border-radius: 12px;
-    padding: 11px 20px;
+    padding: 9px 18px;
     background-color: var(--orb-raised);
     color: var(--orb-heading);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -455,16 +484,18 @@
     pointer-events: none;
     opacity: 0.4;
   }
-  /* v1.7 (measured): the goals-view NEW GOAL button drops to 35px on
-     mobile (label shortens to "New"). Dedicated class — an h-* utility
-     would lose to .orb-pill-outline's height in the cascade. */
-  .orb-pill-outline-sm {
-    height: 35px;
+  /* Compact page action (v1.8, measured): the goal-detail ADD TASK and
+     settings Save buttons — pad 7px 14px (30.5px tall), same 11px/600 face. */
+  .orb-pill-compact {
+    padding: 7px 14px;
   }
-  @media (min-width: 640px) {
-    .orb-pill-outline-sm {
-      height: 40px;
-    }
+
+  /* v1.8 (measured): the sidebar's ACTIVE nav row carries a BRIGHTER inset
+     pair than the generic well — 255,252,248 @ 0.75 light / 180,165,150 @
+     0.32 dark. Dedicated class: the generic .orb-well pair reads flatter. */
+  .orb-nav-active {
+    background-color: var(--orb-well);
+    box-shadow: inset -3px -3px 6px rgba(255, 252, 248, 0.75), inset 3px 3px 6px rgba(180, 165, 150, 0.32);
   }
 }
 

@@ -70,15 +70,16 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
 
   return (
     <div className="min-h-screen bg-orb-canvas p-0 lg:p-6">
-      {/* Decorative canvas glow (reference, v1.5): a fixed purple radial
-          gradient over the bottom-right of the page — pointer-events none,
+      {/* Decorative canvas glow (v1.8, re-measured): a fixed purple radial
+          gradient over the UPPER-MIDDLE-RIGHT of the viewport — the live app
+          moved it from the v1.5 bottom-right corner; pointer-events none,
           under the content. */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           background:
-            "radial-gradient(600px at 87.4359% 95.3791%, rgba(201, 179, 245, 0.35) 0%, transparent 70%)",
+            "radial-gradient(600px at 59.1667% 29.8889%, rgba(201, 179, 245, 0.35) 0%, rgba(0, 0, 0, 0) 70%)",
         }}
       />
       {/* v1.7 (measured): the mobile shell is FULL-BLEED — no outer padding
@@ -124,7 +125,10 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        {/* v1.8 (measured): on desktop this column is exactly the viewport
+            height (minus the 2×24px canvas frame) so the dashboard can fill
+            it with a 1fr bottom row while other views scroll inside main. */}
+        <div className="flex min-w-0 flex-1 flex-col lg:h-[calc(100vh-3rem)]">
           {/* Mobile app bar (reference, v1.6/v1.7, measured): below lg the
               desktop greeting header is REPLACED by a full-bleed raised bar
               holding the ORBITAL logo (left) and the user pill (right) —
@@ -145,10 +149,15 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             </button>
             <UserMenuOrLogin compact />
           </header>
-          <main className="orb-scroll relative z-[1] min-w-0 flex-1 overflow-y-auto px-[22px] pb-24 pt-5 sm:px-7 sm:pt-6 lg:px-7 lg:pb-3 lg:pt-6">
+          {/* v1.8: mobile content starts 28px below the 62px app bar
+              (measured hero-card top at y=90 on the live app). */}
+          <main className="orb-scroll relative z-[1] flex min-w-0 flex-1 flex-col overflow-y-auto px-[22px] pb-24 pt-3 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-6">
             {/* Content clamp (reference, v1.5): every view renders inside a
-                max-width 1200px column — the main area itself stays fluid. */}
-            <div className="mx-auto w-full max-w-[1200px]">
+                max-width 1200px column — the main area itself stays fluid.
+                v1.8: flex-1 + min-h-0 so the column is exactly the scroll
+                port height (taller views overflow it and main scrolls;
+                the dashboard fills it with a 1fr bottom row). */}
+            <div className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 flex-col">
               {view === "dashboard" ? <DashboardView /> : null}
               {view === "goals" ? <GoalsView /> : null}
               {view === "goal-detail" ? <GoalDetailView /> : null}

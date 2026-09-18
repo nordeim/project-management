@@ -43,7 +43,9 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
           <DialogTitle className="text-left text-[16px] font-medium leading-snug text-orb-heading">{task.title}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-1 text-[13.5px] text-orb-muted">
+        {/* v1.8 (measured): 12px #767676 — a hairline smaller and lighter
+            than the v1.7 reading (13.5px #6E6E6E). */}
+        <div className="space-y-1 text-[12px] text-[#767676]">
           {task.assignee ? <p>Assigned to: {task.assignee.name}</p> : <p>Unassigned</p>}
         </div>
 
@@ -60,7 +62,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
           <RadioGroup
             value={status ?? undefined}
             onValueChange={(v) => setStatus(v as UpdateStatus)}
-            className="grid grid-cols-2 gap-x-3 gap-y-2"
+            className="grid grid-cols-2 gap-2"
           >
             {OPTIONS.map((option) => (
               <Label

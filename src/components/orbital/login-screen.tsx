@@ -1,12 +1,13 @@
 "use client";
 
-// Login page card — mirrors the reference app's /login route (v1.4): a
-// centered white card (448px, radius 16) with three states — sign-in
-// (Welcome heading, Continue with Google, OR divider, email + password
-// with in-field icons), sign-up (email + password + confirm), and
-// forgot-password. "Back to sign in" returns from the secondary states.
-// Google sign-in degrades to an explanatory toast: this self-hosted clone
-// carries no OAuth credentials (same doctrine as the AI fallbacks).
+// Login page card — mirrors the reference app's /login route (v1.8,
+// re-measured): a WHITE page with a centered white card (448px, radius 16,
+// 95% opacity), a 96px white-circle logo (the 1-2-3 dot pyramid), a
+// 30px/700 slate title, slate-styled controls — Google button + inputs with
+// 1px #E2E8F0 borders at radius 12, a #0F172A Sign in button — and slate
+// footer links. Three states: sign-in, sign-up, forgot-password.
+// "Continue with Google" degrades to an explanatory toast: this self-hosted
+// clone carries no OAuth credentials (same doctrine as the AI fallbacks).
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -19,8 +20,10 @@ import { LogoPyramid } from "@/components/orbital/logo";
 
 type Mode = "signin" | "signup" | "forgot";
 
+// v1.8 (measured on the live app): slate control styling — 48px fields with
+// 1px #E2E8F0 borders at radius 12 over a translucent #F8FAFC fill.
 const INPUT_CLASS =
-  "h-12 rounded-xl border-transparent bg-[#f8fafc] pl-10 text-sm text-orb-heading placeholder:text-orb-muted/70 focus-visible:ring-1 focus-visible:ring-black/15";
+  "h-12 rounded-xl border border-[#E2E8F0] bg-[rgba(248,250,252,0.5)] pl-10 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-1 focus-visible:ring-[#0F172A]/20 focus-visible:border-[#94A3B8]";
 
 function GoogleGlyph() {
   return (
@@ -113,23 +116,26 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-orb-canvas px-4 py-10">
+    // v1.8 (measured): the live login page renders on a WHITE canvas.
+    <main className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
       <div className="w-full max-w-[448px]">
-        <div className="rounded-2xl bg-white p-8 shadow-[0_18px_50px_-24px_rgba(47,40,35,0.35)]">
+        {/* v1.8 (measured): card at 95% white, radius 16, with the 96px
+            logo circle above a 30px/700 slate title. */}
+        <div className="rounded-2xl bg-[rgba(255,255,255,0.95)] p-8 shadow-[0_18px_50px_-24px_rgba(15,23,42,0.35)]">
           {mode === "signin" ? (
             <>
-              <div className="mb-7 flex flex-col items-center gap-4 text-center">
-                <LogoPyramid size={48} />
-                <h1 className="text-[22px] font-normal leading-tight tracking-tight text-orb-heading">
-                  Welcome to <span className="font-bold">Project Management App</span>
+              <div className="mb-7 flex flex-col items-center gap-5 text-center">
+                <LogoPyramid size={96} />
+                <h1 className="text-[30px] font-bold leading-tight tracking-[-0.01em] text-[#0F172A]">
+                  Welcome to Project Management App
                 </h1>
-                <p className="text-sm text-orb-muted">Sign in to continue</p>
+                <p className="text-sm text-[#64748B]">Sign in to continue</p>
               </div>
 
               <Button
                 type="button"
                 variant="outline"
-                className="h-[54px] w-full rounded-xl border-black/10 bg-white text-sm font-medium text-orb-heading hover:bg-black/[0.03]"
+                className="h-[54px] w-full rounded-xl border-[#E2E8F0] bg-white text-sm font-medium text-[#0F172A] hover:bg-[#F8FAFC]"
                 onClick={() =>
                   toast({
                     title: "Google sign-in unavailable",
@@ -143,9 +149,9 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
               </Button>
 
               <div className="my-6 flex items-center gap-3" aria-hidden="true">
-                <span className="h-px flex-1 bg-black/[0.08]" />
-                <span className="text-xs font-medium text-orb-muted">OR</span>
-                <span className="h-px flex-1 bg-black/[0.08]" />
+                <span className="h-px flex-1 bg-[#E2E8F0]" />
+                <span className="text-xs font-medium text-[#94A3B8]">OR</span>
+                <span className="h-px flex-1 bg-[#E2E8F0]" />
               </div>
             </>
           ) : (
@@ -153,16 +159,16 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
               <button
                 type="button"
                 onClick={backToSignIn}
-                className="flex items-center gap-2 text-[13px] font-medium text-orb-muted transition-colors hover:text-orb-heading"
+                className="flex items-center gap-2 text-[13px] font-medium text-[#64748B] transition-colors hover:text-[#0F172A]"
               >
                 <ArrowLeft size={15} aria-hidden="true" />
                 Back to sign in
               </button>
-              <h1 className="text-[22px] font-semibold tracking-tight text-orb-heading">
+              <h1 className="text-[22px] font-semibold tracking-[-0.01em] text-[#0F172A]">
                 {mode === "signup" ? "Create your account" : "Reset your password"}
               </h1>
               {mode === "forgot" ? (
-                <p className="text-sm leading-relaxed text-orb-muted">
+                <p className="text-sm leading-relaxed text-[#64748B]">
                   Enter your email and we&apos;ll send you a link to reset your password
                 </p>
               ) : null}
@@ -171,11 +177,11 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
 
           <form onSubmit={submit} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-[13px] font-medium text-orb-heading">
+              <Label htmlFor="email" className="text-[13px] font-medium text-[#334155]">
                 Email
               </Label>
               <div className="relative">
-                <Mail size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orb-muted" />
+                <Mail size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
                 <Input
                   id="email"
                   type="email"
@@ -191,11 +197,11 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
 
             {mode === "forgot" ? null : (
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-[13px] font-medium text-orb-heading">
+                <Label htmlFor="password" className="text-[13px] font-medium text-[#334155]">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orb-muted" />
+                  <Lock size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
                   <Input
                     id="password"
                     type="password"
@@ -213,11 +219,11 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
 
             {mode === "signup" ? (
               <div className="space-y-2">
-                <Label htmlFor="confirm" className="text-[13px] font-medium text-orb-heading">
+                <Label htmlFor="confirm" className="text-[13px] font-medium text-[#334155]">
                   Confirm Password
                 </Label>
                 <div className="relative">
-                  <Lock size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orb-muted" />
+                  <Lock size={15} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
                   <Input
                     id="confirm"
                     type="password"
@@ -236,7 +242,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             <Button
               type="submit"
               disabled={busy}
-              className="h-12 w-full rounded-xl bg-[#2f2d2b] text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
+              className="h-12 w-full rounded-xl bg-[#0F172A] text-sm font-semibold text-white hover:bg-[#1E293B] disabled:opacity-50"
             >
               {busy
                 ? "Please wait…"
@@ -252,14 +258,16 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             <div className="mt-5 flex items-center justify-between text-[13px]">
               <button
                 type="button"
-                className="text-orb-muted underline-offset-4 hover:text-orb-heading hover:underline"
+                className="text-[#64748B] underline-offset-4 hover:text-[#0F172A] hover:underline"
                 onClick={() => setMode("forgot")}
               >
                 Forgot password?
               </button>
+              {/* v1.8 (measured): the sign-up link is slate #334155 (the
+                  v1.4 purple link is gone on the live page). */}
               <button
                 type="button"
-                className="font-medium text-orb-purple-deep underline-offset-4 hover:underline"
+                className="font-medium text-[#334155] underline-offset-4 hover:underline"
                 onClick={() => setMode("signup")}
               >
                 Need an account? Sign up
@@ -267,10 +275,6 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             </div>
           ) : null}
         </div>
-
-        <p className="mt-5 text-center text-[13px] text-orb-muted">
-          Demo account — <span className="font-medium text-orb-heading">demo@orbital.app</span> / Demo1234!
-        </p>
       </div>
     </main>
   );

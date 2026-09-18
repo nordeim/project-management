@@ -35,13 +35,21 @@ const TONE_OPTIONS: Array<{ value: Tone; label: string }> = [
   { value: "concise", label: "Concise" },
 ];
 
+/* v1.8 (measured): field controls are 36-38px wells; the input's inset
+   dark leg runs 0.22 alpha (a hairline lighter than the generic 0.24
+   well pair) and pads 9px 14px. */
 const FIELD =
-  "h-[38px] rounded-[10px] border-0 bg-orb-well text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]";
-/* v1.7 (measured): field labels are 12px/600 #6E6E6E; helper text under
-   them renders 11px/400 #9A9A9A. */
-const FIELD_LABEL = "text-[12px] font-semibold text-orb-muted";
+  "h-[38px] w-full rounded-[10px] border-0 bg-orb-well px-[14px] text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.22)]";
+const FIELD_SELECT =
+  "h-[36px] w-full rounded-[10px] border-0 bg-orb-well text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.22)]";
+/* v1.8 (measured): field labels are 12px/600 #6E6E6E with 0.48px
+   tracking; helper text 11px/400 #9A9A9A. */
+const FIELD_LABEL = "text-[12px] font-semibold tracking-[0.04em] text-orb-muted";
 const FIELD_HINT = "text-[11px] font-normal text-[#9A9A9A]";
 const FIELD_SUB_LABEL = "text-[11px] font-medium text-[#9A9A9A]";
+/* v1.8 (measured): section headings (Workspace / Working Hours / AI
+   Assistant) are 13px/600 #3A3A3A with 0.52px tracking. */
+const SECTION_HEADING = "text-[13px] font-semibold tracking-[0.04em] text-orb-heading";
 
 function hourOptions(): string[] {
   return Array.from({ length: 25 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
@@ -73,7 +81,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
         {/* Left column: Workspace + Working Hours */}
         <div className="space-y-4">
           <section className="orb-panel p-[22px_24px]" aria-label="Workspace">
-            <h2 className="text-[13px] font-semibold text-orb-heading">Workspace</h2>
+            <h2 className={SECTION_HEADING}>Workspace</h2>
 
             <div className="mt-5 space-y-2">
               <Label htmlFor="workspace-name" className={FIELD_LABEL}>
@@ -91,7 +99,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
           </section>
 
           <section className="orb-panel p-[22px_24px]" aria-label="Working hours">
-            <h2 className="text-[13px] font-semibold text-orb-heading">Working Hours</h2>
+            <h2 className={SECTION_HEADING}>Working Hours</h2>
 
             <div className="mt-5 space-y-4">
               {/* Reference (v1.6, measured): the "Active Window" sub-header
@@ -104,7 +112,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
                     Start
                   </Label>
                   <Select value={workStart} onValueChange={setWorkStart}>
-                    <SelectTrigger id="work-start" className={FIELD}>
+                    <SelectTrigger id="work-start" className={FIELD_SELECT}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -121,7 +129,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
                     End
                   </Label>
                   <Select value={workEnd} onValueChange={setWorkEnd}>
-                    <SelectTrigger id="work-end" className={FIELD}>
+                    <SelectTrigger id="work-end" className={FIELD_SELECT}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -140,14 +148,14 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
 
         {/* Right column: AI Assistant */}
         <section className="orb-panel p-[22px_24px]" aria-label="AI assistant">
-          <h2 className="text-[13px] font-semibold text-orb-heading">AI Assistant</h2>
+          <h2 className={SECTION_HEADING}>AI Assistant</h2>
 
           <div className="mt-5 space-y-5">
             <div className="space-y-2">
               <Label className={FIELD_LABEL}>Ping Frequency</Label>
               <p className={FIELD_HINT}>How often the AI checks in with team members</p>
               <Select value={pingFrequency} onValueChange={(v) => setPingFrequency(v as Frequency)}>
-                <SelectTrigger className={`${FIELD} w-full`}>
+                <SelectTrigger className={FIELD_SELECT}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -163,7 +171,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
             <div className="space-y-2">
               <Label className={FIELD_LABEL}>AI Tone</Label>
               <Select value={aiTone} onValueChange={(v) => setAiTone(v as Tone)}>
-                <SelectTrigger className={`${FIELD} w-full`}>
+                <SelectTrigger className={FIELD_SELECT}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -180,7 +188,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Button type="button" className="orb-pill-outline" disabled={saving} onClick={() => void save()}>
+        <Button type="button" className="orb-pill-outline orb-pill-compact" disabled={saving} onClick={() => void save()}>
           <Save size={14} aria-hidden="true" />
           {saving ? "Saving…" : "Save Settings"}
         </Button>
@@ -195,7 +203,7 @@ export function SettingsView() {
   return (
     <div className="w-full">
       <header>
-        <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">Settings</h1>
+        <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Settings</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Configure your AI assistant and workspace</p>
       </header>
 

@@ -1,10 +1,12 @@
 "use client";
 
-// Sidebar clock: the reference app's neumorphic analog clock — white face,
-// soft inner shadow, thin dark hands, no numerals. Reads the wall clock
-// through useSyncExternalStore (15s buckets) so there is no setState-in-
-// effect and no hydration mismatch: the server snapshot renders 00:00 and
-// the client corrects on the first paint after hydration.
+// Sidebar clock: the reference app's neumorphic analog clock (v1.8,
+// re-measured) — the SVG fills the full 80px well and carries THREE hands
+// in graded grays: hour 2.5px×19px #5A5A5A, minute 1.8px×26px #8A8A8A and
+// a thin 1px×30px #B8B4B0 second hand, around a #2F2823 center dot. Reads
+// the wall clock through useSyncExternalStore (15s buckets) so there is no
+// setState-in-effect and no hydration mismatch: the server snapshot renders
+// 00:00 and the client corrects on the first paint after hydration.
 
 import { useSyncExternalStore } from "react";
 
@@ -29,8 +31,17 @@ export function SidebarClock({ size = 80 }: { size?: number }) {
 
   const hours = now ? now.getHours() % 12 : 0;
   const minutes = now ? now.getMinutes() : 0;
+  const seconds = now ? now.getSeconds() : 0;
   const hourAngle = (hours + minutes / 60) * 30; // 30° per hour
-  const minuteAngle = minutes * 6; // 6° per minute
+  const minuteAngle = (minutes + seconds / 60) * 6; // 6° per minute
+  const secondAngle = seconds * 6; // 6° per second
+
+  // Hand geometry scales with the face (80px reference: center 40, hour 19,
+  // minute 26, second 30 — measured on the live app).
+  const c = size / 2;
+  const hourLen = size * (19 / 80);
+  const minuteLen = size * (26 / 80);
+  const secondLen = size * (30 / 80);
 
   return (
     <div
@@ -39,31 +50,39 @@ export function SidebarClock({ size = 80 }: { size?: number }) {
       role="img"
       aria-label={now ? `Current time ${now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Clock"}
     >
-      <svg width={Math.round(size * 0.72)} height={Math.round(size * 0.72)} viewBox="0 0 52 52" fill="none" aria-hidden="true">
-        {/* face */}
-        <circle cx="26" cy="26" r="24" fill="#EBE7E2" stroke="rgba(47,40,35,0.06)" strokeWidth="1" />
-        {/* hands (no numerals, no ticks — reference style) */}
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" aria-hidden="true">
+        {/* Three graded hands (v1.8, measured) — no numerals, no ticks. */}
         <line
-          x1="26"
-          y1="26"
-          x2="26"
-          y2="15"
-          stroke="#2F2823"
-          strokeWidth="2.6"
+          x1={c}
+          y1={c}
+          x2={c}
+          y2={c - hourLen}
+          stroke="#5A5A5A"
+          strokeWidth={size * (2.5 / 80)}
           strokeLinecap="round"
-          transform={`rotate(${hourAngle} 26 26)`}
+          transform={`rotate(${hourAngle} ${c} ${c})`}
         />
         <line
-          x1="26"
-          y1="26"
-          x2="26"
-          y2="10"
-          stroke="#2F2823"
-          strokeWidth="1.8"
+          x1={c}
+          y1={c}
+          x2={c}
+          y2={c - minuteLen}
+          stroke="#8A8A8A"
+          strokeWidth={size * (1.8 / 80)}
           strokeLinecap="round"
-          transform={`rotate(${minuteAngle} 26 26)`}
+          transform={`rotate(${minuteAngle} ${c} ${c})`}
         />
-        <circle cx="26" cy="26" r="1.9" fill="#2F2823" />
+        <line
+          x1={c}
+          y1={c}
+          x2={c}
+          y2={c - secondLen}
+          stroke="#B8B4B0"
+          strokeWidth={size * (1 / 80)}
+          strokeLinecap="round"
+          transform={`rotate(${secondAngle} ${c} ${c})`}
+        />
+        <circle cx={c} cy={c} r={size * (2.2 / 80)} fill="#2F2823" />
       </svg>
     </div>
   );

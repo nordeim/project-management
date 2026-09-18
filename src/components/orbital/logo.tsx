@@ -10,20 +10,34 @@ export interface Dot {
   cy: number;
 }
 
-/** Six points on a circle of r=14 centered at (20,20), starting at 12 o'clock. */
+/** Six points on a circle of r=24.8 centered at (20,20), starting at 12
+ * o'clock. v1.8: re-measured on the live app — the 11px mark carries
+ * ~3.5px dots on a 6.82px ring that OVERFLOWS the box (proportions
+ * 0.62 ring / 0.16 dot radius), not the v1.3 in-box ring. */
 export function ringDotPositions(): Dot[] {
   return Array.from({ length: 6 }, (_, i) => {
     const angle = (-90 + i * 60) * (Math.PI / 180);
-    return { cx: 20 + 14 * Math.cos(angle), cy: 20 + 14 * Math.sin(angle) };
+    return { cx: 20 + 24.8 * Math.cos(angle), cy: 20 + 24.8 * Math.sin(angle) };
   });
 }
 
-/** Six points stacked 1-2-3 (pyramid) centered on (20,20). */
+/** Dot radius for the login pyramid, scaled from the live app's logo SVG
+ * (Frame24.svg: r=82.6552 on a 1200-unit canvas → 2.7552 on 40). */
+export const PYRAMID_DOT_R = 2.7552;
+
+/** Ring-mark dot radius: 0.16 of the 40-unit box (measured 1.76px on the
+ * live app's 11px mark → 3.52px dots, clearly visible at small sizes). */
+export const RING_DOT_R = 6.4;
+
+/** Six points stacked 1-2-3 (pyramid) centered on (20,20). v1.8: the
+ * coordinates are scaled 1:30 from the live app's actual logo SVG
+ * (media.base44.com Frame24.svg, fetched 2026-09-18) — row 1 at y≈10.09,
+ * rows ~9.27 apart, row-2 dots ±11.01 from the axis, row-3 ±22.01. */
 export function pyramidDotPositions(): Dot[] {
   const rows = [
-    { y: 8, xs: [20] },
-    { y: 20, xs: [13, 27] },
-    { y: 32, xs: [6, 20, 34] },
+    { y: 10.0892, xs: [19.9837] },
+    { y: 19.3576, xs: [14.4733, 25.494] },
+    { y: 28.3254, xs: [8.9715, 19.9837, 30.9959] },
   ];
   const dots: Dot[] = [];
   for (const row of rows) {
@@ -35,33 +49,38 @@ export function pyramidDotPositions(): Dot[] {
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
   const dots = ringDotPositions();
   return (
+    // v1.8: overflow-visible so the out-of-box ring renders like the live
+    // mark (the dots extend past the nominal 40-unit square).
     <svg
       width={size}
       height={size}
       viewBox="0 0 40 40"
       fill="none"
       aria-hidden="true"
-      className={className}
+      className={`overflow-visible ${className ?? ""}`}
     >
       {dots.map((d, i) => (
-        <circle key={i} cx={d.cx} cy={d.cy} r={2.8} fill="#996CE4" />
+        <circle key={i} cx={d.cx} cy={d.cy} r={RING_DOT_R} fill="#996CE4" />
       ))}
     </svg>
   );
 }
 
-/** Login-card mark: the 1-2-3 dot pyramid in a white circle. */
-export function LogoPyramid({ size = 44, className }: { size?: number; className?: string }) {
+/** Login-card mark (v1.8, measured): a 96px white circle carrying the
+ * 1-2-3 dot pyramid at the live app's proportions — the SVG fills the
+ * full circle (dots ≈13.75% of the mark, like Frame24.svg), not an inner
+ * 62% box. */
+export function LogoPyramid({ size = 96, className }: { size?: number; className?: string }) {
   const dots = pyramidDotPositions();
   return (
     <span
-      className={`flex items-center justify-center rounded-full border border-black/[0.06] bg-white shadow-[0_1px_3px_rgba(47,40,35,0.08)] ${className ?? ""}`}
+      className={`flex items-center justify-center rounded-full bg-white shadow-[0_10px_30px_-12px_rgba(15,23,42,0.25)] ${className ?? ""}`}
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
-      <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 40 40" fill="none">
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
         {dots.map((d, i) => (
-          <circle key={i} cx={d.cx} cy={d.cy} r={3.1} fill="#996CE4" />
+          <circle key={i} cx={d.cx} cy={d.cy} r={PYRAMID_DOT_R} fill="#996CE4" />
         ))}
       </svg>
     </span>

@@ -1,11 +1,13 @@
 "use client";
 
 // New Goal: a three-step conversational wizard like the reference app.
-// Step 1 — the AI assistant bubble + goal details form (title, description,
-// target date). Step 2 — the agent asks up to three clarifying questions
-// (LLM-backed with deterministic fallback on the server) with optional
-// answers. Step 3 — the agent generates the task plan, then hands off to
-// the goal detail page.
+// v1.8 (re-measured): the dialog is 624px at radius 16 with 22/24 padding.
+// Step 1 opens DIRECTLY on the "Goal Details" form (13px/600 #3A3A3A section
+// heading, 12px/600 #6E6E6E Title-Case field labels) — no bot intro on this
+// step — with CANCEL + CONTINUE (dark pill + 13px sparkles icon) grouped on
+// the LEFT. Step 2 shows the agent bubble ("Great! Before I break this into
+// tasks, I have a few questions:") beside the bot avatar, the clarifying
+// questions, and BACK + GENERATE TASKS grouped left. Step 3 — generation.
 
 import { useState } from "react";
 import { ArrowLeft, Bot, Loader2, Sparkles } from "lucide-react";
@@ -108,82 +110,76 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         if (!next) reset();
       }}
     >
-      <DialogContent className="p-0 overflow-hidden">
+      {/* v1.8 (measured): 624px / radius 16 / pad 22px 24px — the wizard is
+          wider than the 500px form-dialog base. */}
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto p-[22px_24px] sm:max-w-[624px]">
         <DialogHeader className="sr-only">
           <DialogTitle>Create a new goal</DialogTitle>
         </DialogHeader>
 
         {step === "details" ? (
-          <div className="p-6 sm:p-7">
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_1px_3px_rgba(47,40,35,0.10)]" aria-hidden="true">
-                <Bot size={18} className="text-orb-purple-deep" />
-              </span>
-              <div className="rounded-2xl rounded-tl-sm bg-orb-inset/80 px-4 py-3">
-                <p className="text-[14px] leading-relaxed text-orb-body">
-                  Tell me about your goal. What do you want to achieve? I&apos;ll ask a few questions
-                  before creating a plan.
-                </p>
-              </div>
+          // v1.8 (measured): step 1 opens directly on the form — no bot
+          // intro bubble, no visible title. Section heading 13px/600
+          // #3A3A3A; field labels 12px/600 #6E6E6E in Title Case.
+          <form onSubmit={continueToQuestions} className="space-y-4">
+            <p className="text-[13px] font-semibold text-orb-heading">Goal Details</p>
+            <div className="space-y-2">
+              <Label htmlFor="goal-title" className="text-[12px] font-semibold text-orb-muted">
+                Goal Title
+              </Label>
+              <Input
+                id="goal-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Launch new landing page by end of month"
+                required
+                maxLength={200}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="goal-description" className="text-[12px] font-semibold text-orb-muted">
+                Description <span className="font-normal">(optional)</span>
+              </Label>
+              <Textarea
+                id="goal-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add more context about what success looks like..."
+                rows={3}
+                maxLength={1000}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="goal-target" className="text-[12px] font-semibold text-orb-muted">
+                Target Date
+              </Label>
+              <DatePicker value={targetDate} onChange={setTargetDate} disabled={busy} ariaLabel="Pick a deadline" />
             </div>
 
-            <form onSubmit={continueToQuestions} className="mt-6 space-y-4">
-              <p className="orb-label">Goal Details</p>
-              <div className="space-y-2">
-                <Label htmlFor="goal-title" className="orb-label">
-                  Goal Title
-                </Label>
-                <Input
-                  id="goal-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Launch new landing page by end of month"
-                  required
-                  maxLength={200}
-                  className=""
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="goal-description" className="orb-label">
-                  Description <span className="normal-case tracking-normal">(optional)</span>
-                </Label>
-                <Textarea
-                  id="goal-description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add more context about what success looks like..."
-                  rows={3}
-                  maxLength={1000}
-                  className=""
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="goal-target" className="orb-label">
-                  Target Date
-                </Label>
-                <DatePicker value={targetDate} onChange={setTargetDate} disabled={busy} ariaLabel="Pick a deadline" />
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  className="orb-btn-cancel"
-                  onClick={() => onOpenChange(false)}
-                  disabled={busy}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
-                  {busy ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Continue
-                </Button>
-              </div>
-            </form>
-          </div>
+            {/* v1.8 (measured): CANCEL + CONTINUE grouped LEFT with a 10px
+                gap; CONTINUE carries a 13px sparkles glyph and keeps the
+                dark fill while disabled. */}
+            <div className="flex items-center gap-2.5 pt-2">
+              <Button
+                type="button"
+                className="orb-btn-cancel"
+                onClick={() => onOpenChange(false)}
+                disabled={busy}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
+                {busy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} aria-hidden="true" />}
+                Continue
+              </Button>
+            </div>
+          </form>
         ) : null}
 
         {step === "questions" ? (
-          <div className="p-6 sm:p-7">
+          <div className="space-y-5">
+            {/* v1.8 (measured): the agent speaks in a rounded bubble beside
+                the bot avatar — the conversational chrome starts at step 2. */}
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_1px_3px_rgba(47,40,35,0.10)]" aria-hidden="true">
                 <Bot size={18} className="text-orb-purple-deep" />
@@ -195,8 +191,10 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               </div>
             </div>
 
-            <div className="mt-6 space-y-5">
-              <p className="orb-label">Clarifying Questions</p>
+            <div className="space-y-5">
+              {/* v1.8 (measured): Title Case 13px/600 #3A3A3A — not the
+                  uppercase label tier. */}
+              <p className="text-[13px] font-semibold text-orb-heading">Clarifying Questions</p>
               {questions.map((question, index) => (
                 <div key={index} className="space-y-2">
                   <p className="text-[14px] font-medium leading-relaxed text-orb-body" id={`clarify-q-${index}`}>
@@ -211,19 +209,18 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                     placeholder="Your answer..."
                     rows={2}
                     maxLength={500}
-                    className=""
                   />
                 </div>
               ))}
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-2.5 pt-2">
                 <Button
                   type="button"
                   className="orb-btn-cancel"
                   onClick={backToDetails}
                   disabled={busy}
                 >
-                  <ArrowLeft size={14} aria-hidden="true" />
+                  <ArrowLeft size={13} aria-hidden="true" />
                   Back
                 </Button>
                 <Button
@@ -232,7 +229,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                   onClick={() => void generate()}
                   disabled={busy}
                 >
-                  {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} aria-hidden="true" />}
+                  {busy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} aria-hidden="true" />}
                   Generate Tasks
                 </Button>
               </div>
