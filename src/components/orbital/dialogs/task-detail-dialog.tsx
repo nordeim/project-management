@@ -50,7 +50,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
         </div>
 
         {task.description ? (
-          <p className="rounded-2xl bg-orb-inset/60 p-4 text-[13.5px] leading-relaxed text-orb-body">
+          <p className="rounded-2xl bg-orb-inset/60 p-4 text-[13px] leading-relaxed text-orb-muted">
             {task.description}
           </p>
         ) : null}
@@ -102,7 +102,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
             disabled={!status || busy}
             onClick={() => void submit()}
           >
-            {busy ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} aria-hidden="true" />}
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} aria-hidden="true" className="mr-[4px]" />}
             Post Update
           </button>
         </div>

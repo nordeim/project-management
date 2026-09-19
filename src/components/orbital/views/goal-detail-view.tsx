@@ -38,7 +38,7 @@ export function GoalDetailView() {
 
   if (!goal) {
     return (
-      <div className="w-full">
+      <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
         <EmptyState
           icon={<ArrowLeft size={22} color="#B3B3B3" />}
           title="Goal not found"
@@ -57,7 +57,7 @@ export function GoalDetailView() {
   const pct = goal.taskCount > 0 ? Math.round((goal.doneCount / goal.taskCount) * 100) : 0;
 
   return (
-    <div className="w-full">
+    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
       <button
         type="button"
         onClick={() => navigate("goals")}

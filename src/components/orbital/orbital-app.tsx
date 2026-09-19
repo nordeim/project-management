@@ -153,8 +153,11 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             <UserMenuOrLogin compact />
           </header>
           {/* v1.8: mobile content starts 28px below the 62px app bar
-              (measured hero-card top at y=90 on the live app). */}
-          <main className="orb-scroll relative z-[1] flex min-w-0 flex-1 flex-col overflow-y-auto px-[22px] pb-24 pt-3 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-6">
+              (measured hero-card top at y=90 on the live app).
+              v2.1 (WS-6.1, measured live mobile shell): main pad
+              16px 6px 90px — horizontal split moved to the per-view
+              containers (dashboard wrapper px-16, list views px-3). */}
+          <main className="orb-scroll relative z-[1] flex min-w-0 flex-1 flex-col overflow-y-auto px-[6px] pb-[90px] pt-4 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-6">
             {/* Content clamp (reference, v1.5): every view renders inside a
                 max-width 1200px column — the main area itself stays fluid.
                 v1.8: flex-1 + min-h-0 so the column is exactly the scroll

@@ -66,10 +66,13 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           // v2.0 (measured): standard form panels are radius 20 with pad
-          // 28/28/24 and carry ONLY the neumorphic -8px pair (depth comes
-          // from the blurred scrim, not a drop shadow). The check-in modal
-          // (448/r16/p24) and the wizard (680/r24) override via className.
-          "bg-orb-raised data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-[20px] border-0 p-[28px_28px_24px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)] duration-200 sm:max-w-[500px]",
+          // 28/28/24. v2.1 (measured): live dialog panels carry NO
+          // box-shadow — depth comes from the blurred scrim only (the
+          // -8px pair measured box-shadow: none on every live panel:
+          // add-task/goal-edit/task-edit/check-in/invite/wizard). The
+          // check-in modal (448/r16/p24) and the wizard (680/r24)
+          // override via className.
+          "bg-orb-raised data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-[20px] border-0 p-[28px_28px_24px] duration-200 sm:max-w-[500px]",
           className
         )}
         {...props}

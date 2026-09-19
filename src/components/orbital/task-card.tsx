@@ -51,7 +51,8 @@ export function TaskCard({
         )}
         aria-label={`Open task ${task.title}, status ${meta.label}`}
       >
-        <div className="flex flex-wrap items-center gap-2">
+        {/* v2.1 (measured): chip row → title gap 6px; title mb 4. */}
+        <div className="mb-[6px] flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-orb-muted">
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: meta.dot }} aria-hidden="true" />
             {meta.label}
@@ -60,7 +61,7 @@ export function TaskCard({
         </div>
         <h4
           className={cn(
-            "mb-[5px] text-[14px] font-medium leading-[1.3]",
+            "mb-[4px] text-[14px] font-medium leading-[1.3]",
             task.status === "blocked" ? "text-orb-coral-deep" : "text-orb-heading",
           )}
         >

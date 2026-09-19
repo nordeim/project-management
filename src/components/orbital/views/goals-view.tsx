@@ -57,7 +57,105 @@ function GoalCard({
     // Reference (v1.6, measured): deeper-tier card (radius 16) with NO outer
     // padding — the content splits into a left column (p 18px 20px) and a
     // 120px right column (p 18px 16px) holding the 42px percentage.
-    <div className="orb-goal-card flex w-full items-stretch text-left transition-transform hover:-translate-y-0.5">
+    // v2.1 (measured live mobile): below lg the card is a COMPACT
+    // single-column layout — chip + 13px pct top row, full-width 16px
+    // title, 6px track, meta row (fraction left; date + actions right),
+    // pad 14px 16px (card h 136 for the seed goal).
+    <div className="orb-goal-card w-full text-left transition-transform hover:-translate-y-0.5">
+      {/* ---- MOBILE (below lg): compact card ---- */}
+      <button
+        type="button"
+        onClick={() => navigate("goal-detail", goal.id)}
+        className="block w-full p-[14px_16px] text-left lg:hidden"
+        aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-[5px] rounded-full bg-orb-well px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.8),inset_2px_2px_5px_rgba(160,143,126,0.24)]">
+            {/* v2.1 (measured live mobile): the pip is STATUS-COLORED here
+                (active = green #2ECC8A, others = the light purple) — unlike
+                the desktop chip's always-purple pip. */}
+            <span
+              className="h-[7px] w-[7px] rounded-full"
+              style={{ backgroundColor: goal.status === "active" ? "#2ECC8A" : "#C9B3F5" }}
+              aria-hidden="true"
+            />
+            {meta.label}
+            {goal.blockedCount > 0 && goal.status === "active" ? (
+              <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
+            ) : null}
+          </span>
+          <span className="text-[13px] font-medium text-orb-heading">{pct}%</span>
+        </div>
+        <p className="mb-3 mt-[8px] truncate text-[16px] font-medium leading-[1.31] text-orb-heading">{goal.title}</p>
+        <div
+          className="mb-[10px] h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${goal.title} progress`}
+        >
+          <div
+            className="h-full rounded-full bg-orb-green transition-[width] duration-700"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] text-orb-muted">
+            {goal.doneCount}/{goal.taskCount} tasks
+          </p>
+          <div className="flex items-center gap-2">
+            {goal.targetDate ? <p className="text-[12px] text-[#767676]">{formatDate(goal.targetDate)}</p> : null}
+            {confirming ? (
+              <div
+                className="flex items-center gap-2 rounded-[10px] bg-orb-raised px-2 py-1"
+                role="group"
+                aria-label={`Confirm delete ${goal.title}`}
+              >
+                <span className="text-[12px] text-orb-muted">Delete?</span>
+                <button
+                  type="button"
+                  onClick={() => void confirmDelete()}
+                  disabled={deleting}
+                  className="h-7 rounded-full bg-orb-coral-deep px-3 text-[12px] font-semibold text-white transition-colors hover:bg-orb-coral-deep/90 disabled:opacity-50"
+                >
+                  {deleting ? "…" : "Delete"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirming(false)}
+                  disabled={deleting}
+                  className="h-7 px-1 text-[12px] font-medium text-orb-muted transition-colors hover:text-orb-heading disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-[2px]">
+                <button
+                  type="button"
+                  onClick={() => onEdit(goal)}
+                  className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-heading"
+                  aria-label={`Edit goal ${goal.title}`}
+                >
+                  <Pencil size={13} strokeWidth={1.8} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirming(true)}
+                  className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-coral-deep"
+                  aria-label={`Delete goal ${goal.title}`}
+                >
+                  <Trash2 size={13} strokeWidth={1.8} />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </button>
+
+      {/* ---- DESKTOP (lg and up): two-column card ---- */}
+      <div className="hidden w-full items-stretch lg:flex">
       <button
         type="button"
         onClick={() => navigate("goal-detail", goal.id)}
@@ -157,6 +255,7 @@ function GoalCard({
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 }
@@ -180,8 +279,11 @@ export function GoalsView() {
   );
 
   return (
-    <div className="w-full">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
+      {/* v2.1 (measured): the live's header row is items-START — the
+          New Goal pill top-aligns with the h1 (y 48), not centered
+          against the h1+subtitle block. */}
+      <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Goals</h1>
           <p className="mt-1 text-[14px] text-orb-muted">Manage your team objectives</p>
@@ -199,7 +301,7 @@ export function GoalsView() {
         </button>
       </header>
 
-      <div className="mt-[22px] flex flex-wrap items-center gap-2" role="group" aria-label="Filter goals by status">
+      <div className="mt-[22px] flex items-center gap-2" role="group" aria-label="Filter goals by status">
         {FILTERS.map((f) => {
           const count = counts.get(f.id) ?? 0;
           const active = filter === f.id;
@@ -212,7 +314,7 @@ export function GoalsView() {
               className={cn(
                 // v1.7 (measured): ls 0.72px, 600 weight on every state,
                 // py 7px px 14px; the active chip keeps the inset well.
-                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] transition-colors",
+                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] whitespace-nowrap shrink-0 transition-colors",
                 active
                   ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
                   : "text-orb-muted hover:text-orb-heading",
@@ -226,7 +328,9 @@ export function GoalsView() {
 
       {/* v2.0 (measured): the live's chip wrapper (invisible pad-2 box) ends
           at 163 and the first card starts at 187 — a 24px gap. */}
-      <div className="mt-[24px] space-y-3">
+      {/* v2.1 (measured): the live's 2px-padded filter wrapper adds 2px
+          below the chips row — cards land at y 186.6. */}
+      <div className="mt-[26px] space-y-3">
         {visible.length === 0 ? (
           <EmptyState
             icon={<Plus size={22} color="#B3B3B3" />}

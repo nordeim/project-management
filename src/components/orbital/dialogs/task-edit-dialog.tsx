@@ -63,7 +63,8 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
 
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent>
+      {/* v2.1 (measured): task-edit scrim is 0.3 (form dialogs). */}
+      <DialogContent overlayClassName="bg-[rgba(46,42,38,0.3)]">
         <DialogHeader>
           <DialogTitle className="text-[15px] font-semibold text-orb-heading">Edit Task</DialogTitle>
         </DialogHeader>
@@ -93,7 +94,7 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               maxLength={1000}
-              className=""
+              className="min-h-[72px]"
             />
           </div>
 
@@ -122,7 +123,7 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className=""
+                className="h-[38px]"
               />
             </div>
           </div>
@@ -170,7 +171,16 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-btn-submit" disabled={busy || !title.trim()}>
+            {/* v2.1 (measured): the live's task-edit submit reads "Save
+                Changes" at pad 8/22 (w 124.9) — wider than goal-edit's
+                "Save" (8/20). Inline style: unlayered .orb-btn-submit
+                padding beats Tailwind px utilities. */}
+            <Button
+              type="submit"
+              className="orb-btn-submit"
+              style={{ paddingLeft: 22, paddingRight: 22 }}
+              disabled={busy || !title.trim()}
+            >
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               Save Changes
             </Button>

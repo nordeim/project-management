@@ -215,7 +215,7 @@ export function SettingsView() {
   const settings = useOrbital((s) => s.settings);
 
   return (
-    <div className="w-full">
+    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
       <header>
         <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Settings</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Configure your AI assistant and workspace</p>

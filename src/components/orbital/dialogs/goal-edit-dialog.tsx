@@ -56,7 +56,8 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
 
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="sm:max-w-[480px]">
+      {/* v2.1 (measured): goal-edit scrim is 0.3 (form dialogs). */}
+      <DialogContent className="sm:max-w-[480px]" overlayClassName="bg-[rgba(46,42,38,0.3)]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[15px] font-semibold text-orb-heading">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05]" aria-hidden="true">
@@ -91,7 +92,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               maxLength={1000}
-              className=""
+              className="min-h-[72px]"
             />
           </div>
 
@@ -120,7 +121,7 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
                 type="date"
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
-                className=""
+                className="h-[38px]"
               />
             </div>
           </div>
@@ -134,9 +135,11 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
             >
               Cancel
             </Button>
+            {/* v2.1 (measured): the live's goal-edit submit reads "Save"
+                (w 67.5, pad 8/20). */}
             <Button type="submit" className="orb-btn-submit" disabled={busy || !title.trim()}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
-              Save Changes
+              Save
             </Button>
           </div>
         </form>

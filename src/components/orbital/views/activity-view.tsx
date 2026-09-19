@@ -52,7 +52,7 @@ export function ActivityView() {
   const groups = useMemo(() => groupActivityByDate(activity.slice(1)), [activity]);
 
   return (
-    <div className="w-full">
+    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
       {/* v1.8 (measured): the online pill aligns with the h1 top (y=48) —
           items-start on the header row. */}
       <header className="flex flex-wrap items-start justify-between gap-3">

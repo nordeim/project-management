@@ -43,7 +43,7 @@ export function MyTasksView() {
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
       <header>
         <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">My Tasks</h1>
         <p className="mt-1 text-[14px] text-orb-muted">
@@ -51,7 +51,7 @@ export function MyTasksView() {
         </p>
       </header>
 
-      <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label="Filter my tasks by status">
+      <div className="mt-6 flex gap-2" role="group" aria-label="Filter my tasks by status">
         {FILTERS.map((f) => {
           const count = counts.get(f.id) ?? 0;
           const active = filter === f.id;
@@ -64,7 +64,7 @@ export function MyTasksView() {
               className={cn(
                 // v1.7 (measured): ls 0.72px, 600 weight on every state,
                 // py 7px px 14px; the active chip keeps the inset well.
-                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] transition-colors",
+                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] whitespace-nowrap shrink-0 transition-colors",
                 active
                   ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
                   : "text-orb-muted hover:text-orb-heading",

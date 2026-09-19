@@ -77,6 +77,10 @@ function StatColumn({
     // block, label mb-10, an 88px number box, sub mt-4 (~157px column
     // that the panel centers). The display:none variant is skipped by
     // screen readers, so the wording swap is a11y-clean.
+    // v2.1 (measured side-by-side): the number box is a WELL square —
+    // bg orb-well + the 3px inset pair (light TL, dark BR). Mobile
+    // 104×104 r10; desktop 88×88 r12. Mobile numerals 30px/400
+    // (desktop keeps 300 — clamp floor raised 28 → 30).
     <button
       type="button"
       onClick={onClick}
@@ -87,8 +91,8 @@ function StatColumn({
           <span className="sm:hidden">{labelShort}</span>
           <span className="hidden sm:inline">{label}</span>
         </p>
-        <div className="flex h-[104px] w-full items-center justify-center sm:h-[88px]">
-          <span className="text-[clamp(28px,3.5vw,52px)] font-light leading-none tracking-[-0.03em] text-orb-heading">
+        <div className="flex h-[104px] w-[104px] items-center justify-center rounded-[10px] bg-orb-well shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] sm:h-[88px] sm:w-[88px] sm:rounded-[12px]">
+          <span className="text-[clamp(30px,3.5vw,52px)] font-normal leading-none tracking-[-0.03em] text-orb-heading sm:font-light">
             {value}
           </span>
         </div>
@@ -132,7 +136,7 @@ export function DashboardView() {
   const nextPlanned = useMemo(() => nextPlannedAction(activity), [activity]);
 
   return (
-    <div className="w-full lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+    <div className="w-full px-[16px] pb-3 pt-3 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:px-0 lg:pt-0">
       {/* Desktop header (reference, v1.6 mobile measurement: the greeting
           header is replaced by the shell's mobile app bar below lg). */}
       <header className="hidden flex-wrap items-start justify-between gap-4 lg:flex">
@@ -155,9 +159,11 @@ export function DashboardView() {
 
       {/* v1.8 (measured): ONE grid — top row 180px (date+ring | stats),
           bottom row 1fr so both panels stretch to the viewport bottom on
-          desktop. Below lg the rows stack at content height. */}
+          desktop. Below lg the rows stack at content height. v2.1 (WS-6.2):
+          mobile top margin comes from the root wrapper's pt-3; desktop
+          keeps mt-5. */}
       <section
-        className="mt-4 grid flex-1 grid-cols-1 gap-5 lg:mt-5 lg:min-h-0 lg:grid-cols-2 lg:grid-rows-[180px_minmax(0,1fr)]"
+        className="grid flex-1 grid-cols-1 gap-5 lg:mt-5 lg:min-h-0 lg:grid-cols-2 lg:grid-rows-[180px_minmax(0,1fr)]"
         aria-label="Overview"
       >
         {/* Top-left cell: date card + ring side by side (150px mobile). */}

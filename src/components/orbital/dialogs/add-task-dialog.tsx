@@ -82,7 +82,9 @@ export function AddTaskDialog({
         if (!next) reset();
       }}
     >
-      <DialogContent>
+      {/* v2.1 (measured): add-task scrim is 0.3 (form dialogs), not the
+          0.25 default. */}
+      <DialogContent overlayClassName="bg-[rgba(46,42,38,0.3)]">
         <DialogHeader>
           <DialogTitle className="text-[15px] font-semibold text-orb-heading">Add Task</DialogTitle>
         </DialogHeader>
@@ -114,7 +116,7 @@ export function AddTaskDialog({
               placeholder="Optional description"
               rows={3}
               maxLength={1000}
-              className="min-h-[72px] text-[13px]"
+              className="min-h-[72px]"
             />
           </div>
 
@@ -143,7 +145,7 @@ export function AddTaskDialog({
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className=""
+                className="h-[38px]"
               />
             </div>
           </div>
@@ -192,7 +194,16 @@ export function AddTaskDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-btn-submit" disabled={busy || !title.trim()}>
+            {/* v2.1 (measured): the add-task submit pill is pad 8/22 (w 96.5)
+                — one step wider than the Save pills (8/20). Inline style:
+                the unlayered .orb-btn-submit padding beats Tailwind px
+                utilities in the cascade. */}
+            <Button
+              type="submit"
+              className="orb-btn-submit"
+              style={{ paddingLeft: 22, paddingRight: 22 }}
+              disabled={busy || !title.trim()}
+            >
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               Add Task
             </Button>

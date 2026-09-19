@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.0
+# ORBITAL — Master Project Architecture Document (PAD) v2.1
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,19 @@
 **Last Updated:** 2026-09-19
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.1
+
+- `[MOD]` **Dashboard stat numerals sit in WELL squares** (the v2.0 crawl read the box as transparent): 88×88 `bg-orb-well` r12 desktop / 104×104 r10 mobile with the 3px inset pair `rgba(255,250,244,0.68) -3px -3px 6px / rgba(160,143,126,0.24) 3px 3px 6px` — and mobile numerals are 30px/400 (the clamp floor was raised 28 → 30; desktop stays 50.4/300).
+- `[MOD]` **Dialog panels carry NO box-shadow** — measured `box-shadow: none` on every live panel (add-task 500 / goal-edit 480 / check-in 448 / invite 384 / wizard 680); depth comes from the blurred scrim alone. The `-8px` pair was removed from the base `DialogContent`. **Scrims are per-kind: 0.3 for add-task / goal-edit / task-edit / wizard; 0.25 for check-in / invite** (the live's closed dialogs leave stale 0.3 scrim divs mounted — the check-in's own scrim is the LAST one; probe all scrims and take the newest when re-measuring).
+- `[MOD]` **Standard-dialog control spec**: select triggers h35 pad 8/12 (base `SelectTrigger`; settings passes `size="sm"` + its own px so it is unaffected); date inputs h38; textareas 13px pad 8/12 with min-h 72 on goal-edit/task-edit/add-task (base `Textarea`; the check-in's bordered textarea keeps its own spec); text/number inputs h36.
+- `[MOD]` **Submit pill spec**: add-task "Add Task" and task-edit "Save Changes" render pad 8/22 (w 96.5/124.9) — applied via INLINE STYLE because the unlayered `.orb-btn-submit` padding beats Tailwind px utilities in the cascade; goal-edit's label is literally "Save" at 8/20 (w 67.5); the check-in's Send icon carries `mr-[4px]` (icon→text 12px total with the 8px gap).
+- `[MOD]` **The date picker is a TWO-LAYER card** (corrects the single-card reading): outer 262px radius-14 `#ECEBE9` (1px `#D8D4CF` border, Material drop shadow `0 4px 6px -1px / 0 2px 4px -2px rgba(0,0,0,0.1)`, p-0) wrapping an inner radius-16 `#EEEAE6` card (pad 16/18) that carries the neumorphic `-8px` pair; day cells are 32px radius-16 (not full-round). A 4px inner-height residual (table vs CSS-grid row rhythm) is accepted as sub-visual.
+- `[MOD]` **Mobile shell geometry splits like the live**: `main` pads `16px 6px 90px`; the dashboard wrapper adds `px-16 pt-12 pb-12` (hero x22/y90; the pb also lands the desktop grid at 711.4) and every list view adds `px-12 pt-24` (h1 x18/y102).
+- `[NEW]` **Mobile goal cards are a COMPACT single-column layout** (the desktop two-column card was being reused at 390px): pad 14/16 — chip + 13px/500 pct top row, full-width 16px/500 title, 6px track, meta row (fraction left; date + 23px edit/delete right). The mobile chip pip is STATUS-COLORED (green `#2ECC8A` for active, light purple otherwise) — unlike the desktop's always-purple pip.
+- `[MOD]` **Filter chips never wrap** (goals + my-tasks): the live's chip row is `nowrap` — chips keep full size (`whitespace-nowrap shrink-0`) and overflow the right edge; wrapping made the clone's chips squash (text reflow, 50px height).
+- `[MOD]` **Rhythm micro-sweep**: task-card chip→title gap 6px with 4px title mb (card 117.2 like the live); goals cards container mt 26 (first card y 186.6); the goals header row is items-START (the New Goal pill top-aligns with the h1 at y 48); the check-in description is 13px `#6E6E6E`.
+- `[NOTE]` **Six VLM misreads disproven by computed styles this session** (app-bar "lavender" — both `#EEEAE6`; tab-icon fill state; goal-card layout claims on a mis-viewport screenshot; ring internals; wizard halo; check-in radio preselection). Computed styles remain ground truth. Unit count unchanged at **122** — the v2.1 changes are presentation-layer (verified by probes + smoke, not new logic seams).
 
 #### Revision Block — v2.0
 

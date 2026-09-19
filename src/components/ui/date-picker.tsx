@@ -76,15 +76,19 @@ export function DatePicker({
           <span className={value ? "" : "text-orb-muted"}>{triggerLabel}</span>
         </button>
       </PopoverTrigger>
-      {/* Reference (v1.5; re-measured v2.0): the calendar popover is a raised
-          neumorphic #EEEAE6 card — 260px, radius 16, pad 16/18 — that opens
-          CENTERED under the trigger and grows downward (overflowing the dialog
-          like the live), and renders only the weeks the month needs. */}
+      {/* Reference (v1.5; re-measured v2.0/v2.1): the calendar popover opens
+          CENTERED under the trigger and grows downward (overflowing the
+          dialog like the live), and renders only the weeks the month needs.
+          v2.1 (measured): it is a TWO-LAYER card — an outer 262px r14
+          #ECEBE9 card (1px #D8D4CF border + a Material-style drop shadow)
+          wrapping an inner r16 #EEEAE6 card (pad 16/18) that carries the
+          neumorphic -8px pair. */}
       <PopoverContent
         align="center"
         avoidCollisions={false}
-        className="w-[260px] rounded-[16px] border-0 bg-orb-raised p-[16px_18px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31),0_24px_60px_-30px_rgba(47,40,35,0.35)]"
+        className="w-[262px] rounded-[14px] border border-[#D8D4CF] bg-[#ECEBE9] p-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]"
       >
+        <div className="rounded-[16px] bg-[#EEEAE6] p-[16px_18px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)]">
         <div className="mb-3 flex items-center justify-between">
           <button
             type="button"
@@ -123,7 +127,9 @@ export function DatePicker({
                 aria-selected={isSelected}
                 onClick={() => pick(cellDate)}
                 className={cn(
-                  "mx-auto flex h-8 w-8 items-center justify-center rounded-full text-[13px] transition-colors",
+                  /* v2.1 (measured): day cells are 32px squares with
+                      radius 16, not full-round. */
+                  "mx-auto flex h-8 w-8 items-center justify-center rounded-[16px] text-[13px] transition-colors",
                   cell.inMonth ? "text-orb-heading" : "text-orb-muted/45",
                   cell.inMonth && !isSelected && !isToday && "hover:bg-black/[0.06]",
                   /* Reference (v1.5): today renders as bold purple text. */
@@ -135,6 +141,7 @@ export function DatePicker({
               </button>
             );
           })}
+        </div>
         </div>
       </PopoverContent>
     </Popover>
