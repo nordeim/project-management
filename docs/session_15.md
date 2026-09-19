@@ -1,4 +1,139 @@
-我将从上次会话中断的地方继续进行。首先，让我评估当前工作区、工作日志和仓库的状态。
+I'll continue this comprehensive task. Let me start by checking the current workspace state and any existing progress.
+The workspace has been reset. Let me set up the task plan and clone the repository.
+仓库已克隆。现在我来查看其结构并阅读核心文档。
+Now let me read the core documentation files.
+Now let me read CLAUDE.md and start on the architecture document.
+Now let me read the architecture document (it's large, I'll read it in parts).
+The architecture doc is large. Let me read the most current session docs to understand the current state.
+Now let me read the parity-remediation-v2.0 plan and check what the last commit changed.
+Now I understand the state: **v2.0 parity shipped** (e9929e1 + session_13 log at 4bcd9a8). This session is the next iteration cycle. Let me update my todos, verify the codebase state, and run the baseline gate.
+Environment is ready. Let me install dependencies and run the baseline gate.
+**Baseline gate is fully GREEN**: lint 0 · typecheck 0 · 122/122 unit · build clean · 30/30 smoke. The v2.0 claims hold. Let me log this and set up the fresh parity crawl.
+agent-browser is available. Let me check how it handles sessions, then start the clone server.
+Let me start the clone production server and set up both browser sessions.
+Clone server is up. Now let me set up the live reference session and authenticate.
+Live session authenticated. Now the clone session.
+The server died when the shell exited. Let me start it fully detached.
+The server keeps dying. Let me diagnose by running it in the foreground briefly.
+The sandbox kills background processes between tool calls. Let me verify which processes survive.
+Browser sessions persist — only my background servers get killed. I'll boot the server per-command. Let me authenticate the clone session now.
+Both sessions are authenticated. Now let me build the probe harness for the fresh crawl.
+Let me build the probe harness. First, a quick eval test on the live session.
+Eval works. Let me inspect the live app's DOM structure to build robust selectors.
+The DOMs differ structurally. I'll build a dual-selector probe harness. Let me create the research directory and write it.
+Now the runner and diff scripts:
+Now let me explore both dashboards' DOM in detail to write the selector maps.
+I notice smoke-test artifacts in the clone's data. Let me re-seed for clean demo data.
+Clean seed done. Now let me define the dashboard surface selector maps.
+Let me fix the selector file to avoid CSS-escaping issues and verify the clone's DOM paths.
+Now let me run the dashboard probe:
+Only 2 probes captured — something's off. Let me check the output.
+The runner passes the whole file instead of the per-app map. Let me fix it.
+The eval context persists `const` declarations. Let me pass selectors as an IIFE argument instead.
+The probe works but selectors picked mismatched elements. Let me enhance the probe core with relative finders and rewrite selectors using text-based matching.
+Now the dashboard selectors with consistent like-for-like targets:
+Let me verify which tags hold the key texts on both apps before finalizing.
+Good progress! Let me fix the diff's shadow-noise bug and the activity heading selector mismatch.
+The byText matcher needs to handle the clone's duplicated responsive spans. Let me improve it and fix the presence print.
+The clone's responsive-span doubling breaks text matching. Let me relax the filter and inspect the goals panel structure.
+The clone's dashboard goals list is EMPTY while live has rows! Let me verify visually.
+A real functional delta — the clone's dashboard goals panel is empty. Let me check the dashboard view code.
+The store's goals list may be empty. Let me query the API directly.
+API returns 3 goals but the store shows none. Let me check the goals view in the browser.
+The re-seed created a new user ID, invalidating the session. Let me log in again.
+Session restored, goals render now. Let me fix the goalsRow selector and re-run the dashboard probe.
+Let me fix the remaining selector mismatches with structural selectors.
+Let me examine the saved probe data in detail for the stat columns.
+Key findings emerging. Let me run a focused follow-up probe on the shell geometry and the stat number boxes.
+Both mains are 852 — the difference is the greeting header block. Let me measure it.
+Headers match. The live grid is 12px shorter than the clone's. Let me check the grid sizing mode.
+The live has 12px more bottom spacing. Let me check if this shell pattern holds on other views.
+Subtitle positions match (margin distributed differently — visually identical). Let me verify the ring card internals and check the mobile breakpoints.
+The ring is identical — that delta was a probe artifact. Let me check the clone's stat column code for the well-box finding.
+Let me check the live's stat number box element details.
+Confirmed Finding A: the live's stat numbers sit in 88×88 well squares. Let me continue the crawl — goals view next.
+Structures match well. Let me write the goals-view probe selectors.
+Goals deltas are mostly 2px shifts from the filter wrapper. Let me measure the live's exact spacing chain.
+Let me check the clone's filter chips for counts and the active well style.
+Goals view matches well (2px residual). Let me capture side-by-side screenshots for all views to hunt structural deltas efficiently.
+All views captured. Let me stitch side-by-side comparison images for VLM review.
+Now let me use the VLM skill to review the comparison images.
+The VLM sees the dashboard as identical. Let me crop the stats panel to verify my well-box finding.
+Finding A confirmed by VLM. Let me compare the remaining views.
+Desktop views are clean. Now the goal-detail view — let me navigate both to a goal.
+Data-driven differences mostly. Let me verify the progress bar precisely with a computed probe.
+Progress bars are identical (67%). Let me probe the goal-detail task cards with computed styles.
+Task cards match. Let me run the goal-detail computed probe.
+Selector mismatches again. Let me re-dump both apps' task card structures precisely.
+Where are the clone's task action buttons? Let me check the card's container.
+Found a 6px gap difference between chip row and title. Let me check the clone's task-card code.
+Let me measure the first task cards (with descriptions) on both apps.
+The task card needs +6px chip-row margin. Now let me verify the goal-detail header rhythm.
+Header rhythm aligns. Now let me crawl the dialogs — starting with the New Goal wizard.
+VLM found wizard differences. Let me verify with computed styles.
+The live wizard renders inline in the page, not as an overlay? Let me view the screenshots.
+The wizard is a fixed-position modal. Let me probe its geometry on both apps.
+Wizard matches. Now the add-task dialog on both apps.
+Let me verify the add-task dialog with computed probes.
+The inline quoting is breaking. Let me write dialog probes to files and run them with a helper.
+The dialog closed. Let me re-open and probe in one command.
+Found real deltas: dialog panel shadow + select heights. Let me get the full live data.
+The live dialog keeps closing between commands. Let me re-open and probe in one atomic command.
+Confirmed deltas. Let me check the clone's dialog base code.
+The clone's dialog base carries a shadow the live doesn't have. Let me verify the remaining dialog details atomically.
+The clone's scrim probe hit the wrong element (Radix portals overlay as sibling). Let me check it directly.
+Confirmed: panel shadow + scrim alpha deltas. Let me check the check-in dialog on the live.
+Let me measure the check-in dialog geometry precisely.
+The inner content matches. Let me find the actual check-in panel width on both.
+The live's check-in has extra content height. Let me probe the description text element.
+Real deltas found in check-in description styles. Let me compare the radio option rows.
+Let me check the invite dialog on the live, then wrap up the dialog crawl.
+Invite scrim = 0.25 but add-task measured 0.3. Let me re-verify the add-task scrim.
+add-task = 0.3, invite = 0.25. Let me check the check-in scrim to complete the pattern.
+Ambiguous — two scrims present. Let me test fresh with everything closed.
+add-task = 0.3, check-in = 0.25. Let me test goal-edit and task-edit scrims.
+goal-edit = 0.3 scrim. Let me get its panel geometry.
+Let me check the live's goal-edit date field type.
+Let me re-open add-task on the live to capture its full field spec.
+Full add-task field spec captured. Let me get the clone's add-task fields for comparison.
+Solid delta list. Now let me verify the wizard's date picker popover on both apps.
+The popover measurements look suspicious. Let me compare the screenshots visually.
+Let me verify the chevrons and popover geometry with computed probes.
+Real date-picker deltas found (radius, bg, padding). Let me dump the live popover's internal structure.
+Let me compare the clone's date picker internals.
+Date picker deltas captured. Now the mobile chrome — switching both to 390×844.
+Let me probe the mobile chrome computed styles.
+The tab labels need a precise probe (inner spans). Let me redo.
+Mobile chrome matches. Let me check the mobile stats boxes and the MORE sheet.
+Mismatched elements again. Let me dump the live's mobile stats DOM.
+Mobile stat wells confirmed (r10 at mobile). Let me get the exact shadow values.
+Mobile numerals differ (30px/400 vs 28px/300). Now the MORE sheet on both.
+Let me verify the MORE sheet differences with computed probes.
+MORE sheet matches perfectly. Let me verify the login page with anonymous sessions.
+Let me verify the login claims with computed probes.
+Login matches. Let me check that input shadow micro-delta.
+Login verified clean. Let me spot-check mobile goals view, then compile the findings.
+The live screenshot caught the sheet scrim. Let me redo it.
+Let me verify the mobile goals header backgrounds with computed probes.
+h1 sits 28px lower on live. Let me check the mobile dashboard content start for comparison.
+Mobile dashboard matches. Let me check the pattern across other mobile views.
+Confirmed 28px shortfall on mobile list views. Let me check the live's mobile list-view structure.
+Let me trace the clone's mobile list view chain.
+Let me examine the clone's shell mobile padding code.
+Let me check the live's mobile goal cards x position.
+Let me check the live's mobile dashboard container padding.
+Let me look at how orbital-app renders the views.
+Let me check the view roots to plan the padding fix.
+I have comprehensive findings. Let me check the TDD skill guidance before writing the plan.
+Let me verify the check-in radio default state difference (VLM claim).
+All radios unchecked by default on both — VLM noise. The crawl is complete. Let me update the worklog and write the v2.1 remediation plan.
+Plan written. Now let me validate it against the codebase — reading every touched file.
+Let me re-open the live check-in to verify the description block styling.
+The live's check-in description is plain text — updating the plan. Let me validate the date-picker and remaining files.
+Date-picker validated. Let me check all view roots for the mobile padding fix.
+Plan validated against every touched file. Let me log progress and begin implementation.
+**WS-1/WS-2: The stat well boxes + mobile numerals.** Let me implement:
+
 The workspace survived. Let me check the git state and the v2.1 remediation plan to see exactly where implementation stands.
 State confirmed: v2.0 shipped (4bcd9a8), v2.1 plan written and validated, **implementation not yet started** (git shows only untracked plan + research artifacts). Let me set up the todo list and check the TDD skill guidance.
 Now let me begin implementation. Starting with WS-1/WS-2 — the dashboard stat columns.
