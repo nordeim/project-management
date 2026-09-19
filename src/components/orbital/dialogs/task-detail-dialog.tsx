@@ -37,10 +37,10 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
     <Dialog open onOpenChange={(next) => !next && onClose()}>
       {/* Reference spec (v1.5): the check-in modal is a 448px / radius-16
           panel — smaller than the 500px form dialogs. */}
-      <DialogContent className="sm:max-w-[448px] rounded-[16px]">
+      <DialogContent className="sm:max-w-[448px] rounded-[16px] p-6">
         <DialogHeader>
           {/* v1.7 (measured): 16px/500 — quieter than 17px/600. */}
-          <DialogTitle className="text-left text-[16px] font-medium leading-snug text-orb-heading">{task.title}</DialogTitle>
+          <DialogTitle className="text-left text-[16px] font-medium leading-[16px] tracking-[-0.4px] text-orb-heading">{task.title}</DialogTitle>
         </DialogHeader>
 
         {/* v1.8 (measured): 12px #767676 — a hairline smaller and lighter
@@ -56,7 +56,9 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
         ) : null}
 
         <div className="space-y-2">
-          <p className="orb-label">Post Status Update</p>
+          {/* v2.0 (measured): 12px/600/ls 0.96/lh 18 — one tier up from the
+              11px .orb-label, with a 12px gap to the radios. */}
+          <p className="mb-[12px] text-[12px] font-semibold uppercase tracking-[0.96px] leading-[18px] text-orb-muted">Post Status Update</p>
           {/* Reference (v1.5): plain radio labels in a 2-col grid — no card
               wrappers, no borders; 14px fw 500 charcoal text. */}
           <RadioGroup

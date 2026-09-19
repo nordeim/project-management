@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v1.9
+# ORBITAL — Master Project Architecture Document (PAD) v2.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,18 @@
 **Last Updated:** 2026-09-19
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.0
+
+- `[MOD]` **Goal cards return to `p-[18px_20px]`** — v1.9's "pad-top 23px" was a mis-read of the live's computed style (today's measurement: inner column padding `18px 20px`, card height 165.75px both sides). The chip row carries mb 12 and the progress track mb 8 (meta mt 0); the filter-chip row and card grid land at the live's measured offsets (mt 22 / mt 24).
+- `[MOD]` **Standard form dialogs split from the wizard button system**: the base `DialogContent` is now radius 20 / pad 28/28/24 with a 30px r8 raised close square; add-task + task-edit stay 500px, goal-edit is 480px, headings drop to 15px/600, inputs to 36px pad 8/12, and their buttons render 12px normal-case (`.orb-btn-submit` pad 8/20 no-shadow + `.orb-btn-cancel-std` pad 8/18) — distinct from the wizard's 11px/600 uppercase `.orb-btn-dark` (gap 6). The invite dialog is its own compact variant (384px/p24, 36px 13px buttons, 12px/500 labels).
+- `[MOD]` **Wizard vertical rhythm**: bubble row mb 24 → form panel; form inter-block gaps 15/23/22px; label mb 7; date trigger 37.5px/13px; Continue px 18 (with `px-[18px]!` to beat the Button base's `:has()` specificity bump).
+- `[MOD]` **The calendar grid renders ONLY the weeks a month needs** — `monthGrid` now returns `ceil((offset + days)/7)` rows (Sep 2026 = 5 rows/35 cells, Aug 2026 = 6/42). TDD: the 6×7 spec was rewritten red-first. The popover opens CENTERED under the trigger and grows downward (`align=center`, `avoidCollisions=false` — overflowing the dialog like the live), pad 16/18, raised 28px chevron circles.
+- `[MOD]` **Mobile MORE sheet re-measured**: radius 24, pad 20/20/40 (+ safe area), upward-only shadow, 4px `#CCC7C0` handle, 32px r10 raised close (the duplicate built-in sheet close removed via `showCloseButton={false}`), 9px brand mark + "ORBITAL" Archivo 12px/600/ls 2.16, plain 16px/400 `#2F2823` rows (h 49, 8px gaps, list-todo/users/settings 20px) over a `rgba(0,0,0,0.2)` + 4px-blur scrim.
+- `[MOD]` **Check-in modal**: h2 line-height 16 (was 22), "Post Status Update" at 12px/600/ls 0.96/lh 18/mb 12 (between the old 11px label tier and body), Post Update pad 0/12 (121px).
+- `[MOD]` **Login card rhythm**: 14px/16 labels, logo-block mb 32, OR→label 28, label→input 10, block gaps 20, footer links lh 20 — the card now measures 746px like the live.
+- `[MOD]` **Micro-sweep**: goal-detail header (h1 mb 6 → subtitle, Target mt 8, TASKS section mt 23); activity hero message mb 2 and row detail mt 3 (row 89px like the live); settings AI-Tone gap 18; shared `Input` h-36 pad 8/12; `.orb-btn-dark` gap 6; `.orb-btn-post` pad 0/12.
+- `[NOTE]` **Two VLM readings disproven by computed styles** (the established noise rules hold): team empty-state icons ARE `#B3B3B3` (SVG `stroke` attr — the probe's `.color` read the inherited text color) and the mobile tab icons match (`#C9B3F5` 30px circles). Unit count unchanged at **122** (one calendar spec rewritten).
 
 #### Revision Block — v1.9
 

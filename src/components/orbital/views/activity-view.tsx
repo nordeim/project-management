@@ -34,7 +34,7 @@ function FeedRow({ entry, divider }: { entry: ActivityDTO; divider: boolean }) {
           <span className="truncate text-[13px] font-medium text-orb-heading">{entry.message}</span>
           <span className="shrink-0 text-[11px] font-normal leading-[16.5px] text-[#767676]">{relativeTime(entry.createdAt)}</span>
         </p>
-        {entry.detail ? <p className="truncate text-[12px] leading-[18px] text-orb-muted">{entry.detail}</p> : null}
+        {entry.detail ? <p className="mt-[3px] truncate text-[12px] leading-[18px] text-orb-muted">{entry.detail}</p> : null}
         <p className="mt-[4px] text-[10px] font-semibold uppercase tracking-[0.1em] text-[#B3B3B3]">
           {activityTypeTag(entry.type)}
         </p>
@@ -86,7 +86,7 @@ export function ActivityView() {
               <Search size={16} strokeWidth={1.5} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-medium leading-[19.5px] text-orb-heading">{hero.message}</p>
+              <p className="mb-[2px] text-[13px] font-medium leading-[19.5px] text-orb-heading">{hero.message}</p>
               <p className="text-[12px] font-normal leading-[18px] text-[#767676]">Last agent action</p>
             </div>
           </div>

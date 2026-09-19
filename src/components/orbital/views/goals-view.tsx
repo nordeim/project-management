@@ -61,14 +61,14 @@ function GoalCard({
       <button
         type="button"
         onClick={() => navigate("goal-detail", goal.id)}
-        className="min-w-0 flex-1 p-[23px_20px_18px] text-left"
+        className="min-w-0 flex-1 p-[18px_20px] text-left"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
         {/* Status chip (reference, v1.5; inset pair re-measured v1.7):
             inset well pill — gray label, a light-purple pip for EVERY
             status, an inline red blocked count, and a trailing chevron.
             v1.7: pip 7px, softer inset pair (-2px/-2px/5px 0.8/0.24). */}
-        <div className="mb-[11px]">
+        <div className="mb-[12px]">
           <span className="inline-flex items-center gap-[5px] rounded-full bg-orb-well px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.8),inset_2px_2px_5px_rgba(160,143,126,0.24)]">
             <span className="h-[7px] w-[7px] rounded-full bg-[#C9B3F5]" aria-hidden="true" />
             {meta.label}
@@ -85,7 +85,7 @@ function GoalCard({
         {/* Horizontal progress bar on the inset track (reference pattern;
             track reads as pressed-in — 6px with the standard inset pair) */}
         <div
-          className="h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
+          className="mb-2 h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
           role="progressbar"
           aria-valuenow={pct}
           aria-valuemin={0}
@@ -99,7 +99,7 @@ function GoalCard({
         </div>
 
         {/* Meta (reference, v1.5): task fraction on line 1, date on line 2. */}
-        <p className="mb-1 mt-2.5 text-[12px] text-orb-muted">
+        <p className="mb-1 text-[12px] text-orb-muted">
           {goal.doneCount}/{goal.taskCount} tasks · {pct}%
           {goal.blockedCount > 0 && goal.status === "active" ? (
             <span className="sm:hidden"> · {goal.blockedCount} blocked</span>
@@ -199,7 +199,7 @@ export function GoalsView() {
         </button>
       </header>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filter goals by status">
+      <div className="mt-[22px] flex flex-wrap items-center gap-2" role="group" aria-label="Filter goals by status">
         {FILTERS.map((f) => {
           const count = counts.get(f.id) ?? 0;
           const active = filter === f.id;
@@ -224,7 +224,9 @@ export function GoalsView() {
         })}
       </div>
 
-      <div className="mt-5 space-y-3">
+      {/* v2.0 (measured): the live's chip wrapper (invisible pad-2 box) ends
+          at 163 and the first card starts at 187 — a 24px gap. */}
+      <div className="mt-[24px] space-y-3">
         {visible.length === 0 ? (
           <EmptyState
             icon={<Plus size={22} color="#B3B3B3" />}

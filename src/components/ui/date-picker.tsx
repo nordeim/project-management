@@ -70,24 +70,27 @@ export function DatePicker({
           type="button"
           disabled={disabled}
           aria-label={ariaLabel}
-          className="flex h-11 w-full items-center gap-2.5 rounded-[10px] bg-orb-well px-3.5 text-left text-[14px] text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-colors disabled:opacity-50"
+          className="flex h-auto w-full items-center gap-2.5 rounded-[10px] bg-orb-well px-3.5 py-[9px] text-left text-[13px] text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-colors disabled:opacity-50"
         >
           <CalendarDays size={15} aria-hidden="true" className="shrink-0 text-orb-muted" />
           <span className={value ? "" : "text-orb-muted"}>{triggerLabel}</span>
         </button>
       </PopoverTrigger>
-      {/* Reference (v1.5): the calendar popover is a raised neumorphic
-          #EEEAE6 card — 260px, radius 16 — not a white drop-shadow card. */}
+      {/* Reference (v1.5; re-measured v2.0): the calendar popover is a raised
+          neumorphic #EEEAE6 card — 260px, radius 16, pad 16/18 — that opens
+          CENTERED under the trigger and grows downward (overflowing the dialog
+          like the live), and renders only the weeks the month needs. */}
       <PopoverContent
-        align="start"
-        className="w-[260px] rounded-[16px] border-0 bg-orb-raised p-4 shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31),0_24px_60px_-30px_rgba(47,40,35,0.35)]"
+        align="center"
+        avoidCollisions={false}
+        className="w-[260px] rounded-[16px] border-0 bg-orb-raised p-[16px_18px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31),0_24px_60px_-30px_rgba(47,40,35,0.35)]"
       >
         <div className="mb-3 flex items-center justify-between">
           <button
             type="button"
             onClick={() => shiftMonth(-1)}
             aria-label="Previous month"
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.04] text-orb-muted transition-colors hover:bg-black/[0.08] hover:text-orb-heading"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-orb-raised text-orb-muted shadow-[-3px_-3px_6px_rgba(255,250,244,0.82),3px_3px_6px_rgba(160,143,126,0.28)] transition-colors hover:text-orb-heading"
           >
             <ChevronLeft size={14} />
           </button>
@@ -96,7 +99,7 @@ export function DatePicker({
             type="button"
             onClick={() => shiftMonth(1)}
             aria-label="Next month"
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.04] text-orb-muted transition-colors hover:bg-black/[0.08] hover:text-orb-heading"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-orb-raised text-orb-muted shadow-[-3px_-3px_6px_rgba(255,250,244,0.82),3px_3px_6px_rgba(160,143,126,0.28)] transition-colors hover:text-orb-heading"
           >
             <ChevronRight size={14} />
           </button>

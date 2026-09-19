@@ -178,7 +178,9 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
               </div>
             </div>
 
-            <div className="mt-[10px]">
+            {/* v2.0 (measured): the AI Tone block sits 18px below the
+                "Once daily" select (the card is 242px in the live). */}
+            <div className="mt-[18px]">
               <Label className={FIELD_LABEL}>AI Tone</Label>
               <div className="mt-[8px]">
               <Select value={aiTone} onValueChange={(v) => setAiTone(v as Tone)}>

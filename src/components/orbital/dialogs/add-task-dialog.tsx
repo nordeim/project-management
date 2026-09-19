@@ -84,7 +84,7 @@ export function AddTaskDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-[16px] font-semibold text-orb-heading">Add Task</DialogTitle>
+          <DialogTitle className="text-[15px] font-semibold text-orb-heading">Add Task</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
@@ -186,13 +186,13 @@ export function AddTaskDialog({
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button
               type="button"
-              className="orb-btn-cancel"
+              className="orb-btn-cancel-std"
               onClick={() => onOpenChange(false)}
               disabled={busy}
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
+            <Button type="submit" className="orb-btn-submit" disabled={busy || !title.trim()}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               Add Task
             </Button>

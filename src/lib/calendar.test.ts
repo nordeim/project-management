@@ -2,11 +2,22 @@ import { describe, expect, it } from "vitest";
 import { formatLongDate, isSameDay, monthGrid, type CalendarCell } from "./calendar";
 
 describe("monthGrid", () => {
-  it("returns a 6x7 grid (42 cells) for every month", () => {
+  it("renders only the weeks a month needs (v2.0, live-measured)", () => {
+    // Sep 2026: starts Tuesday (offset 2) + 30 days = 32 => 5 weeks.
+    const sept = monthGrid(2026, 8);
+    expect(sept.length).toBe(5);
+    expect(sept.flat()).toHaveLength(35);
+    // Aug 2026: starts Saturday (offset 6) + 31 days = 37 => 6 weeks.
+    const aug = monthGrid(2026, 7);
+    expect(aug.length).toBe(6);
+    expect(aug.flat()).toHaveLength(42);
+    // Jan 2027: starts Friday (offset 5) + 31 = 36 => 6 weeks.
+    expect(monthGrid(2027, 0).length).toBe(6);
+    // Feb 2024 (leap): starts Thursday (offset 3) + 29 = 32 => 5 weeks.
+    expect(monthGrid(2024, 1).length).toBe(5);
+    // Every week is 7 cells.
     for (let month = 0; month < 12; month++) {
-      const grid = monthGrid(2026, month);
-      expect(grid.length).toBe(6);
-      for (const week of grid) {
+      for (const week of monthGrid(2026, month)) {
         expect(week.length).toBe(7);
       }
     }
@@ -20,9 +31,9 @@ describe("monthGrid", () => {
     expect(sept[0][2].day).toBe(1);
     expect(sept[0][2].inMonth).toBe(true);
     // Last cell is a Saturday somewhere in October.
-    const last = sept[5][6];
+    const last = sept[sept.length - 1][6];
     expect(last.inMonth).toBe(false);
-    expect(last.day).toBe(10);
+    expect(last.day).toBe(3);
   });
 
   it("maps February in leap years correctly", () => {

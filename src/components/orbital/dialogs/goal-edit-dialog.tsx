@@ -56,9 +56,9 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
 
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
+          <DialogTitle className="flex items-center gap-2 text-[15px] font-semibold text-orb-heading">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05]" aria-hidden="true">
               <Pencil size={14} />
             </span>
@@ -128,13 +128,13 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button
               type="button"
-              className="orb-btn-cancel"
+              className="orb-btn-cancel-std"
               onClick={onClose}
               disabled={busy}
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
+            <Button type="submit" className="orb-btn-submit" disabled={busy || !title.trim()}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               Save Changes
             </Button>

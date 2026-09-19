@@ -1,6 +1,8 @@
-// Pure calendar math for the wizard's date picker (v1.4). Kept free of
-// React/DOM concerns so the grid invariants — always 6 weeks, Sunday-first,
-// adjacent-month fill labeled with true year/month — are unit-testable.
+// Pure calendar math for the wizard's date picker (v1.4, re-measured v2.0). Kept
+// free of React/DOM concerns so the grid invariants — Sunday-first, adjacent-month
+// fill labeled with true year/month, and ONLY the weeks the month needs (the
+// reference calendar renders 5 rows for Sep 2026, 6 for Aug 2026) — are
+// unit-testable.
 
 export interface CalendarCell {
   year: number;
@@ -11,16 +13,22 @@ export interface CalendarCell {
   inMonth: boolean;
 }
 
-/** Build a 6x7 Sunday-first grid covering `year`/`month` (0-indexed). */
+/** Build a Sunday-first grid covering `year`/`month` (0-indexed) with
+ *  `ceil((leading offset + days in month) / 7)` weeks — no fixed 6-row pad. */
 export function monthGrid(year: number, month: number): CalendarCell[][] {
   // First day of the month; walk back to the Sunday that starts the week.
   const first = new Date(year, month, 1);
   const start = new Date(first);
   start.setDate(first.getDate() - first.getDay());
 
-  const weeks: CalendarCell[][] = [];
+  // Days from the leading Sunday through the last day of the month.
+  const lastOfMonth = new Date(year, month + 1, 0);
+  const span = Math.round((lastOfMonth.getTime() - start.getTime()) / 86_400_000) + 1;
+  const weeks = Math.ceil(span / 7);
+
+  const rows: CalendarCell[][] = [];
   const cursor = new Date(start);
-  for (let week = 0; week < 6; week++) {
+  for (let week = 0; week < weeks; week++) {
     const row: CalendarCell[] = [];
     for (let day = 0; day < 7; day++) {
       row.push({
@@ -31,9 +39,9 @@ export function monthGrid(year: number, month: number): CalendarCell[][] {
       });
       cursor.setDate(cursor.getDate() + 1);
     }
-    weeks.push(row);
+    rows.push(row);
   }
-  return weeks;
+  return rows;
 }
 
 /** Calendar-day equality for a cell vs a cell or a Date. */

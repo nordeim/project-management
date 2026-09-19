@@ -165,9 +165,9 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           // width), radius 16, pad 22/24, the -8px panel pair — directly
           // below the bubble. Section heading 13px/600 #3A3A3A; field labels
           // 12px/600 #6E6E6E ls 0.48px in Title Case.
-          <form onSubmit={continueToQuestions} className="mt-4 rounded-[16px] bg-orb-raised p-[22px_24px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)]">
+          <form onSubmit={continueToQuestions} className="mt-6 rounded-[16px] bg-orb-raised p-[22px_24px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)]">
             <p className="text-[13px] font-semibold text-orb-heading">Goal Details</p>
-            <div className="mt-5 space-y-2">
+            <div className="mt-5 space-y-[7px]">
               <Label htmlFor="goal-title" className="text-[12px] font-semibold tracking-[0.04em] text-orb-muted">
                 Goal Title
               </Label>
@@ -178,9 +178,10 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 placeholder="e.g., Launch new landing page by end of month"
                 required
                 maxLength={200}
+                className="h-auto py-[9px]"
               />
             </div>
-            <div className="space-y-2">
+            <div className="mt-[15px] space-y-[7px]">
               <Label htmlFor="goal-description" className="text-[12px] font-semibold tracking-[0.04em] text-orb-muted">
                 Description <span className="font-normal">(optional)</span>
               </Label>
@@ -193,7 +194,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 maxLength={1000}
               />
             </div>
-            <div className="space-y-2">
+            <div className="mt-[23px] space-y-[7px]">
               <Label htmlFor="goal-target" className="text-[12px] font-semibold tracking-[0.04em] text-orb-muted">
                 Target Date
               </Label>
@@ -203,8 +204,9 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             {/* v1.8 (measured): CANCEL + CONTINUE grouped LEFT with a 10px
                 gap; CANCEL is RAISED (bg #EEEAE6, text #3A3A3A — not an
                 inset well); CONTINUE carries a 13px sparkles glyph and
-                keeps the dark fill while disabled. */}
-            <div className="flex items-center gap-2.5 pt-2">
+                keeps the dark fill while disabled. v2.0: 22px below the
+                date block (measured). */}
+            <div className="flex items-center gap-2.5 mt-[22px]">
               <Button
                 type="button"
                 className="orb-btn-raised-cancel"
@@ -213,7 +215,9 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               >
                 Cancel
               </Button>
-              <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
+              {/* v2.0: px-[18px]! — the Button base's has-[>svg]:px-3 carries
+                  a :has() specificity bump that beats the custom class. */}
+              <Button type="submit" className="orb-btn-dark px-[18px]!" disabled={busy || !title.trim()}>
                 {busy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} aria-hidden="true" />}
                 Continue
               </Button>
@@ -259,7 +263,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 </Button>
                 <Button
                   type="button"
-                  className="orb-btn-dark"
+                  className="orb-btn-dark px-[18px]!"
                   onClick={() => void generate()}
                   disabled={busy}
                 >

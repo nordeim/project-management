@@ -128,7 +128,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
               {/* v1.9 (measured): the logo is centered; the title and
                   subtitle are LEFT-aligned full-width blocks 32px below the
                   logo (title wraps to two 36px lines). */}
-              <div className="mb-7">
+              <div className="mb-8">
                 <div className="flex justify-center">
                   <LogoPyramid size={96} />
                 </div>
@@ -181,9 +181,9 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             </div>
           )}
 
-          <form onSubmit={submit} className="space-y-4" noValidate>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-[13px] font-medium text-[#334155]">
+          <form onSubmit={submit} className="space-y-5 pt-1" noValidate>
+            <div className="space-y-[10px]">
+              <Label htmlFor="email" className="text-[14px] font-medium leading-4 text-[#334155]">
                 Email
               </Label>
               <div className="relative">
@@ -202,8 +202,8 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             </div>
 
             {mode === "forgot" ? null : (
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-[13px] font-medium text-[#334155]">
+              <div className="space-y-[10px]">
+                <Label htmlFor="password" className="text-[14px] font-medium leading-4 text-[#334155]">
                   Password
                 </Label>
                 <div className="relative">
@@ -224,8 +224,8 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             )}
 
             {mode === "signup" ? (
-              <div className="space-y-2">
-                <Label htmlFor="confirm" className="text-[13px] font-medium text-[#334155]">
+              <div className="space-y-[10px]">
+                <Label htmlFor="confirm" className="text-[14px] font-medium leading-4 text-[#334155]">
                   Confirm Password
                 </Label>
                 <div className="relative">
@@ -261,7 +261,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
           </form>
 
           {mode === "signin" ? (
-            <div className="mt-3 flex items-center justify-between text-[14px]">
+            <div className="mt-3 flex items-center justify-between text-[14px] leading-5">
               <button
                 type="button"
                 className="font-medium text-[#64748B] underline-offset-4 hover:text-[#0F172A] hover:underline"

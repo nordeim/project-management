@@ -259,7 +259,7 @@
     height: 34.5px;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     border-radius: 10px;
     padding: 9px 18px;
     background-color: var(--orb-heading);
@@ -289,7 +289,7 @@
     justify-content: center;
     gap: 8px;
     border-radius: 14px;
-    padding: 0 20px;
+    padding: 0 12px;
     background-color: #2f2823;
     color: #f2f2f2;
     font-size: 12px;
@@ -334,6 +334,50 @@
   .orb-btn-raised-cancel:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  /* v2.0 (measured): STANDARD form-dialog button pair (add-task / goal-edit /
+     task-edit) — the live renders these in 12px normal-case, distinct from the
+     wizard's 11px uppercase pills (.orb-btn-dark / .orb-btn-raised-cancel). */
+  .orb-btn-submit {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 10px;
+    padding: 8px 20px;
+    background-color: var(--orb-heading);
+    color: #f1f1f0;
+    font-size: 12px;
+    font-weight: 600;
+    /* measured: NO box shadow on the standard submit (unlike the wizard's) */
+    transition: background-color 0.15s ease;
+  }
+  .orb-btn-submit:hover:not(:disabled) {
+    background-color: #2f2823;
+  }
+  .orb-btn-submit:disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  .orb-btn-cancel-std {
+    display: inline-flex;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 10px;
+    padding: 8px 18px;
+    background-color: #ebe7e2;
+    color: var(--orb-muted);
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: -3px -3px 6px rgba(255, 250, 244, 0.78), 3px 3px 6px rgba(160, 143, 126, 0.27);
+    transition: color 0.15s ease;
+  }
+  .orb-btn-cancel-std:hover:not(:disabled) {
+    color: var(--orb-heading);
   }
 
   .orb-btn-cancel {

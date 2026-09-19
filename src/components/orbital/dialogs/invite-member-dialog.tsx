@@ -80,7 +80,7 @@ export function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy && !next) close(); }}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[384px] p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
             <span
@@ -188,13 +188,13 @@ export function InviteMemberDialog({
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button
               type="button"
-              className="orb-btn-cancel"
+              className="h-[36px] rounded-[10px] bg-orb-well px-4 py-2 text-[13px] font-normal text-orb-muted shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.68),inset_2px_2px_5px_rgba(160,143,126,0.24)] transition-colors hover:text-orb-heading"
               onClick={close}
               disabled={busy}
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-btn-dark" disabled={!canSubmit}>
+            <Button type="submit" className="h-[36px] rounded-[10px] bg-orb-heading px-[18px] py-2 text-[13px] font-medium text-[#F1F1F0] transition-colors hover:bg-[#2F2823]" disabled={!canSubmit}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               {isAgent ? "Create Agent" : "Send Invite"}
             </Button>

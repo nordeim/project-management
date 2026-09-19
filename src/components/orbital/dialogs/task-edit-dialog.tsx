@@ -65,7 +65,7 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
     <Dialog open onOpenChange={(next) => !next && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-[16px] font-semibold text-orb-heading">Edit Task</DialogTitle>
+          <DialogTitle className="text-[15px] font-semibold text-orb-heading">Edit Task</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
@@ -164,13 +164,13 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button
               type="button"
-              className="orb-btn-cancel"
+              className="orb-btn-cancel-std"
               onClick={onClose}
               disabled={busy}
             >
               Cancel
             </Button>
-            <Button type="submit" className="orb-btn-dark" disabled={busy || !title.trim()}>
+            <Button type="submit" className="orb-btn-submit" disabled={busy || !title.trim()}>
               {busy ? <Loader2 size={14} className="animate-spin" /> : null}
               Save Changes
             </Button>

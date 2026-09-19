@@ -77,10 +77,10 @@ export function GoalDetailView() {
             {meta.label}
           </span>
           <h1 className="mt-2 text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">{goal.title}</h1>
-          {goal.description ? <p className="mt-2 max-w-xl text-[14px] leading-[21px] text-orb-muted">{goal.description}</p> : null}
+          {goal.description ? <p className="mt-[6px] max-w-xl text-[14px] leading-[21px] text-orb-muted">{goal.description}</p> : null}
           {goal.targetDate ? (
             // v1.8 (measured): 13px #767676 with a 13px calendar glyph.
-            <p className="mt-3 flex items-center gap-1.5 text-[13px] text-[#767676]">
+            <p className="mt-[8px] flex items-center gap-1.5 text-[13px] text-[#767676]">
               <CalendarDays size={13} aria-hidden="true" />
               Target:{" "}
               {new Date(goal.targetDate).toLocaleDateString("en-US", {
@@ -169,7 +169,7 @@ export function GoalDetailView() {
       {/* v1.8 (measured): the tasks header row is 31px tall — the TASKS
           label on the left, "N total" + ADD TASK grouped on the RIGHT with
           a 12px gap. */}
-      <div className="mt-8 flex items-center justify-between">
+      <div className="mt-[23px] flex items-center justify-between">
         <h2 className="orb-label">Tasks</h2>
         <div className="flex items-center gap-3">
           <span className="text-[13px] font-normal text-orb-muted">{goal.taskCount} total</span>

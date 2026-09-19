@@ -8,7 +8,7 @@
 // shell with a LOG IN button (reference behavior, v1.4).
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Activity, CheckSquare, ChevronRight, LayoutGrid, Menu, Settings, Target, Users, X } from "lucide-react";
+import { Activity, CheckSquare, ChevronRight, LayoutGrid, ListTodo, Menu, Settings, Target, Users, X } from "lucide-react";
 import { useOrbital, type SessionUser } from "@/components/orbital/store";
 import { Sidebar } from "@/components/orbital/sidebar";
 import { DashboardView } from "@/components/orbital/views/dashboard-view";
@@ -214,51 +214,61 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             </button>
           </nav>
 
-          {/* MORE bottom sheet: Tasks, Team, Settings */}
+          {/* MORE bottom sheet: Tasks, Team, Settings — v2.0 (measured):
+              radius 24, pad 20/20/40, upward-only shadow, 4px #CCC7C0 handle,
+              a 32px r10 raised close square, the 9px brand mark + "ORBITAL"
+              12px/600/ls 2.16 #2F2823, and PLAIN 16px/400 rows (h 49, 8px
+              gaps, 20px list-todo/users/settings glyphs) over a 20% black +
+              4px-blur scrim. */}
           <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
             <SheetContent
               side="bottom"
-              className="rounded-t-[28px] px-0 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2"
+              showCloseButton={false}
+              overlayClassName="bg-[rgba(0,0,0,0.2)] backdrop-blur-[4px]"
+              className="gap-0 rounded-t-[24px] border-t-0 bg-orb-raised px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+40px)] shadow-[0_-8px_32px_rgba(160,143,126,0.28)]"
             >
-              <div className="mx-auto mb-1 h-1.5 w-10 rounded-full bg-black/[0.12]" aria-hidden="true" />
-              <SheetHeader className="flex-row items-center justify-between space-y-0 px-5 pb-3 pt-2">
+              <div className="mx-auto h-1 w-10 rounded-full bg-[#CCC7C0]" aria-hidden="true" />
+              <SheetHeader className="flex-row items-center justify-between space-y-0 px-0 pb-6 pt-[20px]">
                 <SheetTitle asChild>
-                  <span className="flex items-center gap-2.5 text-[15px] font-bold uppercase tracking-[0.18em] text-orb-heading">
-                    <LogoMark size={26} />
+                  <span className="flex items-center gap-2 font-archivo text-[12px] font-semibold uppercase leading-[18px] tracking-[0.18em] text-orb-body">
+                    <LogoMark size={9} />
                     Orbital
                   </span>
                 </SheetTitle>
                 <button
                   type="button"
                   onClick={() => setMoreOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-orb-muted hover:bg-black/[0.05] hover:text-orb-heading"
+                  className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-orb-raised text-orb-body shadow-[-4px_-4px_8px_rgba(255,250,244,0.78),4px_4px_8px_rgba(160,143,126,0.28)] transition-colors hover:text-orb-heading"
                   aria-label="Close menu"
                 >
-                  <X size={18} />
+                  <X size={16} strokeWidth={2} />
                 </button>
               </SheetHeader>
-              <div className="px-3">
-                {(
-                  [
-                    { view: "my-tasks", label: "Tasks", icon: <CheckSquare size={18} strokeWidth={1.8} /> },
-                    { view: "team", label: "Team", icon: <Users size={18} strokeWidth={1.8} /> },
-                    { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={1.8} /> },
-                  ] as const
-                ).map((item) => (
-                  <button
-                    key={item.view}
-                    type="button"
-                    onClick={() => go(item.view)}
-                    aria-current={view === item.view ? "page" : undefined}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 text-[15px] font-medium text-orb-heading transition-colors hover:bg-black/[0.04]"
-                  >
-                    <span className="text-orb-muted" aria-hidden="true">
-                      {item.icon}
-                    </span>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+              <nav className="px-0" aria-label="More views">
+                <ul className="space-y-[8px]">
+                  {(
+                    [
+                      { view: "my-tasks", label: "Tasks", icon: <ListTodo size={20} strokeWidth={1.8} /> },
+                      { view: "team", label: "Team", icon: <Users size={20} strokeWidth={1.8} /> },
+                      { view: "settings", label: "Settings", icon: <Settings size={20} strokeWidth={1.8} /> },
+                    ] as const
+                  ).map((item) => (
+                    <li key={item.view}>
+                      <button
+                        type="button"
+                        onClick={() => go(item.view)}
+                        aria-current={view === item.view ? "page" : undefined}
+                        className="flex h-[49px] w-full items-center gap-3 text-left text-[16px] font-normal text-orb-body transition-colors hover:text-orb-heading"
+                      >
+                        <span className="text-orb-body" aria-hidden="true">
+                          {item.icon}
+                        </span>
+                        {item.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
             </SheetContent>
           </Sheet>
         </div>
