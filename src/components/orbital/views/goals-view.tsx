@@ -61,7 +61,7 @@ function GoalCard({
       <button
         type="button"
         onClick={() => navigate("goal-detail", goal.id)}
-        className="min-w-0 flex-1 p-[18px_20px] text-left"
+        className="min-w-0 flex-1 p-[23px_20px_18px] text-left"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
         {/* Status chip (reference, v1.5; inset pair re-measured v1.7):
@@ -183,7 +183,7 @@ export function GoalsView() {
     <div className="w-full">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">Goals</h1>
+          <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Goals</h1>
           <p className="mt-1 text-[14px] text-orb-muted">Manage your team objectives</p>
         </div>
         {/* v1.7 (measured): on mobile the label shortens to "New" and the

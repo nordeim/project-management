@@ -38,7 +38,9 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        // v1.9 (measured): the reference's dialog scrim — warm dark at 25%
+        // with a 12px backdrop blur (frosted glass), not plain black/50.
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-[rgba(46,42,38,0.25)] backdrop-blur-[12px]",
         className
       )}
       {...props}
@@ -50,17 +52,23 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  overlayClassName,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  /** v1.9: per-dialog overlay tweaks (e.g. the wizard's 0.3-alpha scrim). */
+  overlayClassName?: string
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay />
+      <DialogOverlay className={overlayClassName} />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-orb-raised data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-[20px] border-0 p-6 shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31),0_24px_60px_-30px_rgba(47,40,35,0.45)] duration-200 sm:max-w-[500px]",
+          // v1.9 (measured): base panels are radius 16 and carry ONLY the
+          // neumorphic -8px pair (the reference's dialog depth comes from
+          // the blurred scrim, not a drop shadow).
+          "bg-orb-raised data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-[16px] border-0 p-6 shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)] duration-200 sm:max-w-[500px]",
           className
         )}
         {...props}

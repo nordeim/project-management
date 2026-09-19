@@ -66,16 +66,18 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
   );
 }
 
-/** Login-card mark (v1.8, measured): a 96px white circle carrying the
- * 1-2-3 dot pyramid at the live app's proportions — the SVG fills the
- * full circle (dots ≈13.75% of the mark, like Frame24.svg), not an inner
- * 62% box. */
+/** Login-card mark (v1.9, measured from the live app's actual Frame24.svg:
+ * a WHITE ROUNDED SQUARE — rx 98 on a 1200-unit canvas ≈ 8.2% — not a
+ * circle) carrying the 1-2-3 dot pyramid at the reference's proportions
+ * (dots ≈ 13.75% of the mark). No shadow — the reference logo is a flat
+ * white chip. */
 export function LogoPyramid({ size = 96, className }: { size?: number; className?: string }) {
   const dots = pyramidDotPositions();
+  const corner = Math.round((98 / 1200) * size * 10) / 10;
   return (
     <span
-      className={`flex items-center justify-center rounded-full bg-white shadow-[0_10px_30px_-12px_rgba(15,23,42,0.25)] ${className ?? ""}`}
-      style={{ width: size, height: size }}
+      className={`flex items-center justify-center bg-white ${className ?? ""}`}
+      style={{ width: size, height: size, borderRadius: corner }}
       aria-hidden="true"
     >
       <svg width={size} height={size} viewBox="0 0 40 40" fill="none">

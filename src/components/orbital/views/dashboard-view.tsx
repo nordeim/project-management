@@ -16,6 +16,7 @@ import { ProgressRing } from "@/components/orbital/progress-ring";
 import { UserMenuOrLogin } from "@/components/orbital/user-menu";
 import { ActivityIcon } from "@/components/orbital/views/activity-icon";
 import { greetingFor, relativeTime, type ActivityDTO } from "@/lib/orbital";
+import { dayImageFor } from "@/lib/day-image";
 import { nextPlannedAction } from "@/lib/next-action";
 import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
 
@@ -30,10 +31,12 @@ function DateCard() {
       role="img"
       aria-label={`Today is ${month} ${day}, ${year}`}
     >
-      {/* Bright day landscape — the reference's date-card photo (v1.5,
-          extracted from the live app as day-hills.jpg, shown at 0.8 opacity). */}
+      {/* v1.9 (live bundle XF()): the date-card photo ROTATES BY TIME OF
+          DAY across four lighting variants of the same rolling-hills
+          artwork — morning 05–11, noon 11–17, dusk 17–21, night 21–05
+          (assets extracted from the reference, shown at 0.8 opacity). */}
       <img
-        src="/day-hills.jpg"
+        src={dayImageFor(now)}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover opacity-80"
@@ -104,14 +107,14 @@ function ActivityRow({ entry, divider }: { entry: ActivityDTO; divider: boolean 
     // timestamp sits INSIDE the message flex row (right-aligned); the
     // dashboard rows divide with 1px rgba(163,163,163,0.18) (the feed
     // uses the warmer rgba(160,143,126,0.15)).
-    <li className={`flex items-start gap-3 px-[18px] py-[14px] ${divider ? "border-b border-[rgba(163,163,163,0.18)]" : ""}`}>
+    <li className={`flex items-start gap-[14px] px-[18px] py-[14px] ${divider ? "border-b border-[rgba(163,163,163,0.18)]" : ""}`}>
       <ActivityIcon type={entry.type} />
       <div className="min-w-0 flex-1">
-        <p className="flex items-baseline justify-between gap-3 leading-[20px]">
+        <p className="flex items-baseline justify-between gap-3 leading-[19.5px]">
           <span className="truncate text-[13px] font-medium text-orb-heading">{entry.message}</span>
           <span className="shrink-0 text-[11px] font-normal leading-[16.5px] text-[#767676]">{relativeTime(entry.createdAt)}</span>
         </p>
-        {entry.detail ? <p className="truncate text-[12px] leading-[18px] text-orb-muted">{entry.detail}</p> : null}
+        {entry.detail ? <p className="mt-[2px] truncate text-[12px] leading-[18px] text-orb-muted">{entry.detail}</p> : null}
       </div>
     </li>
   );
@@ -234,13 +237,15 @@ export function DashboardView() {
             {/* v1.7 (measured): "Next Planned Action" — the 10px small-label
                 tier (ls 1px); value 13px/400 #3A3A3A, lh 19.5px (v1.8). */}
             <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#767676]">Next Planned Action</p>
-            <p className="mt-1.5 text-[13px] font-normal leading-[19.5px] text-orb-heading">{nextPlanned}</p>
+            <p className="mt-[5px] text-[13px] font-normal leading-[19.5px] text-orb-heading">{nextPlanned}</p>
           </div>
 
-          {/* v1.8 (measured): ALL feed entries render inside an
+          {/* v1.9 (measured): ALL feed entries render inside an
               overflow-hidden container — the panel clips at the viewport
-              bottom exactly like the live app. */}
-          <ul className="mt-[14px] min-h-0 flex-1 overflow-hidden">
+              bottom exactly like the live app; the rows start flush at the
+              NPA well's bottom edge (no list margin), and each detail line
+              carries a 2px top margin. */}
+          <ul className="min-h-0 flex-1 overflow-hidden">
             {activity.map((entry, index) => (
               <ActivityRow key={entry.id} entry={entry} divider={index < activity.length - 1} />
             ))}

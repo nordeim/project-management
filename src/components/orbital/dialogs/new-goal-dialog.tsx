@@ -1,16 +1,18 @@
 "use client";
 
 // New Goal: a three-step conversational wizard like the reference app.
-// v1.8 (re-measured): the dialog is 624px at radius 16 with 22/24 padding.
-// Step 1 opens DIRECTLY on the "Goal Details" form (13px/600 #3A3A3A section
-// heading, 12px/600 #6E6E6E Title-Case field labels) — no bot intro on this
-// step — with CANCEL + CONTINUE (dark pill + 13px sparkles icon) grouped on
-// the LEFT. Step 2 shows the agent bubble ("Great! Before I break this into
-// tasks, I have a few questions:") beside the bot avatar, the clarifying
-// questions, and BACK + GENERATE TASKS grouped left. Step 3 — generation.
+// v1.9 (re-measured): the wizard is a CONVERSATIONAL WRAPPER — a 680px
+// radius-24 panel (pad 28/28/24) holding the bot avatar + intro bubble
+// above the form panel (624px, radius 16, pad 22/24). The avatar is a 32px
+// circle with a purple-tinted light shadow; the bubble is a 400px speech
+// chip (radius 0 14 14 14 — square on the avatar side) carrying 13px/400
+// #3A3A3A copy. A 32px radius-9 close square sits top-right. Step 1 form:
+// "Goal Details" (13px/600) with 12px/600 #6E6E6E ls-0.48 labels, CANCEL
+// (raised) + ✨ CONTINUE (dark pill) grouped LEFT. Step 2: the agent bubble
+// ("Great! Before I break this into tasks…") + clarifying questions.
 
 import { useState } from "react";
-import { ArrowLeft, Bot, Loader2, Sparkles } from "lucide-react";
+import { Bot, Loader2, Sparkles, X } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -110,21 +112,63 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         if (!next) reset();
       }}
     >
-      {/* v1.8 (measured): 624px / radius 16 / pad 22px 24px — the wizard is
-          wider than the 500px form-dialog base. */}
-      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto p-[22px_24px] sm:max-w-[624px]">
+      {/* v1.9 (measured): the wizard wrapper — 680px, radius 24, pad
+          28/28/24 — carrying the conversational chrome (avatar + bubble)
+          above the 624px form panel; the scrim is the wizard's own 0.3
+          alpha (standard dialogs use 0.25). */}
+      <DialogContent
+        className="max-h-[90vh] gap-0 overflow-y-auto p-[28px_28px_24px] sm:max-w-[680px] sm:rounded-[24px]"
+        overlayClassName="bg-[rgba(46,42,38,0.3)]"
+        showCloseButton={false}
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>Create a new goal</DialogTitle>
         </DialogHeader>
 
+        {/* v1.9 (measured): the 32px radius-9 close square, top-right of
+            the wrapper (10px inside the 28px pad), raised pair. */}
+        <button
+          type="button"
+          onClick={() => {
+            if (busy) return;
+            onOpenChange(false);
+            reset();
+          }}
+          className="absolute top-[18px] right-[18px] flex h-8 w-8 items-center justify-center rounded-[9px] bg-orb-well text-orb-body shadow-[-4px_-4px_8px_rgba(255,250,244,0.82),4px_4px_8px_rgba(160,143,126,0.28)] transition-colors hover:text-orb-heading"
+          aria-label="Close"
+        >
+          <X size={14} strokeWidth={2} aria-hidden="true" />
+        </button>
+
+        {/* v1.9 (measured): the conversational chrome — 32px bot avatar
+            (purple-tinted light shadow, 16px glyph) + 12px gap + the intro
+            bubble (radius 0 14 14 14 — square on the avatar side, pad
+            10/16, 13px/400 #3A3A3A). */}
+        <div className="flex items-start gap-3">
+          <span
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orb-raised text-[#7C6FA0] shadow-[-4px_-4px_12px_rgba(202,181,245,0.56),4px_4px_13px_rgba(160,143,126,0.29)]"
+            aria-hidden="true"
+          >
+            <Bot size={16} strokeWidth={1.8} />
+          </span>
+          <div className="max-w-[400px] rounded-[0px_14px_14px_14px] bg-orb-raised px-4 py-[10px] shadow-[-4px_-4px_8px_rgba(255,250,244,0.82),4px_4px_8px_rgba(160,143,126,0.28)]">
+            <p className="text-[13px] font-normal leading-[19.5px] text-orb-heading">
+              {step === "details"
+                ? "Tell me about your goal. What do you want to achieve? I'll ask a few questions before creating a plan."
+                : "Great! Before I break this into tasks, I have a few questions:"}
+            </p>
+          </div>
+        </div>
+
         {step === "details" ? (
-          // v1.8 (measured): step 1 opens directly on the form — no bot
-          // intro bubble, no visible title. Section heading 13px/600
-          // #3A3A3A; field labels 12px/600 #6E6E6E in Title Case.
-          <form onSubmit={continueToQuestions} className="space-y-4">
+          // v1.9 (measured): the form panel — 624px (the wrapper's content
+          // width), radius 16, pad 22/24, the -8px panel pair — directly
+          // below the bubble. Section heading 13px/600 #3A3A3A; field labels
+          // 12px/600 #6E6E6E ls 0.48px in Title Case.
+          <form onSubmit={continueToQuestions} className="mt-4 rounded-[16px] bg-orb-raised p-[22px_24px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)]">
             <p className="text-[13px] font-semibold text-orb-heading">Goal Details</p>
-            <div className="space-y-2">
-              <Label htmlFor="goal-title" className="text-[12px] font-semibold text-orb-muted">
+            <div className="mt-5 space-y-2">
+              <Label htmlFor="goal-title" className="text-[12px] font-semibold tracking-[0.04em] text-orb-muted">
                 Goal Title
               </Label>
               <Input
@@ -137,7 +181,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="goal-description" className="text-[12px] font-semibold text-orb-muted">
+              <Label htmlFor="goal-description" className="text-[12px] font-semibold tracking-[0.04em] text-orb-muted">
                 Description <span className="font-normal">(optional)</span>
               </Label>
               <Textarea
@@ -145,24 +189,25 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add more context about what success looks like..."
-                rows={3}
+                className="h-[88px] rounded-[10px] px-[14px] py-[10px] text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.22)]"
                 maxLength={1000}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="goal-target" className="text-[12px] font-semibold text-orb-muted">
+              <Label htmlFor="goal-target" className="text-[12px] font-semibold tracking-[0.04em] text-orb-muted">
                 Target Date
               </Label>
               <DatePicker value={targetDate} onChange={setTargetDate} disabled={busy} ariaLabel="Pick a deadline" />
             </div>
 
             {/* v1.8 (measured): CANCEL + CONTINUE grouped LEFT with a 10px
-                gap; CONTINUE carries a 13px sparkles glyph and keeps the
-                dark fill while disabled. */}
+                gap; CANCEL is RAISED (bg #EEEAE6, text #3A3A3A — not an
+                inset well); CONTINUE carries a 13px sparkles glyph and
+                keeps the dark fill while disabled. */}
             <div className="flex items-center gap-2.5 pt-2">
               <Button
                 type="button"
-                className="orb-btn-cancel"
+                className="orb-btn-raised-cancel"
                 onClick={() => onOpenChange(false)}
                 disabled={busy}
               >
@@ -178,19 +223,9 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
 
         {step === "questions" ? (
           <div className="space-y-5">
-            {/* v1.8 (measured): the agent speaks in a rounded bubble beside
-                the bot avatar — the conversational chrome starts at step 2. */}
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_1px_3px_rgba(47,40,35,0.10)]" aria-hidden="true">
-                <Bot size={18} className="text-orb-purple-deep" />
-              </span>
-              <div className="rounded-2xl rounded-tl-sm bg-orb-inset/80 px-4 py-3">
-                <p className="text-[14px] leading-relaxed text-orb-body">
-                  Great! Before I break this into tasks, I have a few questions:
-                </p>
-              </div>
-            </div>
-
+            {/* v1.9 (measured): the step-2 chrome is the SAME avatar +
+                bubble (the bubble copy is rendered by the shared header
+                above); the questions list follows below. */}
             <div className="space-y-5">
               {/* v1.8 (measured): Title Case 13px/600 #3A3A3A — not the
                   uppercase label tier. */}
@@ -216,11 +251,10 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <div className="flex items-center gap-2.5 pt-2">
                 <Button
                   type="button"
-                  className="orb-btn-cancel"
+                  className="orb-btn-raised-cancel"
                   onClick={backToDetails}
                   disabled={busy}
                 >
-                  <ArrowLeft size={13} aria-hidden="true" />
                   Back
                 </Button>
                 <Button

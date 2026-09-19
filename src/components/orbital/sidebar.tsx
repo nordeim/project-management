@@ -113,15 +113,14 @@ export function Sidebar({
 
   return (
     <div className="flex h-full w-full flex-col">
-      {/* v1.8 (measured): brand row — an 11px six-dot mark beside
-          "ORBITAL" set in ARCHIVO 600 at 13px/ls 2.34px in #2F2823 (the
-          live app loads Archivo for the wordmark; DM Sans measures 3px
-          narrower at the same size). */}
+      {/* v1.9 (measured): brand row — an 11px six-dot mark inset 10px from
+          the content edge (x=50 on the panel at x=24+16) with an 8px gap to
+          "ORBITAL" set in ARCHIVO 600 at 13px/ls 2.34px in #2F2823. */}
       <div className="flex items-center justify-between px-4 pb-2 pt-0">
         <button
           type="button"
           onClick={() => navigate("dashboard")}
-          className="flex items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+          className="flex items-center gap-2 rounded-xl pl-2.5 focus-visible:outline-2 focus-visible:outline-ring"
           aria-label="Orbital home"
         >
           <LogoMark size={11} />

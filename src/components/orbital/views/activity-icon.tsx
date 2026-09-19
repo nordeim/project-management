@@ -16,7 +16,7 @@ export function ActivityIcon({ type, size = 30 }: { type: string; size?: number 
   const Icon = spec.icon === "target" ? Target : SquareCheckBig;
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-full text-[#2F2823]"
+      className="flex shrink-0 items-center justify-center rounded-full text-[#2A2A2A]"
       style={{ backgroundColor: spec.tone === "green" ? "#2ECC8A" : "#C9B3F5", width: size, height: size }}
       aria-hidden="true"
     >

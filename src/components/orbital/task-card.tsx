@@ -60,7 +60,7 @@ export function TaskCard({
         </div>
         <h4
           className={cn(
-            "mb-1 text-[14px] font-medium leading-[1.3]",
+            "mb-[5px] text-[14px] font-medium leading-[1.3]",
             task.status === "blocked" ? "text-orb-coral-deep" : "text-orb-heading",
           )}
         >
@@ -94,11 +94,11 @@ export function TaskCard({
         </div>
       </button>
 
-      {/* Direct actions (v1.6, measured; v1.7 spacing): 26px radius-7 raised
-          squares with 11px icons, pinned to the row's top-right — OUTSIDE the
-          shadowed card, 2px apart (live measurement). While deleting, they
-          swap for the inline confirmation. */}
-      <div className="absolute right-0 top-0 flex translate-y-[14px] items-center gap-[2px] pr-[9px]">
+      {/* Direct actions (v1.6, measured; v1.9 spacing): 26px radius-7
+          raised squares with 11px icons, pinned to the row's top-right
+          (10px below the card's top edge) — OUTSIDE the shadowed card,
+          2px apart. While deleting, they swap for the inline confirmation. */}
+      <div className="absolute right-0 top-0 flex translate-y-[10px] items-center gap-[2px] pr-[9px]">
         {confirming ? (
           <div
             className="flex items-center gap-2 rounded-[10px] bg-orb-raised px-2 py-1"

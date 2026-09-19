@@ -77,7 +77,7 @@
   --orb-inset: #ebe7e2; /* inset wells (inputs, chips, tracks) */
   --orb-raised: #eeeae6; /* raised surface (sidebar, cards, buttons) */
   --orb-well: #ebe7e2; /* inset surface */
-  --orb-track: #ddd8d0; /* goal-card progress track */
+  --orb-track: #ddd8d2; /* goal-card progress track */
   --orb-heading: #3a3a3a;
   --orb-body: #2f2823;
   --orb-muted: #6e6e6e;
@@ -256,12 +256,12 @@
      DELETE) stay neumorphic. */
   .orb-btn-dark {
     display: inline-flex;
-    height: 34px;
+    height: 34.5px;
     align-items: center;
     justify-content: center;
     gap: 8px;
     border-radius: 10px;
-    padding: 0 16px;
+    padding: 9px 18px;
     background-color: var(--orb-heading);
     color: #f1f1f0;
     font-size: 11px;
@@ -306,6 +306,36 @@
   }
   /* Secondary cancel inside dialogs (reference): a soft inset well button
      with muted text, radius 10. */
+  /* v1.9 (measured): the wizard's CANCEL — a RAISED pill (bg #EEEAE6,
+     text #3A3A3A, the standard raised pair), not the inset-well cancel
+     used by the form dialogs. */
+  .orb-btn-raised-cancel {
+    display: inline-flex;
+    height: 34.5px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 9px 18px;
+    background-color: var(--orb-raised);
+    color: var(--orb-heading);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: -5px -5px 10px rgba(255, 250, 244, 0.78), 5px 5px 12px rgba(160, 143, 126, 0.27);
+    transition: color 0.15s ease;
+  }
+
+  .orb-btn-raised-cancel:hover:not(:disabled) {
+    color: var(--orb-body);
+  }
+
+  .orb-btn-raised-cancel:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
   .orb-btn-cancel {
     display: inline-flex;
     height: 34px;
@@ -362,7 +392,7 @@
   }
   /* Inset pill: filter chips, status chips */
   .orb-well-pill {
-    border-radius: 999px;
+    border-radius: 9999px;
     background-color: var(--orb-well);
     box-shadow: inset -3px -3px 6px rgba(255, 250, 244, 0.68), inset 3px 3px 6px rgba(160, 143, 126, 0.24);
   }
@@ -506,7 +536,7 @@
 }
 .orb-scroll::-webkit-scrollbar-thumb {
   background: rgba(47, 40, 35, 0.14);
-  border-radius: 999px;
+  border-radius: 9999px;
 }
 .orb-scroll::-webkit-scrollbar-track {
   background: transparent;
@@ -518,7 +548,7 @@
   display: inline-block;
   width: 7px;
   height: 7px;
-  border-radius: 999px;
+  border-radius: 9999px;
   background-color: var(--orb-green);
   animation: orb-live-pulse 2.4s ease-in-out infinite;
 }

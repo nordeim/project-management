@@ -1,36 +1,49 @@
-# Worklog — ORBITAL Session 10 (v1.8 parity remediation)
+# Worklog — ORBITAL Sessions 10–11 (v1.8 + v1.9 parity remediation)
 
 ---
 Task ID: 1
 Agent: main (Super Z)
-Task: Workspace setup + document review
+Task: Session 10 — workspace refresh + document review
 
 Work Log:
-- Read uploaded `coding_agent_prompt.md` (709 lines) — internalized operating contract: production-grade standards, TDD, evidence-based verification (Verified/Reasoned/Assumed), root-cause fixes, surgical changes.
-- Cloned https://github.com/nordeim/project-management.git (HEAD `4952446` "update session log" on main).
-- Read AGENTS.md, CLAUDE.md, README.md, Project_Architecture_Document.md (v1.7), docs/session_9.md, docs/parity-remediation-v1.7.md, docs/session_10.md.
-- Reviewed skills: tdd (red→green at pre-agreed seams), agent-browser (Rust CLI), clone-app-pat-pro (computed styles = ground truth doctrine).
+- Read uploaded coding_agent_prompt.md (709 lines) — internalized operating contract: production-grade standards, TDD, evidence-based verification (Verified/Reasoned/Assumed), root-cause fixes, surgical changes.
+- Cloned https://github.com/nordeim/project-management.git (HEAD `4952446` on main).
+- Read AGENTS.md, CLAUDE.md, README.md, Project_Architecture_Document.md (v1.7), session logs, skills (tdd, agent-browser, clone-app-pat-pro — computed styles are ground truth).
 
 Stage Summary:
 - Project: ORBITAL — Next.js 16.1 SPA clone of the Base44 PM app. Stack: React 19, TS 5 strict, Tailwind 4 CSS-first, shadcn/ui, Zustand 5, Prisma 6 + SQLite, z-ai-web-dev-sdk, Vitest.
-- Current state: v1.7 (parity remediation rounds v1.1–v1.7 complete). Gate = lint → typecheck → test (101) → build → smoke (30).
-- NOTE: docs/session_10.md is currently a RAW TRANSCRIPT dump of the session-9 push (same defect pattern as old session_8/9 files) — to be replaced with a proper Session 10 log at the end of this session.
-- Architecture: single page + /login route, view paths rewritten, Zustand store as single client, {ok,data} envelope, ActivityLog invariant, degrade-not-fail AI, three card tiers + two-tier labels (v1.7).
-- Key files: src/components/orbital/* (app, store, sidebar, views, dialogs), src/lib/* (pure seams + tests), prisma/schema.prisma + seed.ts.
+- Baseline gate green on v1.7.
 
 ---
 Task ID: 2
 Agent: main (Super Z)
-Task: Live-app crawl + delta analysis (v1.8 evidence gathering)
+Task: Session 10 — live-app crawl + v1.8 plan + implementation
 
 Work Log:
-- Set up named agent-browser sessions (live + clone at 1440x900 and 390x844), logged into the live app (sepnetflix2023@outlook.com) and the clone (demo@orbital.app).
-- Built scripts/par-capture.sh probe harness + 12 named probes (scripts/probes/*.js) extracting computed styles side-by-side; results in research/par-s10/.
-- Captured 14 live screenshots + 12 clone screenshots + VLM cross-checks (VLM produced several false readings — disproven by computed styles: "gradient missing on clone", "dialog wider", "desc center-aligned", "9-dot logo", "MANAGEMENT. with period" were all wrong; computed styles are ground truth).
-- Baseline gate on the clone: lint 0, typecheck 0, 101/101 unit, build clean (v1.7 claims hold).
-- Wrote docs/parity-remediation-v1.8.md — 7 systemic findings + ~40 micro-deltas across 11 work streams.
-- Validated the plan against the codebase: read dashboard-view.tsx, orbital-app.tsx, sidebar.tsx, sidebar-clock.tsx, login-screen.tsx, new-goal-dialog.tsx, globals.css primitives.
+- Built the par-capture probe harness + 12 named probes; crawled the live app and the clone side-by-side at 1440×900 / 390×844 (two authenticated agent-browser sessions).
+- Wrote docs/parity-remediation-v1.8.md — 7 systemic findings + ~40 micro-deltas.
+- Implemented WS-1..WS-9: fonts (DM Sans 300 opsz + Archivo), viewport-fill dashboard, stats rhythm, sidebar well + 3-hand clock, activity-icons seam (TDD), plain feed rows, login slate restyle, dialogs r16.
+- Committed as d047b0f ("session 11"). Final verification pass interrupted → handed to session 11.
 
 Stage Summary:
-- KEY STRUCTURAL FINDINGS: (1) live desktop shell is h-screen — dashboard bottom row fills the viewport, activity panel renders ALL entries clipped by overflow:hidden (clone: content-height + 5-row slice); (2) stat columns need an 88px number wrapper + label mb-10 (104px columns on mobile); (3) canvas glow moved to 59.17% 29.89%; (4) DM Sans 300 missing + Archivo 600 for the brand; (5) activity feed rows are PLAIN (no card) with rgba(160,143,126,0.15) dividers; hero icon = fixed Search; goal_analyzed→Target; (6) sidebar Tasks Status IS an inset well (v1.7 misread), active nav has a brighter inset pair, clock = 3 hands full-face; (7) login page = white/slate design (96px logo circle, 30px/700 #0F172A title, r12 controls); wizard = 624px r16, no bot intro, left-grouped buttons, sparkle Continue.
-- Probe artifacts: research/par-s10/*.json (live vs clone per probe), research/{live,clone}-capture-s10/*.png.
+- Unit layer 101 → 107 checks; gate green; docs still at v1.7 (deferred to session 11).
+
+---
+Task ID: 3
+Agent: main (Super Z)
+Task: Session 11 (resume) — final verification pass → v1.9
+
+Work Log:
+- Fresh clone at d047b0f; baseline gate green (107/107 unit, 30/30 smoke).
+- Completed the interrupted WS-10.2: ~20 computed-style probes in research/par-s11/ across every surface (dashboard, sidebar, goals, goal detail, task cards, my tasks, activity, team, settings, mobile chrome, login, wizard, check-in modal).
+- KEY FINDINGS: date-card photo rotates by time of day (bundle XF(): 4 variants at 5/11/17/21); timestamps are date-fns formatDistanceToNow long form (full algorithm extracted); greeting starts at hour 5; wizard = 680px conversational wrapper with blurred scrim (corrects the v1.8 "no bot intro" reading); login logo = rounded square (Frame24.svg); ~40 micro-deltas.
+- Wrote docs/parity-remediation-v1.9.md; validated against the codebase (read every touched file).
+- TDD red → green: relative-time.test.ts (12), greeting boundary updates, day-image.test.ts (3) + src/lib/day-image.ts; downloaded + optimized the 4 day-hill assets. 107 → 122 checks.
+- Implemented all v1.9 work streams (dashboard, activity, goals/detail/tasks, team, settings, dialog base + wizard wrapper, login, sidebar, mobile chrome, avatar).
+- Full gate: lint 0 · typecheck 0 · 122/122 · build clean · 30/30 smoke.
+- Re-probed: goals view 0 deltas; all other surfaces closed to probe-noise / ≤6px content-height offsets; login all styles matched.
+- Regenerated all 14 README screenshots; VLM sanity check confirmed the night photo, viewport-fill grid, and long-form timestamps.
+
+Stage Summary:
+- v1.9 shipped: time-aware chrome (photo rotation, long-form relative time, greeting boundaries) + wizard/login/dialog corrections + micro-parity sweep.
+- Docs aligned to v1.9 (README, AGENTS, CLAUDE, PAD revision blocks, session logs rewritten).

@@ -1,7 +1,8 @@
-// Greeting seam (v1.7, measured on the live app): the dashboard greeting is
-// Title Case with a trailing period — "Good Morning." / "Good Afternoon." /
-// "Good Evening." The boundary hours were read off the shared helper's
-// contract (<12 morning, <18 afternoon, else evening).
+// Greeting seam (v1.9, re-measured on the live bundle): the dashboard
+// greeting is Title Case with a trailing period — "Good Morning." / "Good
+// Afternoon." / "Good Evening." The live app's QF() switches at hour 5,
+// 12 and 18: 05:00–11:59 morning, 12:00–17:59 afternoon, else evening —
+// so the small hours (00:00–04:59) greet with "Good Evening."
 
 import { describe, expect, it } from "vitest";
 import { greetingFor } from "./orbital";
@@ -23,7 +24,9 @@ describe("greetingFor (dashboard greeting)", () => {
     expect(greetingFor(new Date(2026, 8, 18, 18, 0))).toBe("Good Evening.");
   });
 
-  it("stays in the morning band just after midnight", () => {
-    expect(greetingFor(new Date(2026, 8, 18, 0, 30))).toBe("Good Morning.");
+  it("starts the morning band at 05:00, not midnight", () => {
+    expect(greetingFor(new Date(2026, 8, 18, 4, 59))).toBe("Good Evening.");
+    expect(greetingFor(new Date(2026, 8, 18, 0, 30))).toBe("Good Evening.");
+    expect(greetingFor(new Date(2026, 8, 18, 5, 0))).toBe("Good Morning.");
   });
 });

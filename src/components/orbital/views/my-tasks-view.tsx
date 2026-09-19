@@ -45,7 +45,7 @@ export function MyTasksView() {
   return (
     <div className="w-full">
       <header>
-        <h1 className="text-[28px] font-normal leading-[1.2] tracking-tight text-orb-heading">My Tasks</h1>
+        <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">My Tasks</h1>
         <p className="mt-1 text-[14px] text-orb-muted">
           {myTasks.length} task{myTasks.length === 1 ? "" : "s"} assigned to you
         </p>

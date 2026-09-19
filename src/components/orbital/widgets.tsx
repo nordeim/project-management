@@ -20,7 +20,7 @@ export function AvatarBubble({
   return (
     <span
       aria-hidden="true"
-      className={cn("inline-flex shrink-0 select-none items-center justify-center rounded-full font-semibold text-white", className)}
+      className={cn("inline-flex shrink-0 select-none items-center justify-center rounded-full font-semibold text-[#5A5350]", className)}
       style={{
         backgroundColor: color,
         width: size,

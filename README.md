@@ -17,20 +17,21 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 
 | Feature | Description |
 |---------|-------------|
-| 🎯 **Goals with AI task planning** | Three-step conversational wizard: describe the goal → answer the agent's clarifying questions → get a 6–9 task plan (LLM via `z-ai-web-dev-sdk`, deterministic fallback — never hard-fails) |
+| 🎯 **Goals with AI task planning** | Three-step conversational wizard in a 680px chat-style wrapper (bot avatar + speech bubble above the form panel): describe the goal → answer the agent's clarifying questions → get a 6–9 task plan (LLM via `z-ai-web-dev-sdk`, deterministic fallback — never hard-fails) |
 | ✅ **Task lifecycle** | Five task statuses (pending / in progress / blocked / need help / done), deadlines, assignees, estimated hours, AI-attribution badge |
 | 💬 **Status check-ins** | Post on-track / blocked / need-help / done updates with notes; updates history on every task |
-| 📊 **Dashboard** | 2×2 grid: date card + inset DONE circle beside the stats panel, Agent Activity and Goals panels below — centered stat columns with big light 50px numerals, large-tier embossed cards on a 1200px clamped canvas with a soft purple glow |
+| 📊 **Dashboard** | 2×2 viewport-filling grid: date card (photo rotates by time of day — morning/noon/dusk/night) + inset DONE circle beside the stats panel, Agent Activity and Goals panels below — centered stat columns with big light 50px numerals, large-tier embossed cards on a 1200px clamped canvas with a soft purple glow |
 | 🪝 **Sticky desktop sidebar** | The sidebar pins to the viewport (top 0, height viewport−40px) — the compact brand, analog clock and TASKS STATUS block stay visible while the main content scrolls |
 | 👥 **Team of humans + AI agents** | Invite members by email with a role toggle, or configure AI agents with name, description and instructions; person directory drives assignment |
-| 📜 **Agent activity feed** | Every mutation logs a typed, human-readable activity entry; the full view groups entries under date labels ("Thu Jul  16 2026") inside per-day cards, with the latest entry as a hero card, a "Last agent action" caption, per-row type tags and an inset "Online · N" status pill |
+| 📜 **Agent activity feed** | Every mutation logs a typed, human-readable activity entry with date-fns-style long-form relative timestamps ("3 minutes ago", "2 months ago"); the full view groups entries under date labels ("Thu Jul 16 2026") as plain rows with hairline dividers, the latest entry as a hero card with a "Last agent action" caption, per-row type tags and an inset "Online · N" status pill |
 | 🎨 **Neumorphic design system** | Measured three-tier token system from the reference — beige canvas `#EBE7E2`, standard/deeper/large embossed shadow pairs for buttons, row cards and view panels, inset wells for inputs/chips/clock, `#DDD8D0` progress tracks, a two-tier uppercase label typography (11px/600 panel labels, 10px/600 small labels), coral inset ring on blocked task cards and the darker `#BD3228` destructive red |
 | 🔐 **Cookie-session auth** | scrypt password hashing + HMAC-signed sessions, per-IP rate limiting on login/register (429 with `Retry-After`), zero external auth dependencies |
-| 🚪 **Reference auth flow** | Unauthenticated visits render the workspace shell with a LOG IN header button; `/login` is a real route with sign-in / sign-up / forgot-password states and `?from_url=` return handling — "Continue with Google" renders for parity and degrades to an explanatory toast (no OAuth credentials in a self-hosted clone) |
+| 🚪 **Reference auth flow** | Unauthenticated visits render the workspace shell with a LOG IN header button; `/login` is a real white-page route (slate card, rounded-square dot-pyramid logo) with sign-in / sign-up / forgot-password states and `?from_url=` return handling — "Continue with Google" renders for parity and degrades to an explanatory toast (no OAuth credentials in a self-hosted clone) |
 | 🗑 **Inline delete confirms** | Deletes confirm in place — goal cards, the goal-detail header and task cards swap their action icons for confirm pairs (no modal interruption) |
 | 🧭 **Path-based deep links** | Real URLs — `/goals/<id>`, `/my-tasks`, `/activity` — with working browser back/forward (single-page app under the hood) |
 | 📱 **Responsive SPA** | Sticky collapsible desktop sidebar (240px ⇄ 64px icon rail) with live analog clock; mobile mirrors the reference's full-bleed chrome — a top app bar (logo + user pill), side-by-side date/ring hero cards at 150px, and a full-width bottom-attached tab bar (rounded top corners, upward shadow) with a MORE sheet |
 | 🗓 **Custom date picker** | "Pick a deadline" well-style trigger opening a raised popover calendar (month chevrons, Su–Sa headers, 7×6 grid, today in bold purple) with the reference's long date format ("September 20th, 2026") — grid math and formatting live in a pure, unit-tested seam |
+| 🕐 **Time-aware chrome** | The greeting switches at 05:00/12:00/18:00 (the small hours still say "Good Evening.") and the dashboard date card rotates its landscape photo across four lighting variants (morning/noon/dusk/night) — both boundaries extracted from the reference's bundle and unit-tested |
 | ⚫ **Dark primary actions** | In-dialog submits (Post Update, Continue, Add Task, Save) are charcoal `#3A3A3A` pills with near-white text — the reference's action hierarchy; page-level actions stay neumorphic |
 | 🌱 **One-command demo data** | Idempotent seed mirrors the reference workspace (3 goals, 31 tasks, 22 activity entries) |
 
@@ -71,7 +72,7 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | Styling | Tailwind CSS | 4 | Utility styling + design tokens |
 | Components | shadcn/ui on Radix | — | Accessible primitives (dialog, select, radio, …) |
 | State | Zustand | 5 | Single client store; server state via fetch + refresh |
-| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms, next-action, logo geometry, calendar grid |
+| Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms, next-action, logo geometry, calendar grid, date-fns distance time, greeting boundaries, day-image rotation |
 | ORM | Prisma | 6 | Schema, client, `db push`, seed |
 | Database | SQLite | — | Zero-config local persistence (`db/custom.db`) |
 | Auth | Node `crypto` (scrypt + HMAC) | — | Cookie sessions, no external auth service |
@@ -101,7 +102,10 @@ The page at `/` resolves the session and hands a **nullable user** to the client
   📄 seed.ts                # Idempotent demo workspace seed
 📂 public/
   📄 orbital-logo.svg       # Brand mark
-  📄 day-hills.jpg          # Dashboard date-card backdrop (extracted from the reference)
+  📄 day-hills-morning.jpg # Dashboard date-card backdrop — rotates by hour
+  📄 day-hills-noon.jpg    # (11:00–16:59) with the reference's artwork
+  📄 day-hills-dusk.jpg    # (17:00–20:59)
+  📄 day-hills-night.jpg   # (21:00–04:59)
   📄 dusk-hills.jpg         # Legacy landscape (unused, kept as an OSS asset)
 📂 scripts/
   📄 smoke-test.sh          # 30-check E2E suite + unit tests via `bun run test` (boots prod server)
@@ -222,7 +226,7 @@ Measured from the reference app (v1.7) — a soft-beige neumorphic system with *
 | `--orb-canvas` | `#EBE7E2` | Page canvas (24px padding, no outer panel) |
 | `--orb-raised` | `#EEEAE6` | Raised surfaces: sidebar, cards, dialogs, buttons |
 | `--orb-well` | `#EBE7E2` | Inset wells: inputs, chips, clock face, icon squares |
-| `--orb-track` | `#DDD8D0` | Progress track behind the green fill |
+| `--orb-track` | `#DDD8D2` | Progress track behind the green fill |
 | `--orb-body` | `#2F2823` | Primary text |
 | `--orb-heading` | `#3A3A3A` | Headings / button text |
 | `--orb-muted` | `#6E6E6E` | Secondary text |
@@ -235,11 +239,11 @@ Primitive classes in `globals.css`: `.orb-raised` / `.orb-raised-lg` (panels), `
 ## Testing
 
 ```bash
-bun run test              # unit tests — 101 checks on the pure domain seams
+bun run test              # unit tests — 122 checks on the pure domain seams
 ./scripts/smoke-test.sh   # E2E — 30 checks against the production build
 ```
 
-The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), the logo dot geometry (`logo.tsx`), the date-picker calendar grid + long date format (`src/lib/calendar.ts`), the activity feed's date grouping (`src/lib/activity-groups.ts`), the activity type-tag mapping (`src/lib/activity-tags.ts`), and the dashboard greeting (`greetingFor` in `src/lib/orbital.ts`).
+The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), the logo dot geometry (`logo.tsx`), the date-picker calendar grid + long date format (`src/lib/calendar.ts`), the activity feed's date grouping (`src/lib/activity-groups.ts`), the activity type-tag mapping (`src/lib/activity-tags.ts`), the dashboard greeting boundaries (`greetingFor`), the date-fns long-form distance (`formatDistance`/`relativeTime`), and the date-card photo rotation (`src/lib/day-image.ts`) — **122 checks**.
 
 The smoke suite boots the production standalone server, then runs **30 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), the **clarify endpoint** (3 questions + validation), **team validation** (invite with invalid email, agent without a name), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). It exits non-zero on any failure and cleans up after itself.
 

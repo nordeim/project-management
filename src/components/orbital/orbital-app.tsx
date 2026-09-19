@@ -141,11 +141,14 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             <button
               type="button"
               onClick={() => navigate("dashboard")}
-              className="flex items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+              className="flex items-center gap-2 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
               aria-label="Orbital home"
             >
-              <LogoMark size={24} />
-              <span className="text-[15px] font-bold uppercase tracking-[0.18em] text-orb-heading">Orbital</span>
+              {/* v1.9 (measured): the mobile brand is the compact variant —
+                  a 9px six-dot mark (3px dots) + "ORBITAL" in Archivo
+                  12px/600/ls 2.16px #2F2823, 8px apart. */}
+              <LogoMark size={9} />
+              <span className="font-archivo text-[12px] font-semibold uppercase leading-[18px] tracking-[0.18em] text-orb-body">Orbital</span>
             </button>
             <UserMenuOrLogin compact />
           </header>
@@ -175,7 +178,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               text only (no highlight pill). Replaces the v1.6 floating-pill
               reading. */}
           <nav
-            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around gap-1 rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_20px_rgba(160,143,126,0.22)] lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_20px_rgba(160,143,126,0.22)] lg:hidden"
             aria-label="Primary"
           >
             {TABS.map((tab) => {

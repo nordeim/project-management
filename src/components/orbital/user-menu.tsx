@@ -47,13 +47,13 @@ export function UserMenuOrLogin({ compact = false }: { compact?: boolean }) {
           type="button"
           className={
             compact
-              ? "flex h-[34px] items-center gap-2 rounded-xl bg-orb-well px-3 shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
+              ? "flex items-center gap-[7px] rounded-[10px] bg-orb-well px-3 py-[7px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
               : "flex h-11 items-center gap-2.5 rounded-xl bg-orb-well px-4 py-2.5 shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
           }
           aria-label={`Account menu for ${user.name || emailPrefix}`}
         >
           <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={compact ? 20 : 22} />
-          <span className={compact ? "max-w-[110px] truncate text-[12px] font-medium text-orb-heading" : "max-w-[140px] truncate text-[13px] font-medium text-orb-heading"}>
+          <span className={compact ? "max-w-[110px] truncate text-[11px] font-medium text-[#6E6E6E]" : "max-w-[140px] truncate text-[13px] font-medium text-orb-heading"}>
             {emailPrefix}
           </span>
         </button>

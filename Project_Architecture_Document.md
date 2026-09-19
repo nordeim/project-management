@@ -1,11 +1,30 @@
-# ORBITAL — Master Project Architecture Document (PAD) v1.7
+# ORBITAL — Master Project Architecture Document (PAD) v1.9
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
 **Companion Documents:** `README.md` (user-facing), `CLAUDE.md` (agent contract), `AGENTS.md` (operator notes)
-**Last Updated:** 2026-09-18
+**Last Updated:** 2026-09-19
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v1.9
+
+- `[NEW]` **Date-card photo rotates by time of day** (extracted from the live bundle's `XF()`): `5–11 → day-hills-morning.jpg`, `11–17 → noon`, `17–21 → dusk`, else night — four lighting variants of the same rolling-hills artwork shipped in `public/`, selected by the new TDD seam `src/lib/day-image.ts` (`dayImageFor`, 3 specs).
+- `[MOD]` **Relative timestamps render date-fns `formatDistanceToNow` long form** ("3 minutes ago", "about 2 hours", "2 months ago", "over 2 years") — the live bundle's distance algorithm (minute thresholds 1/45/90/1440/2520/43200/86400 + calendar-months path with the Feb-27 rule) re-implemented as the pure `formatDistance` core in `orbital.ts` with 12 specs; the old abbreviated "3m ago" style is gone.
+- `[MOD]` **Greeting boundaries**: the live `QF()` starts the morning band at hour 5 — 05:00–11:59 morning, 12:00–17:59 afternoon, else evening. `greeting.test.ts` updated (04:59 → evening, 05:00 → morning).
+- `[MOD]` **The New Goal wizard re-measured as a CONVERSATIONAL WRAPPER** (corrects v1.8's "no bot intro" reading): a 680px radius-24 panel (pad 28/28/24) carrying the 32px bot avatar (purple-tinted light shadow) + a 400px speech bubble (radius `0 14 14 14`, pad 10/16, 13px/400 `#3A3A3A`) above the 624px radius-16 form panel; a 32px radius-9 close square sits top-right. All dialogs now share the reference's scrim: `rgba(46,42,38,0.25)` + 12px backdrop blur (the wizard's is 0.3); base panels drop the drop-shadow layer and go radius 16.
+- `[MOD]` **Login page**: white route, card shadow `0 25px 50px −12px rgba(0,0,0,0.25)`, inner pad 48/40/40, the logo re-measured as the reference's `Frame24.svg` — a WHITE ROUNDED SQUARE (rx 98/1200) carrying the 1-2-3 pyramid, no shadow; title ls −0.75px; subtitle 16px/500 left-aligned; all controls radius 12 (explicit — the theme's `rounded-xl` computes to 20px); footer "Need an account?" 400 `#64748B` + "Sign up" 500 `#334155`.
+- `[MOD]` **Dashboard activity panel rhythm**: rows start flush at the NPA well's bottom (no list margin), detail lines carry a 2px top margin, message line-height is 19.5px (13 × 1.5), and row icons use `#2A2A2A` glyphs.
+- `[MOD]` **Micro-parity sweep**: activity feed rows gap 14px, hero row centered, type tags ls 1px/mt 4px, online pill pad 7/12 gap 6 with the count at 400 `#767676`; goals/my-tasks h1s to `tracking-[-0.01em]`; goal cards pad-top 23px; `--orb-track` `#DDD8D2`; goal-detail header +5px, DELETE py 11, ADD TASK py 7, blocked well r12 (explicit styles — the `.orb-well` cascade trap), stat grid 2.04fr:1fr; task-card actions at 10px, status→title 5px; settings selects 36px (size=sm) pad 8/12 with the measured spacing rhythm; team empty-state offsets; sidebar brand inset 10px/gap 8; mobile brand = 9px mark + Archivo 12px/600; mobile user pill r10 with an 11px/500 `#6E6E6E` name; avatars `#5A5350` text.
+- `[NEW]` Three TDD seams + spec updates — **107 → 122 unit checks**.
+
+#### Revision Block — v1.8
+
+- `[MOD]` **Viewport-filling dashboard**: the desktop shell pins `h-screen`; the dashboard grid's bottom row is `1fr` and the Agent Activity panel renders ALL entries inside an `overflow-hidden` container (clipped at the viewport like the live app).
+- `[MOD]` **Stats columns**: 88px flex-centered number boxes (104px mobile) with 10px label margins; DM Sans **300** loaded (the light-numeral face, variable font with the opsz axis); **Archivo 600** for the "ORBITAL" wordmark.
+- `[MOD]` **Canvas glow** moved to `59.17% 29.89%` (upper-middle-right, visible on Team/Settings).
+- `[MOD]` **Activity feed structure**: plain date-group rows with `rgba(160,143,126,0.15)` hairlines (no card wrapper), a hero card with a fixed Search glyph, and the icon seam `src/lib/activity-icons.ts` (TDD, 4 specs).
+- `[MOD]` **Login page** rebuilt as the slate design; the wizard opened directly on "Goal Details"; dialogs re-measured (v1.9 corrected both readings against a fresh crawl).
 
 #### Revision Block — v1.7
 
@@ -271,8 +290,9 @@ Layer 4: Views & dialogs (src/components/orbital/views|dialogs) — pure
 ├── public/
 │   ├── orbital-logo.svg           ← brand mark (sidebar, login)
 │   ├── logo.svg                   ← favicon
-│   ├── day-hills.jpg              ← dashboard date-card photo (extracted from
-│   │                                 the reference, v1.5)
+│   ├── day-hills-{morning,noon,   ← dashboard date-card photos — the
+│   │                 dusk,night}.jpg  reference artwork in four lighting
+│   │                                 variants, rotated by hour (v1.9)
 │   ├── dusk-hills.jpg             ← legacy landscape (unused)
 │   └── robots.txt
 ├── scripts/
@@ -506,7 +526,7 @@ Declared as CSS variables in `src/app/globals.css`, exposed to Tailwind 4 via `@
 | `--orb-canvas` | `#EBE7E2` | Page canvas (24px padding, no outer panel) |
 | `--orb-raised` | `#EEEAE6` | Raised surfaces: sidebar, cards, dialogs, buttons |
 | `--orb-well` | `#EBE7E2` | Inset wells: inputs, chips, clock face, icon squares |
-| `--orb-track` | `#DDD8D0` | Progress track behind the green fill |
+| `--orb-track` | `#DDD8D2` | Progress track behind the green fill |
 | `--orb-body` | `#2F2823` | Primary text |
 | `--orb-heading` | `#3A3A3A` | Headings / button text |
 | `--orb-muted` | `#6E6E6E` | Secondary text |
@@ -586,11 +606,11 @@ v1.4 auth surface (mirrors the reference): unauthenticated visits render the wor
 | Category | Files | Checks | Location | Framework |
 |----------|-------|--------|----------|-----------|
 | End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 30 | `scripts/` | Bash + curl + python3 (no test framework needed) |
-| Unit (pure domain seams) | 11 (`src/lib/*.test.ts`) | 101 | `src/lib/` | Vitest 5 (`bun run test`) |
+| Unit (pure domain seams) | 14 (`src/lib/*.test.ts`) | 122 | `src/lib/` | Vitest 5 (`bun run test`) |
 
 ### 7.2 Test Patterns
 
-The unit layer (`bun run test`, ~1.2s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule), `rate-limit.test.ts` (fixed-window accounting, expired-bucket eviction, limit boundary, retry-after math), `team.test.ts` (email → display-name derivation, agent-field normalization bounds), `next-action.test.ts` (next-planned-action extraction incl. the v1.3 name-prefix regression), `logo-geometry.test.ts` (six-dot ring angles, 1-2-3 pyramid rows), `calendar.test.ts` (month-grid boundaries, leap February, the 6-row invariant, `isSameDay`, and — added v1.5 — `formatLongDate` ordinals: 1st/2nd/3rd, 11th–13th, 21st/22nd/23rd, all twelve months), `activity-groups.test.ts` (added v1.6: feed date grouping — order, labels, midnight boundaries, the "Today" group), `activity-tags.test.ts` (added v1.7: feed type-tag mapping — underscores → spaces, unknown-type passthrough), `greeting.test.ts` (added v1.7: the dashboard greeting — Title Case strings, 12:00/18:00 boundaries). All v1.1–v1.7 logic changes were written red → green at these seams.
+The unit layer (`bun run test`, ~1.2s, zero infrastructure) pins the pure seams: `router.test.ts` (view ↔ path mapping incl. legacy `?view=` links and unknown-path fallback), `clarify.test.ts` (deterministic questions + LLM-output bounds), `domain.test.ts` (plan sanitizer clamps, template fallback, check-in → task-status mapping incl. the on_track unblock rule), `rate-limit.test.ts` (fixed-window accounting, expired-bucket eviction, limit boundary, retry-after math), `team.test.ts` (email → display-name derivation, agent-field normalization bounds), `next-action.test.ts` (next-planned-action extraction incl. the v1.3 name-prefix regression), `logo-geometry.test.ts` (six-dot ring angles, 1-2-3 pyramid rows), `calendar.test.ts` (month-grid boundaries, leap February, the 6-row invariant, `isSameDay`, and — added v1.5 — `formatLongDate` ordinals: 1st/2nd/3rd, 11th–13th, 21st/22nd/23rd, all twelve months), `activity-groups.test.ts` (added v1.6: feed date grouping — order, labels, midnight boundaries, the "Today" group), `activity-tags.test.ts` (added v1.7: feed type-tag mapping — underscores → spaces, unknown-type passthrough), `greeting.test.ts` (v1.7: the dashboard greeting — Title Case strings; v1.9: 05:00 boundary), `relative-time.test.ts` (v1.9: the date-fns long-form distance — minute/hour/day/month/year bands, the calendar-months path, singular/plural), `day-image.test.ts` (v1.9: the date-card photo rotation — four lighting variants, 5/11/17/21 boundaries). All v1.1–v1.9 logic changes were written red → green at these seams.
 
 The smoke suite boots the **production standalone server** (not dev mode), polls `/api/health` until ready, then exercises: login (valid / wrong password / unauthenticated), all six read endpoints (envelope asserted), task creation, invalid-status rejection (400), the full check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` each return the app shell; an unknown path must 404), the **clarify endpoint** (three questions returned; title-less payload rejected 400), **team validation** (invite with an invalid email rejected 400; agent without a name rejected 400), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). Each step prints `PASS:`/`FAIL:`; the script exits non-zero on any failure and kills the server on exit. Artifacts land in `/tmp/smoke-*` for post-mortem.
 
@@ -604,7 +624,7 @@ The smoke suite boots the **production standalone server** (not dev mode), polls
 - [ ] `bun run lint` exits 0
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run build` compiles clean
-- [ ] `bun run test` → 101/101 PASS
+- [ ] `bun run test` → 122/122 PASS
 - [ ] `./scripts/smoke-test.sh` → 30/30 PASS
 - [ ] New/changed endpoints write their `ActivityLog` entries (Pattern D)
 - [ ] Schema changes regenerated (`bunx prisma generate`) and reseeded (`db:push` + `db:seed`)
@@ -713,14 +733,14 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 |------|-------|---------|
 | `src/components/orbital/store.ts` | 374 | The Zustand store: all server state, `call()` envelope client, every action + refresh set; skips fetches while `user` is null |
 | `prisma/seed.ts` | 265 | Idempotent demo workspace: user, 10 people, 3 goals, 31 tasks, 22 activity rows |
-| `src/app/globals.css` | 514 | Tailwind 4 `@theme` tokens, neumorphic primitive classes, the two-tier label system, base styles, reduced-motion query |
+| `src/app/globals.css` | 575 | Tailwind 4 `@theme` tokens, neumorphic primitive classes, the two-tier label system, base styles, reduced-motion query |
 | `src/components/orbital/views/dashboard-view.tsx` | 299 | Dashboard: greeting card, centered stats panel, activity preview with in-row timestamps, goals panel |
-| `src/components/orbital/login-screen.tsx` | 277 | LoginCard — the `/login` auth card: sign-in / sign-up / forgot states, Google degrade |
-| `src/components/orbital/orbital-app.tsx` | 256 | App shell (nullable user): sticky sidebar, full-bleed mobile chrome + bottom tab bar + MORE sheet, popstate wiring |
+| `src/components/orbital/login-screen.tsx` | 290 | LoginCard — the `/login` auth card: sign-in / sign-up / forgot states, Google degrade |
+| `src/components/orbital/orbital-app.tsx` | 268 | App shell (nullable user): sticky sidebar, full-bleed mobile chrome + bottom tab bar + MORE sheet, popstate wiring |
 | `src/components/orbital/views/goals-view.tsx` | 250 | Goals grid: neumorphic cards, filter chips, inline delete confirm |
-| `src/components/orbital/views/goal-detail-view.tsx` | 208 | Goal detail: centered stat cards, inline ADD TASK, header inline delete confirm |
-| `src/components/orbital/views/settings-view.tsx` | 207 | Settings: 2-column layout (Workspace + Hours / AI Assistant), well inputs |
-| `src/components/orbital/dialogs/new-goal-dialog.tsx` | 260 | 3-step AI wizard: describe (+ DatePicker) → clarifying questions → generate |
+| `src/components/orbital/views/goal-detail-view.tsx` | 217 | Goal detail: centered stat cards, inline ADD TASK, header inline delete confirm |
+| `src/components/orbital/views/settings-view.tsx` | 231 | Settings: 2-column layout (Workspace + Hours / AI Assistant), well inputs |
+| `src/components/orbital/dialogs/new-goal-dialog.tsx` | 291 | 3-step AI wizard: describe (+ DatePicker) → clarifying questions → generate |
 | `src/app/login/page.tsx` | 26 | Real `/login` route: auth-card shell, `?from_url` handling, authed redirect |
 | `src/components/ui/date-picker.tsx` | 139 | Custom date picker: well trigger + popover calendar on the `calendar.ts` seam |
 | `src/lib/calendar.test.ts` | 121 | Month-grid specs: boundaries, leap February, 6-row invariant, `isSameDay` |
@@ -732,7 +752,7 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `src/lib/greeting.test.ts` | 30 | Greeting specs: Title Case strings, 12:00/18:00 boundaries |
 | `src/components/orbital/sidebar.tsx` | 190 | Collapsible nav: compact brand, sections, clock + plain tasks-status row, chevron toggle |
 | `src/lib/router.ts` | 91 | View ↔ path mapping (`parseUrl` / `toPath`), legacy link support — unit tested |
-| `src/lib/orbital.ts` | 154 | Domain types, DTOs, status metadata (labels + colors), overdue helper, the tested `greetingFor` |
+| `src/lib/orbital.ts` | 212 | Domain types, DTOs, status metadata (labels + colors), overdue helper, the tested `greetingFor` |
 | `src/app/api/goals/[id]/generate-tasks/route.ts` | 130 | AI planner: SDK call (with clarifying answers), sanitizer, template fallback, assignment + scheduling |
 | `src/app/api/goals/clarify/route.ts` | 81 | Wizard step: AI clarifying questions + fallback + `goal_analyzed` activity |
 | `src/lib/rate-limit.ts` | 59 | Fixed-window per-IP auth throttling (ADR-009) — unit tested |

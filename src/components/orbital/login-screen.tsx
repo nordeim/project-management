@@ -20,10 +20,11 @@ import { LogoPyramid } from "@/components/orbital/logo";
 
 type Mode = "signin" | "signup" | "forgot";
 
-// v1.8 (measured on the live app): slate control styling — 48px fields with
-// 1px #E2E8F0 borders at radius 12 over a translucent #F8FAFC fill.
+// v1.9 (measured): slate control styling — 48px fields with 1px #E2E8F0
+// borders at radius 12 (explicit — the theme's rounded-xl is 20px) over a
+// translucent #F8FAFC fill (pad 8px 12px with a 40px leading icon offset).
 const INPUT_CLASS =
-  "h-12 rounded-xl border border-[#E2E8F0] bg-[rgba(248,250,252,0.5)] pl-10 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-1 focus-visible:ring-[#0F172A]/20 focus-visible:border-[#94A3B8]";
+  "h-12 rounded-[12px] border border-[#E2E8F0] bg-[rgba(248,250,252,0.5)] px-3 py-2 pl-10 text-sm text-[#09090B] placeholder:text-[#94A3B8] focus-visible:ring-1 focus-visible:ring-[#0F172A]/20 focus-visible:border-[#94A3B8]";
 
 function GoogleGlyph() {
   return (
@@ -119,23 +120,28 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
     // v1.8 (measured): the live login page renders on a WHITE canvas.
     <main className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
       <div className="w-full max-w-[448px]">
-        {/* v1.8 (measured): card at 95% white, radius 16, with the 96px
-            logo circle above a 30px/700 slate title. */}
-        <div className="rounded-2xl bg-[rgba(255,255,255,0.95)] p-8 shadow-[0_18px_50px_-24px_rgba(15,23,42,0.35)]">
+        {/* v1.9 (measured): card at 95% white, radius 16, inner pad 48/40/40,
+            and the reference's soft card shadow (0 25px 50px −12px, 25%). */}
+        <div className="rounded-2xl bg-[rgba(255,255,255,0.95)] p-[48px_40px_40px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
           {mode === "signin" ? (
             <>
-              <div className="mb-7 flex flex-col items-center gap-5 text-center">
-                <LogoPyramid size={96} />
-                <h1 className="text-[30px] font-bold leading-tight tracking-[-0.01em] text-[#0F172A]">
+              {/* v1.9 (measured): the logo is centered; the title and
+                  subtitle are LEFT-aligned full-width blocks 32px below the
+                  logo (title wraps to two 36px lines). */}
+              <div className="mb-7">
+                <div className="flex justify-center">
+                  <LogoPyramid size={96} />
+                </div>
+                <h1 className="mt-8 text-left text-[30px] font-bold leading-[36px] tracking-[-0.025em] text-[#0F172A]">
                   Welcome to Project Management App
                 </h1>
-                <p className="text-sm text-[#64748B]">Sign in to continue</p>
+                <p className="mt-3 text-left text-[16px] font-medium text-[#64748B]">Sign in to continue</p>
               </div>
 
               <Button
                 type="button"
                 variant="outline"
-                className="h-[54px] w-full rounded-xl border-[#E2E8F0] bg-white text-sm font-medium text-[#0F172A] hover:bg-[#F8FAFC]"
+                className="h-[54px] w-full rounded-[12px] border-[#E2E8F0] bg-white text-[16px] font-medium text-[#334155] hover:bg-[#F8FAFC]"
                 onClick={() =>
                   toast({
                     title: "Google sign-in unavailable",
@@ -242,7 +248,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             <Button
               type="submit"
               disabled={busy}
-              className="h-12 w-full rounded-xl bg-[#0F172A] text-sm font-semibold text-white hover:bg-[#1E293B] disabled:opacity-50"
+              className="h-12 w-full rounded-[12px] bg-[#0F172A] text-sm font-medium text-white hover:bg-[#1E293B] disabled:opacity-50"
             >
               {busy
                 ? "Please wait…"
@@ -255,23 +261,26 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
           </form>
 
           {mode === "signin" ? (
-            <div className="mt-5 flex items-center justify-between text-[13px]">
+            <div className="mt-3 flex items-center justify-between text-[14px]">
               <button
                 type="button"
-                className="text-[#64748B] underline-offset-4 hover:text-[#0F172A] hover:underline"
+                className="font-medium text-[#64748B] underline-offset-4 hover:text-[#0F172A] hover:underline"
                 onClick={() => setMode("forgot")}
               >
                 Forgot password?
               </button>
-              {/* v1.8 (measured): the sign-up link is slate #334155 (the
-                  v1.4 purple link is gone on the live page). */}
-              <button
-                type="button"
-                className="font-medium text-[#334155] underline-offset-4 hover:underline"
-                onClick={() => setMode("signup")}
-              >
-                Need an account? Sign up
-              </button>
+              {/* v1.9 (measured): "Need an account?" is 14px/400 #64748B and
+                  only the "Sign up" action is 14px/500 #334155. */}
+              <span className="flex items-center gap-1">
+                <span className="font-normal text-[#64748B]">Need an account?</span>
+                <button
+                  type="button"
+                  className="font-medium text-[#334155] underline-offset-4 hover:underline"
+                  onClick={() => setMode("signup")}
+                >
+                  Sign up
+                </button>
+              </span>
             </div>
           ) : null}
         </div>

@@ -42,11 +42,13 @@ export function TeamView() {
       </header>
 
       {humans.length === 0 ? (
-        // v1.8 (re-measured — corrects v1.7): the members empty state
-        // centers the 22px Users glyph inside a 52px INSET-WELL CIRCLE
-        // (radius 50%, inset pair −4px 0.68 / 4px 0.28 on #EBE7E2), with
-        // the title 16px below the circle and a 13px #767676 caption.
-        <div className="mt-6 flex flex-col items-center pt-6">
+        // v1.9 (re-measured): the members empty state centers the 22px Users
+        // glyph inside a 52px INSET-WELL CIRCLE — the circle top lands
+        // 100px below the header block bottom (section mt-5 + inner top
+        // space) — with the 15px title 16px below the circle, a 13px
+        // #767676 caption, and the in-section Invite Member (py 9px) 20px
+        // below the caption.
+        <div className="mt-5 flex flex-col items-center pt-[80px]">
           <span
             className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
             aria-hidden="true"
@@ -57,7 +59,7 @@ export function TeamView() {
           <p className="mt-1.5 text-[13px] font-normal text-[#767676]">Invite your team to get started.</p>
           <button
             type="button"
-            className="mt-4 flex h-[38px] items-center gap-2 rounded-[12px] bg-orb-raised px-[18px] text-[13px] font-medium text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+            className="mt-5 flex items-center gap-2 rounded-[12px] bg-orb-raised px-[18px] py-[9px] text-[13px] font-medium text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
             onClick={() => {
               setInviteKind("human");
               setInviteOpen(true);
@@ -80,12 +82,13 @@ export function TeamView() {
         </ul>
       )}
 
-      <section className="mt-10" aria-label="AI agents">
+      <section className="mt-[35px]" aria-label="AI agents">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            {/* v1.7 (measured): 16px/500 — quieter than the v1.6 18px/600. */}
+            {/* v1.7 (measured): 16px/500 — quieter than the v1.6 18px/600.
+                v1.9: the subtitle is 13px (measured). */}
             <h2 className="text-[16px] font-medium text-orb-heading">AI Agents</h2>
-            <p className="mt-0.5 text-[13.5px] text-orb-muted">Autonomous assistants that help manage your project</p>
+            <p className="mt-0.5 text-[13px] text-orb-muted">Autonomous assistants that help manage your project</p>
           </div>
           <button
             type="button"

@@ -67,9 +67,9 @@ export function GoalDetailView() {
       </button>
 
       <header className="mt-5 flex flex-wrap items-start justify-between gap-4">
-        {/* v1.8 (measured): the header content starts ~5px lower than the
-            column top (live chip at y=97 inside a 92 header) — pt-[5px]. */}
-        <div className="min-w-0 pt-[5px]">
+        {/* v1.9 (measured): the header content sits 10px below the column
+            top (live chip at y=97 inside a 92-tall header block). */}
+        <div className="min-w-0 pt-[10px]">
           {/* v1.7 (measured): the status chip text is GRAY (the dot keeps the
               status color, 7px) — not painted in the status color. */}
           <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-orb-muted">
@@ -121,7 +121,7 @@ export function GoalDetailView() {
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-[12px] bg-orb-raised px-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#BD3228] shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-coral-deep"
+              className="inline-flex items-center gap-2 rounded-[12px] bg-orb-raised px-4 py-[11px] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#BD3228] shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-coral-deep"
             >
               <Trash2 size={13} aria-hidden="true" />
               Delete
@@ -130,10 +130,11 @@ export function GoalDetailView() {
         </div>
       </header>
 
-      {/* Two stat cards (reference, v1.6 measured): large panel tier,
-          709:347 ratio (≈2:1), Progress p 20/24 and Blocked p 20/16, pct at
-          24px/400 and the blocked count at 26px/400 in #FF7043. */}
-      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]" aria-label="Goal statistics">
+      {/* Two stat cards (reference, v1.6 measured; v1.9 ratio): large panel
+          tier, 709:347 ratio (2.04fr:1fr), Progress p 20/24 and Blocked
+          p 20/16, pct at 24px/400 and the blocked count at 26px/400 in
+          #FF7043. */}
+      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[2.04fr_1fr]" aria-label="Goal statistics">
         <div className="orb-panel p-[20px_24px]">
           <div className="flex items-baseline justify-between">
             <p className="orb-label">Progress</p>
@@ -150,12 +151,14 @@ export function GoalDetailView() {
           <p className="mt-3 text-[24px] font-normal leading-none tracking-[-0.02em] text-orb-heading">{pct}%</p>
         </div>
         <div className="orb-panel flex flex-col items-center justify-center p-[20px_16px]">
-          {/* v1.8 (measured): the blocked count sits inside a 64px INSET
-              WELL square (r12, flex-centered) below the label. */}
+          {/* v1.9 (measured): the blocked count sits inside a 64px INSET
+              WELL square (r12, flex-centered) below the label. The radius
+              is styled explicitly — .orb-well would out-cascade a
+              rounded-[12px] utility (the custom-class cascade rule). */}
           <div className="flex flex-col items-center">
             <p className="orb-label">Blocked</p>
-            <div className="orb-well mt-[8px] flex h-[64px] w-[64px] items-center justify-center rounded-[12px]">
-              <p className="text-[26px] font-normal leading-none tracking-[-0.02em]" style={{ color: goal.blockedCount > 0 ? "#FF7043" : "#3A3A3A" }}>
+            <div className="mt-[8px] flex h-[64px] w-[64px] items-center justify-center rounded-[12px] bg-orb-well shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]">
+              <p className="text-[26px] font-normal leading-[39px] tracking-[-0.02em]" style={{ color: goal.blockedCount > 0 ? "#FF7043" : "#3A3A3A" }}>
                 {goal.blockedCount}
               </p>
             </div>
@@ -172,7 +175,7 @@ export function GoalDetailView() {
           <span className="text-[13px] font-normal text-orb-muted">{goal.taskCount} total</span>
           <button
             type="button"
-            className="inline-flex h-[31px] items-center gap-2 rounded-[12px] bg-orb-raised px-[14px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+            className="inline-flex items-center gap-2 rounded-[12px] bg-orb-raised px-[14px] py-[7px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
             onClick={() => setAddOpen(true)}
           >
             <Plus size={13} aria-hidden="true" />

@@ -35,13 +35,13 @@ const TONE_OPTIONS: Array<{ value: Tone; label: string }> = [
   { value: "concise", label: "Concise" },
 ];
 
-/* v1.8 (measured): field controls are 36-38px wells; the input's inset
-   dark leg runs 0.22 alpha (a hairline lighter than the generic 0.24
-   well pair) and pads 9px 14px. */
+/* v1.9 (measured): field controls — inputs 37.5px (pad 9/14), selects
+   36px (pad 8/12); the inset dark leg runs 0.22 alpha (a hairline lighter
+   than the generic 0.24 well pair). */
 const FIELD =
-  "h-[38px] w-full rounded-[10px] border-0 bg-orb-well px-[14px] text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.22)]";
+  "w-full rounded-[10px] border-0 bg-orb-well px-[14px] py-[9px] text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.22)]";
 const FIELD_SELECT =
-  "h-[36px] w-full rounded-[10px] border-0 bg-orb-well text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.22)]";
+  "w-full rounded-[10px] border-0 bg-orb-well px-[12px] text-[13px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.22)]";
 /* v1.8 (measured): field labels are 12px/600 #6E6E6E with 0.48px
    tracking; helper text 11px/400 #9A9A9A. */
 const FIELD_LABEL = "text-[12px] font-semibold tracking-[0.04em] text-orb-muted";
@@ -77,13 +77,13 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
 
   return (
     <>
-      <div className="mt-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_1fr]">
+      <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_1fr]">
         {/* Left column: Workspace + Working Hours */}
         <div className="space-y-4">
           <section className="orb-panel p-[22px_24px]" aria-label="Workspace">
             <h2 className={SECTION_HEADING}>Workspace</h2>
 
-            <div className="mt-5 space-y-2">
+            <div className="mt-[17px] space-y-2">
               <Label htmlFor="workspace-name" className={FIELD_LABEL}>
                 Workspace Name
               </Label>
@@ -101,18 +101,21 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
           <section className="orb-panel p-[22px_24px]" aria-label="Working hours">
             <h2 className={SECTION_HEADING}>Working Hours</h2>
 
-            <div className="mt-5 space-y-4">
-              {/* Reference (v1.6, measured): the "Active Window" sub-header
-                  (12px/600, Title Case) sits ABOVE the description line. */}
-              <p className="text-[12px] font-semibold text-orb-muted">Active Window</p>
-              <p className={FIELD_HINT}>AI will only send pings during these hours</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+            <div className="mt-[17px]">
+              {/* Reference (v1.6, measured; v1.9 rhythm): the "Active Window"
+                  sub-header (12px/600 ls 0.48px, Title Case) sits 2px above
+                  the description line, which sits 8px above the grid; each
+                  Start/End label sits 13px above its 36px select. */}
+              <p className="text-[12px] font-semibold tracking-[0.04em] text-orb-muted">Active Window</p>
+              <p className={`mt-[2px] ${FIELD_HINT}`}>AI will only send pings during these hours</p>
+              <div className="mt-[8px] grid grid-cols-2 gap-3">
+                <div>
                   <Label htmlFor="work-start" className={FIELD_SUB_LABEL}>
                     Start
                   </Label>
+                  <div className="mt-[5px]">
                   <Select value={workStart} onValueChange={setWorkStart}>
-                    <SelectTrigger id="work-start" className={FIELD_SELECT}>
+                    <SelectTrigger id="work-start" size="sm" className={FIELD_SELECT}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -123,13 +126,15 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
                       ))}
                     </SelectContent>
                   </Select>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
+                <div>
                   <Label htmlFor="work-end" className={FIELD_SUB_LABEL}>
                     End
                   </Label>
+                  <div className="mt-[5px]">
                   <Select value={workEnd} onValueChange={setWorkEnd}>
-                    <SelectTrigger id="work-end" className={FIELD_SELECT}>
+                    <SelectTrigger id="work-end" size="sm" className={FIELD_SELECT}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -140,6 +145,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
                       ))}
                     </SelectContent>
                   </Select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -150,12 +156,15 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
         <section className="orb-panel p-[22px_24px]" aria-label="AI assistant">
           <h2 className={SECTION_HEADING}>AI Assistant</h2>
 
-          <div className="mt-5 space-y-5">
-            <div className="space-y-2">
+          {/* v1.9 (measured rhythm): heading → 17px → label; label → 2px →
+              hint; hint → 16px → select; select → 10px → next label. */}
+          <div className="mt-[17px]">
+            <div>
               <Label className={FIELD_LABEL}>Ping Frequency</Label>
-              <p className={FIELD_HINT}>How often the AI checks in with team members</p>
+              <p className={`mt-[2px] ${FIELD_HINT}`}>How often the AI checks in with team members</p>
+              <div className="mt-[8px]">
               <Select value={pingFrequency} onValueChange={(v) => setPingFrequency(v as Frequency)}>
-                <SelectTrigger className={FIELD_SELECT}>
+                <SelectTrigger size="sm" className={FIELD_SELECT}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -166,12 +175,14 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
                   ))}
                 </SelectContent>
               </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="mt-[10px]">
               <Label className={FIELD_LABEL}>AI Tone</Label>
+              <div className="mt-[8px]">
               <Select value={aiTone} onValueChange={(v) => setAiTone(v as Tone)}>
-                <SelectTrigger className={FIELD_SELECT}>
+                <SelectTrigger size="sm" className={FIELD_SELECT}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -182,6 +193,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
                   ))}
                 </SelectContent>
               </Select>
+              </div>
             </div>
           </div>
         </section>
