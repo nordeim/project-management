@@ -551,6 +551,15 @@
     pointer-events: none;
     opacity: 0.4;
   }
+  /* v2.2 (measured): the dashboard greeting header's New Goal pill is the
+     LARGE variant — 132×40, pad 11/20, 12px/600 — while every other
+     page-level pill (goals header, at all widths) uses the base spec
+     above (121×35, 9/18, 11px). Composes with .orb-pill-outline. */
+  .orb-pill-outline-lg {
+    padding: 11px 20px;
+    font-size: 12px;
+  }
+
   .orb-pill-outline:hover:not(:disabled) {
     color: var(--orb-body);
   }

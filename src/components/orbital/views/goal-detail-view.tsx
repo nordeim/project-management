@@ -38,7 +38,7 @@ export function GoalDetailView() {
 
   if (!goal) {
     return (
-      <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
+      <div className="w-full px-7 pt-6 lg:px-0 lg:pt-0">
         <EmptyState
           icon={<ArrowLeft size={22} color="#B3B3B3" />}
           title="Goal not found"
@@ -57,7 +57,7 @@ export function GoalDetailView() {
   const pct = goal.taskCount > 0 ? Math.round((goal.doneCount / goal.taskCount) * 100) : 0;
 
   return (
-    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
+    <div className="w-full px-7 pt-6 lg:px-0 lg:pt-0">
       <button
         type="button"
         onClick={() => navigate("goals")}
@@ -66,10 +66,16 @@ export function GoalDetailView() {
         <ArrowLeft size={15} /> Back to Goals
       </button>
 
-      <header className="mt-5 flex flex-wrap items-start justify-between gap-4">
-        {/* v1.9 (measured): the header content sits 10px below the column
-            top (live chip at y=97 inside a 92-tall header block). */}
-        <div className="min-w-0 pt-[10px]">
+      {/* v2.2 (measured): header sits 24px below the back row (mt-6) and
+          has NO gap and NO wrap (live `flex items-start justify-between
+          mb-6`, gap 0) — the title block takes every leftover px beside the
+          Delete button (220 = 322 - 102 at 390). */}
+      <header className="mt-6 flex items-start justify-between">
+        {/* v2.2 (measured): the title block is flex-1 min-w-0 so the Delete
+            button stays BESIDE it on mobile (title 220 = 322 - 102 at 390);
+            the chip sits 5px below the title-block top (live y+5 at BOTH
+            390 and 1440 — the old 10px reading double-counted chip air). */}
+        <div className="min-w-0 flex-1 pt-[5px]">
           {/* v1.7 (measured): the status chip text is GRAY (the dot keeps the
               status color, 7px) — not painted in the status color. */}
           <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-orb-muted">
@@ -77,7 +83,7 @@ export function GoalDetailView() {
             {meta.label}
           </span>
           <h1 className="mt-2 text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">{goal.title}</h1>
-          {goal.description ? <p className="mt-[6px] max-w-xl text-[14px] leading-[21px] text-orb-muted">{goal.description}</p> : null}
+          {goal.description ? <p className="mt-[5px] max-w-xl text-[14px] leading-[21px] text-orb-muted">{goal.description}</p> : null}
           {goal.targetDate ? (
             // v1.8 (measured): 13px #767676 with a 13px calendar glyph.
             <p className="mt-[8px] flex items-center gap-1.5 text-[13px] text-[#767676]">
@@ -130,11 +136,12 @@ export function GoalDetailView() {
         </div>
       </header>
 
-      {/* Two stat cards (reference, v1.6 measured; v1.9 ratio): large panel
-          tier, 709:347 ratio (2.04fr:1fr), Progress p 20/24 and Blocked
-          p 20/16, pct at 24px/400 and the blocked count at 26px/400 in
-          #FF7043. */}
-      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[2.04fr_1fr]" aria-label="Goal statistics">
+      {/* Two stat cards (reference, v1.6 measured; v1.9 ratio; v2.2): large
+          panel tier, 709:347 ratio (2.04fr:1fr) at EVERY breakpoint — the
+          live renders the pair side by side even at 390 (209+97) —
+          Progress p 20/24 and Blocked p 20/16, pct at 24px/400 and the
+          blocked count at 26px/400 in #FF7043. */}
+      <section className="mt-6 grid grid-cols-[2.04fr_1fr] gap-4" aria-label="Goal statistics">
         <div className="orb-panel p-[20px_24px]">
           <div className="flex items-baseline justify-between">
             <p className="orb-label">Progress</p>

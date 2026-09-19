@@ -77,7 +77,7 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
 
   return (
     <>
-      <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_1fr]">
+      <div className="mt-5 grid grid-cols-1 items-start gap-4 md:grid-cols-[1fr_1fr]">
         {/* Left column: Workspace + Working Hours */}
         <div className="space-y-4">
           <section className="orb-panel p-[22px_24px]" aria-label="Workspace">
@@ -215,7 +215,7 @@ export function SettingsView() {
   const settings = useOrbital((s) => s.settings);
 
   return (
-    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
+    <div className="w-full px-3 pt-6 md:px-7 lg:px-0 lg:pt-0">
       <header>
         <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Settings</h1>
         <p className="mt-1 text-[14px] text-orb-muted">Configure your AI assistant and workspace</p>

@@ -18,7 +18,7 @@ export function TeamView() {
   const agents = members.filter((m) => m.kind === "agent");
 
   return (
-    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
+    <div className="w-full px-3 pt-6 md:px-7 lg:px-0 lg:pt-0">
       {/* v1.8 (measured): the Invite Member button aligns with the h1 top
           (y=48 on live) — items-start. */}
       <header className="flex flex-wrap items-start justify-between gap-3">

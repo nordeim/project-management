@@ -27,7 +27,15 @@ function DateCard() {
   const year = now.getFullYear();
   return (
     <div
-      className="orb-panel relative h-[150px] flex-1 overflow-hidden p-[10px_12px] lg:h-[180px]"
+      // v2.2 (measured): min-w-0 lets the date card starve in the lg–xl
+      // asymmetric grid (the live's second column carries a 438px min,
+      // squeezing the first column to ~198px at 1024 — the card collapses
+      // to a clipped sliver and overflow-hidden hides its contents, same
+      // as the live). Mobile keeps the 1 1 50% equal split with the ring;
+      // the md middle state renders it 476×200 beside the 180px ring; at
+      // lg the basis drops to 0 (flex-1, the live's desktop value) so the
+      // card never overflows the squeezed lg–xl cell (2px at 1024).
+      className="orb-panel relative h-[150px] min-w-0 flex-[1_1_50%] overflow-hidden md:h-[200px] lg:h-[180px] lg:flex-1"
       role="img"
       aria-label={`Today is ${month} ${day}, ${year}`}
     >
@@ -71,34 +79,37 @@ function StatColumn({
   onClick: () => void;
 }) {
   return (
-    // v1.8 (measured): MOBILE — fixed 104px columns, no inner padding,
-    // label mb-6, a 104px number box, sub mt-6 (148px column), compact
-    // label/sub wording. DESKTOP — flex-1 columns with a 10px 8px inner
-    // block, label mb-10, an 88px number box, sub mt-4 (~157px column
-    // that the panel centers). The display:none variant is skipped by
-    // screen readers, so the wording swap is a11y-clean.
+    // v1.8 (measured): MOBILE — fluid columns, no inner padding,
+    // label mb-6, a square number box that grows with the column (104px
+    // at 390, 199px at 700 — v2.2: the live's wells are FLUID SQUARES,
+    // not fixed 104), sub mt-6, compact label/sub wording. MD+ — flex-1
+    // columns with a 10px 8px inner block, label mb-10, a FIXED 88px
+    // number box, sub mt-4 (~157px column that the panel centers). The
+    // display:none variant is skipped by screen readers, so the wording
+    // swap is a11y-clean.
     // v2.1 (measured side-by-side): the number box is a WELL square —
     // bg orb-well + the 3px inset pair (light TL, dark BR). Mobile
-    // 104×104 r10; desktop 88×88 r12. Mobile numerals 30px/400
-    // (desktop keeps 300 — clamp floor raised 28 → 30).
+    // aspect-square w-full r10; md+ 88×88 r12. Mobile numerals are FIXED
+    // 30px/400; md+ uses clamp(28px,3.5vw,52px)/300 — the live's md floor
+    // is 28 (28px at 768, 35.8 at 1024, 50.4 at 1440).
     <button
       type="button"
       onClick={onClick}
-      className="flex w-[104px] flex-none flex-col items-center text-center transition-colors hover:bg-black/[0.02] sm:min-w-0 sm:flex-1"
+      className="flex min-w-0 flex-1 flex-col items-center text-center transition-colors hover:bg-black/[0.02]"
     >
-      <div className="flex w-full flex-col items-center sm:px-2 sm:py-[10px]">
-        <p className="orb-label mb-[6px] whitespace-nowrap sm:mb-[10px]">
-          <span className="sm:hidden">{labelShort}</span>
-          <span className="hidden sm:inline">{label}</span>
+      <div className="flex w-full flex-col items-center md:px-2 md:py-[10px]">
+        <p className="orb-label mb-[6px] whitespace-nowrap md:mb-[10px]">
+          <span className="md:hidden">{labelShort}</span>
+          <span className="hidden md:inline">{label}</span>
         </p>
-        <div className="flex h-[104px] w-[104px] items-center justify-center rounded-[10px] bg-orb-well shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] sm:h-[88px] sm:w-[88px] sm:rounded-[12px]">
-          <span className="text-[clamp(30px,3.5vw,52px)] font-normal leading-none tracking-[-0.03em] text-orb-heading sm:font-light">
+        <div className="flex aspect-square w-full items-center justify-center rounded-[10px] bg-orb-well shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] md:h-[88px] md:w-[88px] md:rounded-[12px] md:aspect-auto">
+          <span className="text-[30px] font-normal leading-none tracking-[-0.03em] text-orb-heading md:text-[clamp(28px,3.5vw,52px)] md:font-light">
             {value}
           </span>
         </div>
-        <p className="mt-[6px] text-[12px] font-normal text-[#665F57] sm:mt-[4px]">
-          <span className="sm:hidden">{subShort}</span>
-          <span className="hidden sm:inline">{sub}</span>
+        <p className="mt-[6px] text-[12px] font-normal text-[#665F57] md:mt-[4px]">
+          <span className="md:hidden">{subShort}</span>
+          <span className="hidden md:inline">{sub}</span>
         </p>
       </div>
     </button>
@@ -136,10 +147,19 @@ export function DashboardView() {
   const nextPlanned = useMemo(() => nextPlannedAction(activity), [activity]);
 
   return (
-    <div className="w-full px-[16px] pb-3 pt-3 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:px-0 lg:pt-0">
+    <div
+      // v2.2 (measured live middle state): at md the wrapper pads 28/36
+      // (main pt 12 + 36 = greeting y48, content x48); mobile keeps the
+      // v2.1 split but FLUID — the live's mobile dashboard container pads
+      // 3vw 4vw 12px (15.6/11.7 at 390 → 28/21 at 700, measured at both);
+      // desktop untouched (the shell owns the 28/24 frame).
+      className="w-full px-[4vw] pb-3 pt-[3vw] md:px-7 md:pt-9 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:px-0 lg:pt-0"
+    >
       {/* Desktop header (reference, v1.6 mobile measurement: the greeting
-          header is replaced by the shell's mobile app bar below lg). */}
-      <header className="hidden flex-wrap items-start justify-between gap-4 lg:flex">
+          header is replaced by the shell's mobile app bar below md).
+          v2.2: the header also renders in the md–lg middle state (the
+          live's middle chrome keeps the greeting + user pill + New Goal). */}
+      <header className="hidden flex-wrap items-start justify-between gap-4 md:flex">
         <div>
           {/* Reference (v1.5): the greeting is 28px at every breakpoint;
               v1.7: Title Case with a period ("Good Evening."). */}
@@ -148,7 +168,10 @@ export function DashboardView() {
         </div>
         <div className="flex items-start gap-3">
           <UserMenuOrLogin />
-          <button type="button" className="orb-pill-outline self-start" onClick={() => setNewGoalOpen(true)}>
+          {/* v2.2 (measured): the LARGE pill variant — 132×40, pad 11/20,
+              12px/600 — distinct from the goals header's 121×35 base pill
+              (the live renders two different New Goal pills). */}
+          <button type="button" className="orb-pill-outline orb-pill-outline-lg self-start" onClick={() => setNewGoalOpen(true)}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
@@ -161,9 +184,15 @@ export function DashboardView() {
           bottom row 1fr so both panels stretch to the viewport bottom on
           desktop. Below lg the rows stack at content height. v2.1 (WS-6.2):
           mobile top margin comes from the root wrapper's pt-3; desktop
-          keeps mt-5. */}
+          keeps mt-5.
+          v2.2 (measured): the desktop column tracks are ASYMMETRIC below
+          1280 — the live's second column carries a 438px minimum
+          (minmax(438px,1fr)), starving the first column (198px at 1024:
+          the date card collapses to a clipped sliver; Agent Activity
+          renders 198px wide). At ≥1280 the tracks resolve to equal 1fr
+          halves, matching the prior v1.8–v2.1 readings at 1440. */}
       <section
-        className="grid flex-1 grid-cols-1 gap-5 lg:mt-5 lg:min-h-0 lg:grid-cols-2 lg:grid-rows-[180px_minmax(0,1fr)]"
+        className="grid flex-1 grid-cols-1 gap-5 md:mt-5 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_minmax(438px,1fr)] lg:grid-rows-[180px_minmax(0,1fr)]"
         aria-label="Overview"
       >
         {/* Top-left cell: date card + ring side by side (150px mobile). */}
@@ -172,7 +201,13 @@ export function DashboardView() {
           <button
             type="button"
             onClick={() => navigate("goals")}
-            className="orb-panel flex h-[150px] w-[48%] shrink-0 items-center justify-center p-[6px] sm:w-[180px] lg:h-[180px]"
+            // v2.2 (measured): the hero row is TWO EQUAL cards through
+            // 767 — the live computes flex 1 1 50% on both (165/166 at
+            // 390, 308/308 at 700, gap 16; a basis-0 grow split rendered
+            // 314/302 in Chromium, so the live's exact basis is kept);
+            // at md the ring becomes the fixed 180×180 (top-aligned in
+            // the 200px row) and the date card grows to fill (476).
+            className="orb-panel flex h-[150px] min-w-0 flex-[1_1_50%] items-center justify-center p-[6px] md:h-[180px] md:w-[180px] md:flex-none"
             aria-label={`${stats?.completionRate ?? 0}% of all tasks done. Open goals.`}
           >
             {/* Inset neumorphic circle (reference, v1.5): a plain CSS well —
@@ -188,9 +223,9 @@ export function DashboardView() {
         </div>
 
         {/* Top-right cell: the three-column stats panel (v1.8 mobile
-            measurements: card pad 14/10, 7px column gaps; desktop 20/24,
-            16px gaps). */}
-        <div className="orb-panel flex min-h-[150px] flex-1 items-center gap-[7px] px-[10px] py-[14px] sm:gap-4 sm:px-6 sm:py-5 lg:min-h-[180px]" aria-label="Statistics">
+            measurements: card pad 14/10; v2.2 precise re-measure: 8px
+            column gaps; md+/desktop 20/24, 16px gaps). */}
+        <div className="orb-panel flex min-h-[150px] flex-1 items-center gap-2 px-[10px] py-[14px] md:min-h-0 md:gap-4 md:px-6 md:py-5 lg:min-h-[180px]" aria-label="Statistics">
           <StatColumn
             label="Active Goals"
             labelShort="Active Goals"

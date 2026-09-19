@@ -8,7 +8,7 @@
 // shell with a LOG IN button (reference behavior, v1.4).
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Activity, CheckSquare, ChevronRight, LayoutGrid, ListTodo, Menu, Settings, Target, Users, X } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, LayoutGrid, ListTodo, Menu, Settings, SquareCheckBig, Target, Users, X } from "lucide-react";
 import { useOrbital, type SessionUser } from "@/components/orbital/store";
 import { Sidebar } from "@/components/orbital/sidebar";
 import { DashboardView } from "@/components/orbital/views/dashboard-view";
@@ -28,8 +28,22 @@ import type { ViewId } from "@/lib/router";
 const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
   { view: "dashboard", label: "Home", icon: <LayoutGrid size={20} strokeWidth={1.8} /> },
   { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={1.8} /> },
-  { view: "my-tasks", label: "My Tasks", icon: <CheckSquare size={20} strokeWidth={1.8} /> },
+  { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={1.8} /> },
   { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={1.8} /> },
+];
+
+// v2.2 (measured live middle state): the md–lg floating pill nav carries
+// the SIX desktop nav items with their SHORT labels (Home / Goals / Tasks /
+// Activity / Team / Settings — the live's wording, not the sidebar's) and
+// 18px glyphs; every live nav uses lucide's square-check-big for the tasks
+// view (the mobile tab bar's My Tasks glyph was swapped to match too).
+const PILL_TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
+  { view: "dashboard", label: "Home", icon: <LayoutGrid size={18} strokeWidth={1.8} /> },
+  { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={1.8} /> },
+  { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={1.8} /> },
+  { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={1.8} /> },
+  { view: "team", label: "Team", icon: <Users size={18} strokeWidth={1.8} /> },
+  { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={1.8} /> },
 ];
 
 function tabActive(current: ViewId, target: ViewId): boolean {
@@ -70,16 +84,18 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
 
   return (
     <div className="min-h-screen bg-orb-canvas p-0 lg:p-6">
-      {/* Decorative canvas glow (v1.8, re-measured): a fixed purple radial
-          gradient over the UPPER-MIDDLE-RIGHT of the viewport — the live app
-          moved it from the v1.5 bottom-right corner; pointer-events none,
+      {/* Decorative canvas glow (v2.2, re-measured on the isolated layer
+          at 390/768/1440): the live paints a plain 600px circle at the
+          VIEWPORT CENTER at every breakpoint — no `at` clause (the v1.8
+          "59.17%/29.89%" reading was pixel pollution from content, and the
+          v1.5 "87.44%/95.38%" note doubly stale). pointer-events none,
           under the content. */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           background:
-            "radial-gradient(600px at 59.1667% 29.8889%, rgba(201, 179, 245, 0.35) 0%, rgba(0, 0, 0, 0) 70%)",
+            "radial-gradient(600px, rgba(201, 179, 245, 0.35) 0%, rgba(0, 0, 0, 0) 70%)",
         }}
       />
       {/* v1.7 (measured): the mobile shell is FULL-BLEED — no outer padding
@@ -129,13 +145,14 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             height (minus the 2×24px canvas frame) so the dashboard can fill
             it with a 1fr bottom row while other views scroll inside main. */}
         <div className="flex min-w-0 flex-1 flex-col lg:h-[calc(100vh-3rem)]">
-          {/* Mobile app bar (reference, v1.6/v1.7, measured): below lg the
+          {/* Mobile app bar (reference, v1.6/v1.7, measured): below md the
               desktop greeting header is REPLACED by a full-bleed raised bar
               holding the ORBITAL logo (left) and the user pill (right) —
-              sticky top, bottom drop shadow, 62px tall, p 14px 20px. With
-              the v1.7 full-bleed shell it needs no negative margins. */}
+              sticky top, bottom drop shadow, 62px tall, p 14px 20px. The
+              live's mobile chrome runs through 767 (v2.2); at md the
+              MIDDLE state takes over (greeting header + pill nav). */}
           <header
-            className="sticky top-0 z-50 flex h-[62px] shrink-0 items-center justify-between bg-orb-raised px-5 shadow-[0_4px_16px_rgba(160,143,126,0.18)] lg:hidden"
+            className="sticky top-0 z-50 flex h-[62px] shrink-0 items-center justify-between bg-orb-raised px-5 shadow-[0_4px_16px_rgba(160,143,126,0.18)] md:hidden"
             aria-label="App bar"
           >
             <button
@@ -152,12 +169,38 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             </button>
             <UserMenuOrLogin compact />
           </header>
+          {/* v2.2 (measured live middle state): at md–lg every view except
+              the dashboard carries a 52px strip with a "Dashboard" BACK
+              button — a raised r10 neumorphic pill (bg #EEEAE6, the small
+              -3px/-3px 7px 0.78 / 3px 3px 8px 0.22 pair, pad 7/14/7/10,
+              gap 5, 112×34) with a chevron-left 15px #9A9A9A + 13px/500
+              #6E6E6E label, strip pad 18px 20px 0 — sitting ABOVE the
+              scroll port (it does not scroll away). The live shows it on
+              goals, goal-detail, my-tasks, activity, team and settings
+              alike. */}
+          {view !== "dashboard" ? (
+            <div className="hidden h-[52px] shrink-0 items-start pl-5 pt-[18px] md:flex lg:hidden">
+              <button
+                type="button"
+                onClick={() => navigate("dashboard")}
+                className="inline-flex h-[34px] items-center gap-[5px] rounded-[10px] bg-orb-raised p-[7px_14px_7px_10px] text-[13px] font-medium text-orb-muted shadow-[-3px_-3px_7px_rgba(255,250,244,0.78),3px_3px_8px_rgba(160,143,126,0.22)] transition-colors hover:text-orb-heading"
+              >
+                <ChevronLeft size={15} strokeWidth={1.8} aria-hidden="true" className="text-[#9A9A9A]" />
+                Dashboard
+              </button>
+            </div>
+          ) : null}
           {/* v1.8: mobile content starts 28px below the 62px app bar
               (measured hero-card top at y=90 on the live app).
               v2.1 (WS-6.1, measured live mobile shell): main pad
               16px 6px 90px — horizontal split moved to the per-view
-              containers (dashboard wrapper px-16, list views px-3). */}
-          <main className="orb-scroll relative z-[1] flex min-w-0 flex-1 flex-col overflow-y-auto px-[6px] pb-[90px] pt-4 sm:px-7 sm:pt-6 lg:px-7 lg:pb-6 lg:pt-6">
+              containers (dashboard wrapper px-16, list views px-3).
+              v2.2 (measured): the mobile spec holds through 767 (no sm:
+              growth on the live); at md the middle state pads main
+              12px 20px 100px (list h1 lands at y88 via the 52px strip
+              + the view root's 24px; the dashboard root adds its own
+              36px so the greeting lands at y48). */}
+          <main className="orb-scroll relative z-[1] flex min-w-0 flex-1 flex-col overflow-y-auto px-[6px] pb-[90px] pt-4 md:px-5 md:pb-[100px] md:pt-3 lg:px-7 lg:pb-6 lg:pt-6">
             {/* Content clamp (reference, v1.5): every view renders inside a
                 max-width 1200px column — the main area itself stays fluid.
                 v1.8: flex-1 + min-h-0 so the column is exactly the scroll
@@ -178,10 +221,10 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               FULL-WIDTH bottom-attached bar — rounded top corners only
               (20px), upward drop shadow, pad 8px 8px 12px. Tabs carry 20px
               icons and 9px/600 uppercase labels; the active tab is darker
-              text only (no highlight pill). Replaces the v1.6 floating-pill
-              reading. */}
+              text only (no highlight pill). Mobile chrome runs through 767
+              (v2.2) — at md the floating pill nav replaces it. */}
           <nav
-            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_20px_rgba(160,143,126,0.22)] lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_20px_rgba(160,143,126,0.22)] md:hidden"
             aria-label="Primary"
           >
             {TABS.map((tab) => {
@@ -215,6 +258,58 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               <Menu size={20} strokeWidth={1.8} />
               More
             </button>
+          </nav>
+
+          {/* Floating pill nav (v2.2, measured live middle state): at
+              md–lg the mobile tab bar is replaced by a CENTERED floating
+              pill — fixed, bottom 16px, left 50% translateX(-50%),
+              ~495×71, pad 10px 16px, gap 4, bg #EEEAE6, radius 20, the
+              LARGE panel shadow pair. It carries the brand (9px dot mark +
+              "ORBITAL" 11px/600/ls 1.98px) and the SIX desktop nav items
+              (Home/Goals/Tasks/Activity/Team/Settings, 18px icons, 16px
+              labels). The ACTIVE tab renders as an inset WELL chip —
+              bg #EBE7E2, radius 12, pad 8/12, flex col center gap 3px,
+              the 3px inset pair rgba(255,252,248,0.75)/rgba(180,165,150,
+              0.32), icon+label #3A3A3A, label 9px/600/ls 0.36px
+              uppercase; inactive tabs stay transparent with #767676 and a
+              400-weight label. */}
+          <nav
+            className="fixed bottom-4 left-1/2 z-40 hidden -translate-x-1/2 items-center gap-1 rounded-[20px] bg-orb-raised p-[10px_16px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)] md:flex lg:hidden"
+            aria-label="Primary"
+          >
+            {/* v2.2 (measured): the live brand block carries mr-4px (the pill
+                gap 4px does NOT separate brand from tabs — the margin does). */}
+            <span className="mr-1 flex items-center gap-1.5 p-[4px_10px_4px_4px]" aria-hidden="true">
+              <LogoMark size={9} />
+              <span className="font-archivo text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-orb-body">Orbital</span>
+            </span>
+            {PILL_TABS.map((tab) => {
+              const active = tabActive(view, tab.view);
+              return (
+                <button
+                  key={tab.view}
+                  type="button"
+                  onClick={() => go(tab.view)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-[3px] rounded-[12px] px-3 py-2 transition-colors",
+                    active
+                      ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,252,248,0.75),inset_3px_3px_6px_rgba(180,165,150,0.32)]"
+                      : "text-[#767676]",
+                  )}
+                >
+                  {tab.icon}
+                  <span
+                    className={cn(
+                      "text-[9px] uppercase leading-[13.5px] tracking-[0.04em]",
+                      active ? "font-semibold" : "font-normal",
+                    )}
+                  >
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
           </nav>
 
           {/* MORE bottom sheet: Tasks, Team, Settings — v2.0 (measured):

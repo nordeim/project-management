@@ -5,7 +5,7 @@
 // My Tasks) — mirroring the reference app. Supports an icon-only collapsed
 // rail driven by the app shell (desktop collapse chevron sits at the bottom).
 
-import { Activity, LayoutDashboard, Target, CheckSquare, Users, Settings } from "lucide-react";
+import { Activity, LayoutDashboard, Target, SquareCheckBig, Users, Settings } from "lucide-react";
 import { useOrbital, type ViewId } from "@/components/orbital/store";
 import { LogoMark } from "@/components/orbital/logo";
 import { SidebarClock } from "@/components/orbital/sidebar-clock";
@@ -19,15 +19,15 @@ interface NavItem {
 }
 
 const workspaceItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={17} strokeWidth={1.8} /> },
-  { id: "goals", label: "Goals", icon: <Target size={17} strokeWidth={1.8} /> },
-  { id: "my-tasks", label: "My Tasks", icon: <CheckSquare size={17} strokeWidth={1.8} /> },
+  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} strokeWidth={1.8} /> },
+  { id: "goals", label: "Goals", icon: <Target size={16} strokeWidth={1.8} /> },
+  { id: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={16} strokeWidth={1.8} /> },
 ];
 
 const managementItems: NavItem[] = [
-  { id: "activity", label: "Agent Activity", icon: <Activity size={17} strokeWidth={1.8} /> },
-  { id: "team", label: "Team", icon: <Users size={17} strokeWidth={1.8} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={17} strokeWidth={1.8} /> },
+  { id: "activity", label: "Agent Activity", icon: <Activity size={16} strokeWidth={1.8} /> },
+  { id: "team", label: "Team", icon: <Users size={16} strokeWidth={1.8} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={16} strokeWidth={1.8} /> },
 ];
 
 function isActive(current: ViewId, target: ViewId, goalId: string | null): boolean {

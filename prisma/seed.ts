@@ -37,7 +37,7 @@ async function main() {
       email: "demo@orbital.app",
       name: "Demo User",
       passwordHash: hashPassword("Demo1234!"),
-      avatarColor: "#FF8077",
+      avatarColor: "#FFCBDE",
     },
   });
 
@@ -74,7 +74,7 @@ async function main() {
     people[name] = p.id;
   }
   const demoPerson = await db.person.create({
-    data: { name: "Demo User", avatarColor: "#FF8077", userId: demoUser.id },
+    data: { name: "Demo User", avatarColor: "#FFCBDE", userId: demoUser.id },
   });
 
   // ---- Goal 1: Product Onboarding Redesign (active, 8/12 done, 2 blocked) ----

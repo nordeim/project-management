@@ -57,7 +57,7 @@ function GoalCard({
     // Reference (v1.6, measured): deeper-tier card (radius 16) with NO outer
     // padding — the content splits into a left column (p 18px 20px) and a
     // 120px right column (p 18px 16px) holding the 42px percentage.
-    // v2.1 (measured live mobile): below lg the card is a COMPACT
+    // v2.1 (measured live mobile): below md the card is a COMPACT
     // single-column layout — chip + 13px pct top row, full-width 16px
     // title, 6px track, meta row (fraction left; date + actions right),
     // pad 14px 16px (card h 136 for the seed goal).
@@ -66,7 +66,7 @@ function GoalCard({
       <button
         type="button"
         onClick={() => navigate("goal-detail", goal.id)}
-        className="block w-full p-[14px_16px] text-left lg:hidden"
+        className="block w-full p-[14px_16px] text-left md:hidden"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
         <div className="flex items-center justify-between">
@@ -155,7 +155,7 @@ function GoalCard({
       </button>
 
       {/* ---- DESKTOP (lg and up): two-column card ---- */}
-      <div className="hidden w-full items-stretch lg:flex">
+      <div className="hidden w-full items-stretch md:flex">
       <button
         type="button"
         onClick={() => navigate("goal-detail", goal.id)}
@@ -279,7 +279,7 @@ export function GoalsView() {
   );
 
   return (
-    <div className="w-full px-3 pt-6 lg:px-0 lg:pt-0">
+    <div className="w-full px-3 pt-6 md:px-7 lg:px-0 lg:pt-0">
       {/* v2.1 (measured): the live's header row is items-START — the
           New Goal pill top-aligns with the h1 (y 48), not centered
           against the h1+subtitle block. */}
@@ -288,14 +288,17 @@ export function GoalsView() {
           <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Goals</h1>
           <p className="mt-1 text-[14px] text-orb-muted">Manage your team objectives</p>
         </div>
-        {/* v1.7 (measured): on mobile the label shortens to "New" and the
-            pill drops to 35px (40px on desktop). */}
+        {/* v1.7 (measured; v2.2 correction): on mobile the label shortens
+            to "New" — the pill itself keeps the base 121×35 spec (9/18,
+            11px) at EVERY width; only the dashboard's greeting pill is the
+            large 132×40 variant. The v1.7 "35px mobile / 40px desktop"
+            reading conflated the two components. */}
         <button
           type="button"
-          className="orb-pill-outline orb-pill-outline-sm"
+          className="orb-pill-outline"
           onClick={() => setNewGoalOpen(true)}
         >
-          <Plus size={14} aria-hidden="true" />
+          <Plus size={12} aria-hidden="true" />
           <span className="hidden sm:inline">New Goal</span>
           <span className="sm:hidden">New</span>
         </button>
