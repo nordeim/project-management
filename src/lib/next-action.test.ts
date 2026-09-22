@@ -1,85 +1,84 @@
 import { describe, expect, it } from "vitest";
-import { nextPlannedAction } from "@/lib/next-action";
-import type { ActivityDTO } from "@/lib/orbital";
+import { nextPlannedAction, NEXT_ACTION_FALLBACK } from "@/lib/next-action";
+import type { TaskDTO } from "@/lib/orbital";
 
-// v1.3 WS-1: the dashboard's NEXT PLANNED ACTION used String.replace with a
-// capture group, which left the person prefix in place —
-// `Resolve blocker on "Shelly GenosarReview Q3 project milestones"`.
-// The seam must extract ONLY the task title.
+// v2.5: the live derives the dashboard's NEXT PLANNED ACTION from the
+// BLOCKED TASKS, not from status-update activity rows — its regenerated
+// workspace has NO status updates in the feed, yet the NPA still reads
+// `Resolve blocker on "Review Q3 project milestones"` (the first blocked
+// task in display order: goal order, then task order). The v1.3-era
+// activity-based derivation (and its name-prefix regression test) is
+// retired with the old seed data.
 
-function entry(overrides: Partial<ActivityDTO>): ActivityDTO {
+function task(
+  overrides: Partial<TaskDTO> & { goalId: string; title: string; sortOrder: number },
+): TaskDTO {
   return {
-    id: "a1",
-    type: "status_update",
-    message: "",
-    detail: null,
+    id: `t-${overrides.title}`,
+    goalTitle: "Some goal",
+    description: null,
+    status: "pending",
+    deadline: null,
+    assignee: null,
+    estimatedHours: null,
+    createdByAi: true,
     createdAt: new Date().toISOString(),
-    taskId: null,
-    goalId: null,
+    updatedAt: new Date().toISOString(),
+    updates: [],
     ...overrides,
-  } as ActivityDTO;
+  } as TaskDTO;
 }
 
-describe("nextPlannedAction", () => {
-  it("extracts only the task title from a blocked check-in (no person prefix)", () => {
-    const activity = [
-      entry({
-        message: 'Shelly Genosar checked in on "Review Q3 project milestones"',
-        detail: "Shelly Genosar posted a status update: Blocked.",
-      }),
+function goalOrder(...ids: string[]): { id: string; sortOrder: number }[] {
+  return ids.map((id, i) => ({ id, sortOrder: i + 1 }));
+}
+
+describe("nextPlannedAction (v2.5 task-based derivation)", () => {
+  it("surfaces the first blocked task in display order", () => {
+    const tasks = [
+      task({ goalId: "g1", title: "Review Q3 project milestones", status: "blocked", sortOrder: 1 }),
+      task({ goalId: "g1", title: "Audit current onboarding drop-off points", status: "blocked", sortOrder: 12 }),
+      task({ goalId: "g1", title: "User research interviews", status: "done", sortOrder: 2 }),
     ];
-    expect(nextPlannedAction(activity)).toBe('Resolve blocker on "Review Q3 project milestones"');
+    expect(nextPlannedAction(tasks, goalOrder("g1"))).toBe('Resolve blocker on "Review Q3 project milestones"');
   });
 
-  it("uses the first blocked status update in feed order", () => {
-    const activity = [
-      entry({
-        message: 'Ran Ezra checked in on "Audit current onboarding drop-off points"',
-        detail: "Ran Ezra posted a status update: Blocked.",
-      }),
-      entry({
-        message: 'Shelly Genosar checked in on "Review Q3 project milestones"',
-        detail: "Shelly Genosar posted a status update: Blocked.",
-      }),
+  it("orders by GOAL order first — an earlier goal's blocked task wins over a later goal's", () => {
+    const tasks = [
+      // The API orders by task sortOrder globally, so a later goal's task 1
+      // arrives BEFORE an earlier goal's task 12 — the seam must re-sort.
+      task({ goalId: "g2", title: "Blog posts", status: "blocked", sortOrder: 1 }),
+      task({ goalId: "g1", title: "Audit current onboarding drop-off points", status: "blocked", sortOrder: 12 }),
     ];
-    expect(nextPlannedAction(activity)).toBe(
+    expect(nextPlannedAction(tasks, goalOrder("g1", "g2"))).toBe(
       'Resolve blocker on "Audit current onboarding drop-off points"',
     );
   });
 
-  it("ignores status updates that are not blocked", () => {
-    const activity = [
-      entry({
-        message: 'Demo User checked in on "Ship the release"',
-        detail: "Demo User posted a status update: On track.",
-      }),
+  it("ignores non-blocked tasks", () => {
+    const tasks = [
+      task({ goalId: "g1", title: "In progress thing", status: "in_progress", sortOrder: 1 }),
+      task({ goalId: "g1", title: "Pending thing", status: "pending", sortOrder: 2 }),
+      task({ goalId: "g1", title: "Need help thing", status: "need_help", sortOrder: 3 }),
+      task({ goalId: "g1", title: "Done thing", status: "done", sortOrder: 4 }),
     ];
-    expect(nextPlannedAction(activity)).toBe(
-      "Ping the team for a status check-in on active goals.",
-    );
+    expect(nextPlannedAction(tasks, goalOrder("g1"))).toBe(NEXT_ACTION_FALLBACK);
   });
 
-  it("ignores non-status-update entries even with Blocked in the detail", () => {
-    const activity = [
-      entry({ type: "task_created", message: 'Blocked-path task added', detail: "mentions Blocked" }),
-    ];
-    expect(nextPlannedAction(activity)).toBe(
-      "Ping the team for a status check-in on active goals.",
-    );
+  it("falls back when no tasks exist", () => {
+    expect(nextPlannedAction([], [])).toBe(NEXT_ACTION_FALLBACK);
   });
 
-  it("falls back when the blocked message does not match the check-in pattern", () => {
-    const activity = [
-      entry({ message: "Something else entirely", detail: "posted a status update: Blocked." }),
-    ];
-    expect(nextPlannedAction(activity)).toBe(
-      "Ping the team for a status check-in on active goals.",
-    );
+  it("falls back when no task is blocked", () => {
+    const tasks = [task({ goalId: "g1", title: "Only a done task", status: "done", sortOrder: 1 })];
+    expect(nextPlannedAction(tasks, goalOrder("g1"))).toBe(NEXT_ACTION_FALLBACK);
   });
 
-  it("falls back on an empty feed", () => {
-    expect(nextPlannedAction([])).toBe(
-      "Ping the team for a status check-in on active goals.",
-    );
+  it("handles tasks whose goal is missing from the goals list (unknown goals sort last)", () => {
+    const tasks = [
+      task({ goalId: "ghost", title: "Ghost blocked task", status: "blocked", sortOrder: 1 }),
+      task({ goalId: "g1", title: "Known blocked task", status: "blocked", sortOrder: 5 }),
+    ];
+    expect(nextPlannedAction(tasks, goalOrder("g1"))).toBe('Resolve blocker on "Known blocked task"');
   });
 });

@@ -51,6 +51,13 @@ async function main() {
     "Marcus Lee": "#996CE4",
     "Ella Head Glazer": "#2ECC8A",
     "Growth Team": "#FF8077",
+    // v2.5 (measured on the live's regenerated plans): two new assignees —
+    // goal 3's A/B task (Templates Base44) and goal 2's blog-posts task
+    // (Content Team). Avatar colors are unobservable in the live UI (its
+    // assignees are free text — the add-task select lists only
+    // "— Unassigned —"), so these continue the palette rotation.
+    "Templates Base44": "#C9B3F5",
+    "Content Team": "#996CE4",
     "Demo User": "#FF8077",
   };
 
@@ -64,6 +71,8 @@ async function main() {
     "Marcus Lee",
     "Ella Head Glazer",
     "Growth Team",
+    "Templates Base44",
+    "Content Team",
   ];
 
   const people: Record<string, string> = {};
@@ -132,10 +141,13 @@ async function main() {
   }
 
   // ---- Goal 2: Q3 Content Marketing Campaign (completed, 10/10) ----
+  // v2.5: the live regenerated this plan — new description + new task set
+  // (measured 2026-09-22), incl. the manual no-AI "Draft Q3 blog post
+  // calendar" task rendered last (sortOrder 10).
   const goal2 = await db.goal.create({
     data: {
       title: "Q3 Content Marketing Campaign",
-      description: "Drive 25% more organic traffic with a coordinated Q3 content push across blog, social and email.",
+      description: "Plan and execute a full content marketing campaign including blog posts, social and email.",
       status: "done",
       targetDate: d("2026-08-15T00:00:00Z"),
       sortOrder: 3,
@@ -143,17 +155,17 @@ async function main() {
     },
   });
 
-  const g2tasks: Array<{ title: string; status: string; deadline: string; assignee: string; hours: number }> = [
-    { title: "Define campaign messaging and pillars", status: "done", deadline: "2026-06-05T00:00:00Z", assignee: "Growth Team", hours: 6 },
-    { title: "Draft content calendar (12 weeks)", status: "done", deadline: "2026-06-10T00:00:00Z", assignee: "Growth Team", hours: 8 },
-    { title: "Write cornerstone blog post", status: "done", deadline: "2026-06-18T00:00:00Z", assignee: "Ella Head Glazer", hours: 10 },
-    { title: "Design social media assets", status: "done", deadline: "2026-06-24T00:00:00Z", assignee: "Sarah Johnson", hours: 12 },
-    { title: "Set up email nurture sequence", status: "done", deadline: "2026-06-30T00:00:00Z", assignee: "Ella Head Glazer", hours: 6 },
-    { title: "Publish week-1 blog and social posts", status: "done", deadline: "2026-07-03T00:00:00Z", assignee: "Marcus Lee", hours: 4 },
-    { title: "Publish LinkedIn thought-leadership posts", status: "done", deadline: "2026-07-10T00:00:00Z", assignee: "Marcus Lee", hours: 5 },
-    { title: "Compile mid-campaign analytics report", status: "done", deadline: "2026-07-20T00:00:00Z", assignee: "Growth Team", hours: 8 },
-    { title: "Run retargeting ad experiment", status: "done", deadline: "2026-08-01T00:00:00Z", assignee: "Growth Team", hours: 10 },
-    { title: "Final campaign wrap-up and learnings doc", status: "done", deadline: "2026-08-15T00:00:00Z", assignee: "Marcus Lee", hours: 6 },
+  const g2tasks: Array<{ title: string; description?: string; status: string; deadline: string; assignee: string; hours: number; ai?: boolean }> = [
+    { title: "Define content calendar for July–August", status: "done", deadline: "2026-06-28T00:00:00Z", assignee: "Marcus Lee", hours: 4 },
+    { title: "Write 4 long-form blog posts", status: "done", deadline: "2026-07-05T00:00:00Z", assignee: "Content Team", hours: 16 },
+    { title: "Design social media assets", status: "done", deadline: "2026-07-08T00:00:00Z", assignee: "Sarah Johnson", hours: 8 },
+    { title: "Set up email drip campaign", status: "done", deadline: "2026-07-10T00:00:00Z", assignee: "Marcus Lee", hours: 6 },
+    { title: "Publish LinkedIn thought-leadership posts", status: "done", deadline: "2026-07-15T00:00:00Z", assignee: "Marcus Lee", hours: 3 },
+    { title: "Launch paid social ads", status: "done", deadline: "2026-07-18T00:00:00Z", assignee: "Growth Team", hours: 5 },
+    { title: "A/B test email subject lines", status: "done", deadline: "2026-07-25T00:00:00Z", assignee: "Marcus Lee", hours: 4 },
+    { title: "Compile mid-campaign analytics report", status: "done", deadline: "2026-08-01T00:00:00Z", assignee: "Growth Team", hours: 5 },
+    { title: "Final campaign wrap-up and learnings doc", status: "done", deadline: "2026-08-15T00:00:00Z", assignee: "Marcus Lee", hours: 3 },
+    { title: "Draft Q3 blog post calendar", description: "Plan 12 blog post topics aligned with campaign themes and assign writers.", status: "done", deadline: "2026-07-05T00:00:00Z", assignee: "Ella Head Glazer", hours: 2, ai: false },
   ];
 
   order = 0;
@@ -163,11 +175,12 @@ async function main() {
       data: {
         goalId: goal2.id,
         title: t.title,
+        description: t.description ?? null,
         status: t.status,
         deadline: d(t.deadline),
         assigneeId: people[t.assignee]!,
         estimatedHours: t.hours,
-        createdByAi: true,
+        createdByAi: t.ai ?? true,
         sortOrder: order,
         createdAt: d("2026-05-06T10:30:00Z"),
       },
@@ -175,10 +188,13 @@ async function main() {
   }
 
   // ---- Goal 3: Launch new landing page (active, 8/9, 1 overdue) ----
+  // v2.5: the live regenerated this plan too — new description + new task
+  // set (measured 2026-09-22), incl. Templates Base44's overdue in-progress
+  // A/B task.
   const goal3 = await db.goal.create({
     data: {
       title: "Launch new landing page",
-      description: "Ship a redesigned marketing landing page with clearer positioning and a stronger call to action.",
+      description: "Design, build and deploy a new marketing landing page for the Q3 campaign.",
       status: "active",
       targetDate: d("2026-07-30T00:00:00Z"),
       sortOrder: 2,
@@ -186,16 +202,16 @@ async function main() {
     },
   });
 
-  const g3tasks: Array<{ title: string; status: string; deadline: string; assignee: string; hours: number }> = [
-    { title: "Audit current landing page performance", status: "done", deadline: "2026-06-02T00:00:00Z", assignee: "Growth Team", hours: 4 },
-    { title: "Define messaging and value proposition", status: "done", deadline: "2026-06-06T00:00:00Z", assignee: "Ella Head Glazer", hours: 5 },
-    { title: "Wireframe key sections", status: "done", deadline: "2026-06-12T00:00:00Z", assignee: "Sarah Johnson", hours: 8 },
-    { title: "Design final visuals and hero", status: "done", deadline: "2026-06-20T00:00:00Z", assignee: "Sarah Johnson", hours: 14 },
-    { title: "Build page and CMS wiring", status: "done", deadline: "2026-06-28T00:00:00Z", assignee: "Dev Team", hours: 18 },
-    { title: "Integrate analytics and event tracking", status: "done", deadline: "2026-07-05T00:00:00Z", assignee: "Dev Team", hours: 6 },
-    { title: "Cross-browser and mobile QA", status: "done", deadline: "2026-07-12T00:00:00Z", assignee: "QA Team", hours: 8 },
-    { title: "SEO review and metadata pass", status: "done", deadline: "2026-07-18T00:00:00Z", assignee: "Ella Head Glazer", hours: 4 },
-    { title: "Set up A/B test variants", status: "pending", deadline: "2026-08-20T00:00:00Z", assignee: "Growth Team", hours: 6 },
+  const g3tasks: Array<{ title: string; description?: string; status: string; deadline: string; assignee: string; hours: number }> = [
+    { title: "Design hero section wireframes", status: "done", deadline: "2026-07-05T00:00:00Z", assignee: "Sarah Johnson", hours: 6 },
+    { title: "Write homepage copy", status: "done", deadline: "2026-07-07T00:00:00Z", assignee: "Marcus Lee", hours: 4 },
+    { title: "Develop responsive layout", status: "done", deadline: "2026-07-10T00:00:00Z", assignee: "Dev Team", hours: 12 },
+    { title: "Integrate analytics tracking", status: "done", deadline: "2026-07-12T00:00:00Z", assignee: "Dev Team", hours: 3 },
+    { title: "SEO optimization and meta tags", status: "done", deadline: "2026-07-14T00:00:00Z", assignee: "Sarah Johnson", hours: 4 },
+    { title: "Cross-browser testing", status: "done", deadline: "2026-07-18T00:00:00Z", assignee: "QA Team", hours: 8 },
+    { title: "Performance optimization", status: "done", deadline: "2026-07-20T00:00:00Z", assignee: "Dev Team", hours: 5 },
+    { title: "Final sign-off and deploy", status: "done", deadline: "2026-07-30T00:00:00Z", assignee: "Sarah Johnson", hours: 2 },
+    { title: "Set up A/B test for landing page hero", description: "Configure two hero variants and define success metrics for the test.", status: "in_progress", deadline: "2026-07-10T00:00:00Z", assignee: "Templates Base44", hours: 3 },
   ];
 
   order = 0;
@@ -205,6 +221,7 @@ async function main() {
       data: {
         goalId: goal3.id,
         title: t.title,
+        description: t.description ?? null,
         status: t.status,
         deadline: d(t.deadline),
         assigneeId: people[t.assignee]!,
@@ -216,30 +233,49 @@ async function main() {
     });
   }
 
-  // ---- Agent activity log (mirrors the reference feed) ----
+  // ---- Agent activity log (mirrors the reference feed, v2.5) ----
+  // The live's workspace was regenerated: "Online · 36" — 3 goal_analyzed +
+  // 3 tasks_generated (12/9/10) + 30 task_assigned, ALL stamped 2026-07-16
+  // (a single "Thu Jul 16 2026" group, every row "2 months ago"), newest
+  // first in exactly the order below. Timestamps sit mid-day UTC so the
+  // local-calendar-day grouping lands on Jul 16 in any sane timezone.
   const activity: Array<{ type: string; message: string; detail: string; at: string }> = [
-    { type: "goal_created", message: "Product Onboarding Redesign created", detail: "AI created the goal \"Product Onboarding Redesign\".", at: "2026-05-04T09:00:00Z" },
-    { type: "tasks_generated", message: "Generated 10 tasks for \"Product Onboarding Redesign\"", detail: "AI generated 10 tasks for the goal \"Product Onboarding Redesign\".", at: "2026-05-04T09:05:00Z" },
-    { type: "task_assigned", message: "Priya Sharma assigned to \"User research interviews (10 users)\"", detail: "AI assigned \"User research interviews (10 users)\" to Priya Sharma.", at: "2026-07-16T10:00:00Z" },
-    { type: "goal_created", message: "Q3 Content Marketing Campaign created", detail: "AI created the goal \"Q3 Content Marketing Campaign\".", at: "2026-05-06T10:00:00Z" },
-    { type: "tasks_generated", message: "Generated 10 tasks for \"Q3 Content Marketing Campaign\"", detail: "AI generated 10 tasks for the goal \"Q3 Content Marketing Campaign\".", at: "2026-05-06T10:05:00Z" },
-    { type: "task_assigned", message: "Growth Team assigned to \"Compile mid-campaign analytics report\"", detail: "AI assigned \"Compile mid-campaign analytics report\" to Growth Team.", at: "2026-05-06T10:10:00Z" },
-    { type: "task_assigned", message: "Sarah Johnson assigned to \"Design social media assets\"", detail: "AI assigned \"Design social media assets\" to Sarah Johnson.", at: "2026-05-06T10:12:00Z" },
-    { type: "goal_created", message: "Launch new landing page created", detail: "AI created the goal \"Launch new landing page\".", at: "2026-05-08T11:00:00Z" },
-    { type: "tasks_generated", message: "Generated 9 tasks for \"Launch new landing page\"", detail: "AI generated 9 tasks for the goal \"Launch new landing page\".", at: "2026-05-08T11:05:00Z" },
-    { type: "task_assigned", message: "Ran Ezra assigned to \"Audit current onboarding drop-off points\"", detail: "AI assigned \"Audit current onboarding drop-off points\" to Ran Ezra.", at: "2026-05-08T11:08:00Z" },
-    { type: "task_assigned", message: "Marcus Lee assigned to \"Publish LinkedIn thought-leadership posts\"", detail: "AI assigned \"Publish LinkedIn thought-leadership posts\" to Marcus Lee.", at: "2026-05-10T09:00:00Z" },
-    { type: "task_assigned", message: "QA Team assigned to \"QA and edge-case testing\"", detail: "AI assigned \"QA and edge-case testing\" to QA Team.", at: "2026-05-12T09:30:00Z" },
-    { type: "task_assigned", message: "Marcus Lee assigned to \"Final campaign wrap-up and learnings doc\"", detail: "AI assigned \"Final campaign wrap-up and learnings doc\" to Marcus Lee.", at: "2026-05-14T10:00:00Z" },
-    { type: "task_assigned", message: "Dev Team assigned to \"Frontend implementation\"", detail: "AI assigned \"Frontend implementation\" to Dev Team.", at: "2026-05-15T14:00:00Z" },
-    { type: "task_assigned", message: "Ella Head Glazer assigned to \"Write onboarding welcome email sequence\"", detail: "AI assigned \"Write onboarding welcome email sequence\" to Ella Head Glazer.", at: "2026-05-20T09:15:00Z" },
-    { type: "task_assigned", message: "Sarah Johnson assigned to \"Design high-fidelity mockups\"", detail: "AI assigned \"Design high-fidelity mockups\" to Sarah Johnson.", at: "2026-05-22T13:00:00Z" },
-    { type: "task_assigned", message: "Priya Sharma assigned to \"Prototype and usability testing\"", detail: "AI assigned \"Prototype and usability testing\" to Priya Sharma.", at: "2026-05-28T11:00:00Z" },
-    { type: "status_update", message: "Ran Ezra checked in on \"Audit current onboarding drop-off points\"", detail: "Ran Ezra posted a status update: Blocked.", at: "2026-06-30T16:00:00Z" },
-    { type: "status_update", message: "Shelly Genosar checked in on \"Review Q3 project milestones\"", detail: "Shelly Genosar posted a status update: Blocked.", at: "2026-07-02T15:30:00Z" },
-    { type: "status_update", message: "Dev Team marked \"Build page and CMS wiring\" as done", detail: "Dev Team posted a status update: Done.", at: "2026-07-05T17:00:00Z" },
-    { type: "status_update", message: "QA Team marked \"Cross-browser and mobile QA\" as done", detail: "QA Team posted a status update: Done.", at: "2026-07-12T12:00:00Z" },
-    { type: "status_update", message: "Priya Sharma marked \"Go-live and monitor activation metrics\" as pending", detail: "Priya Sharma posted a status update: On Track.", at: "2026-07-16T09:45:00Z" },
+    { type: "goal_analyzed", message: "Analyzed goal: Product Onboarding Redesign", detail: "AI analyzed the goal \"Product Onboarding Redesign\" and prepared to generate tasks.", at: "2026-07-16T14:00:00Z" },
+    { type: "tasks_generated", message: "Generated 12 tasks for \"Product Onboarding Redesign\"", detail: "AI generated 12 tasks for the goal \"Product Onboarding Redesign\".", at: "2026-07-16T13:55:00Z" },
+    { type: "goal_analyzed", message: "Analyzed goal: Launch new landing page", detail: "AI analyzed the goal \"Launch new landing page\" and prepared to generate tasks.", at: "2026-07-16T13:50:00Z" },
+    { type: "tasks_generated", message: "Generated 9 tasks for \"Launch new landing page\"", detail: "AI generated 9 tasks for the goal \"Launch new landing page\".", at: "2026-07-16T13:45:00Z" },
+    { type: "goal_analyzed", message: "Analyzed goal: Q3 Content Marketing Campaign", detail: "AI analyzed the goal \"Q3 Content Marketing Campaign\" and prepared to generate tasks.", at: "2026-07-16T13:40:00Z" },
+    { type: "tasks_generated", message: "Generated 10 tasks for \"Q3 Content Marketing Campaign\"", detail: "AI generated 10 tasks for the goal \"Q3 Content Marketing Campaign\".", at: "2026-07-16T13:35:00Z" },
+    { type: "task_assigned", message: "Ran Ezra assigned to \"Review Q3 project milestones\"", detail: "AI assigned \"Review Q3 project milestones\" to Ran Ezra.", at: "2026-07-16T13:30:00Z" },
+    { type: "task_assigned", message: "Ella Head Glazer assigned to \"Write onboarding welcome email sequence\"", detail: "AI assigned \"Write onboarding welcome email sequence\" to Ella Head Glazer.", at: "2026-07-16T13:25:00Z" },
+    { type: "task_assigned", message: "Ran Ezra assigned to \"Design interactive product tour\"", detail: "AI assigned \"Design interactive product tour\" to Ran Ezra.", at: "2026-07-16T13:20:00Z" },
+    { type: "task_assigned", message: "Templates Base44 assigned to \"Set up A/B test for landing page hero\"", detail: "AI assigned \"Set up A/B test for landing page hero\" to Templates Base44.", at: "2026-07-16T13:15:00Z" },
+    { type: "task_assigned", message: "Ran Ezra assigned to \"Audit current onboarding drop-off points\"", detail: "AI assigned \"Audit current onboarding drop-off points\" to Ran Ezra.", at: "2026-07-16T13:10:00Z" },
+    { type: "task_assigned", message: "Sarah Johnson assigned to \"Design hero section wireframes\"", detail: "AI assigned \"Design hero section wireframes\" to Sarah Johnson.", at: "2026-07-16T13:05:00Z" },
+    { type: "task_assigned", message: "Sarah Johnson assigned to \"Final sign-off and deploy\"", detail: "AI assigned \"Final sign-off and deploy\" to Sarah Johnson.", at: "2026-07-16T13:00:00Z" },
+    { type: "task_assigned", message: "Marcus Lee assigned to \"Publish LinkedIn thought-leadership posts\"", detail: "AI assigned \"Publish LinkedIn thought-leadership posts\" to Marcus Lee.", at: "2026-07-16T12:55:00Z" },
+    { type: "task_assigned", message: "QA Team assigned to \"QA and edge-case testing\"", detail: "AI assigned \"QA and edge-case testing\" to QA Team.", at: "2026-07-16T12:50:00Z" },
+    { type: "task_assigned", message: "Dev Team assigned to \"Integrate analytics tracking\"", detail: "AI assigned \"Integrate analytics tracking\" to Dev Team.", at: "2026-07-16T12:45:00Z" },
+    { type: "task_assigned", message: "QA Team assigned to \"Cross-browser testing\"", detail: "AI assigned \"Cross-browser testing\" to QA Team.", at: "2026-07-16T12:40:00Z" },
+    { type: "task_assigned", message: "Marcus Lee assigned to \"Define content calendar for July–August\"", detail: "AI assigned \"Define content calendar for July–August\" to Marcus Lee.", at: "2026-07-16T12:35:00Z" },
+    { type: "task_assigned", message: "Growth Team assigned to \"Launch paid social ads\"", detail: "AI assigned \"Launch paid social ads\" to Growth Team.", at: "2026-07-16T12:30:00Z" },
+    { type: "task_assigned", message: "Priya Sharma assigned to \"Map new onboarding journey\"", detail: "AI assigned \"Map new onboarding journey\" to Priya Sharma.", at: "2026-07-16T12:25:00Z" },
+    { type: "task_assigned", message: "Dev Team assigned to \"Frontend implementation\"", detail: "AI assigned \"Frontend implementation\" to Dev Team.", at: "2026-07-16T12:20:00Z" },
+    { type: "task_assigned", message: "Marcus Lee assigned to \"Set up email drip campaign\"", detail: "AI assigned \"Set up email drip campaign\" to Marcus Lee.", at: "2026-07-16T12:15:00Z" },
+    { type: "task_assigned", message: "Dev Team assigned to \"Develop responsive layout\"", detail: "AI assigned \"Develop responsive layout\" to Dev Team.", at: "2026-07-16T12:10:00Z" },
+    { type: "task_assigned", message: "Priya Sharma assigned to \"Go-live and monitor activation metrics\"", detail: "AI assigned \"Go-live and monitor activation metrics\" to Priya Sharma.", at: "2026-07-16T12:05:00Z" },
+    { type: "task_assigned", message: "Marcus Lee assigned to \"Write homepage copy\"", detail: "AI assigned \"Write homepage copy\" to Marcus Lee.", at: "2026-07-16T11:55:00Z" },
+    { type: "task_assigned", message: "Sarah Johnson assigned to \"Design high-fidelity mockups\"", detail: "AI assigned \"Design high-fidelity mockups\" to Sarah Johnson.", at: "2026-07-16T11:50:00Z" },
+    { type: "task_assigned", message: "Priya Sharma assigned to \"Analyse drop-off points in current flow\"", detail: "AI assigned \"Analyse drop-off points in current flow\" to Priya Sharma.", at: "2026-07-16T11:45:00Z" },
+    { type: "task_assigned", message: "Priya Sharma assigned to \"Prototype and usability testing\"", detail: "AI assigned \"Prototype and usability testing\" to Priya Sharma.", at: "2026-07-16T11:40:00Z" },
+    { type: "task_assigned", message: "Dev Team assigned to \"Performance optimization\"", detail: "AI assigned \"Performance optimization\" to Dev Team.", at: "2026-07-16T11:35:00Z" },
+    { type: "task_assigned", message: "Priya Sharma assigned to \"User research interviews (10 users)\"", detail: "AI assigned \"User research interviews (10 users)\" to Priya Sharma.", at: "2026-07-16T11:30:00Z" },
+    { type: "task_assigned", message: "Sarah Johnson assigned to \"SEO optimization and meta tags\"", detail: "AI assigned \"SEO optimization and meta tags\" to Sarah Johnson.", at: "2026-07-16T11:25:00Z" },
+    { type: "task_assigned", message: "Marcus Lee assigned to \"A/B test email subject lines\"", detail: "AI assigned \"A/B test email subject lines\" to Marcus Lee.", at: "2026-07-16T11:20:00Z" },
+    { type: "task_assigned", message: "Marcus Lee assigned to \"Final campaign wrap-up and learnings doc\"", detail: "AI assigned \"Final campaign wrap-up and learnings doc\" to Marcus Lee.", at: "2026-07-16T11:15:00Z" },
+    { type: "task_assigned", message: "Content Team assigned to \"Write 4 long-form blog posts\"", detail: "AI assigned \"Write 4 long-form blog posts\" to Content Team.", at: "2026-07-16T11:10:00Z" },
+    { type: "task_assigned", message: "Growth Team assigned to \"Compile mid-campaign analytics report\"", detail: "AI assigned \"Compile mid-campaign analytics report\" to Growth Team.", at: "2026-07-16T11:05:00Z" },
+    { type: "task_assigned", message: "Sarah Johnson assigned to \"Design social media assets\"", detail: "AI assigned \"Design social media assets\" to Sarah Johnson.", at: "2026-07-16T11:00:00Z" },
   ];
 
   for (const a of activity) {

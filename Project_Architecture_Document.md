@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.4
+# ORBITAL — Master Project Architecture Document (PAD) v2.5
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,15 @@
 **Last Updated:** 2026-09-22
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.5
+
+- `[MOD]` **Activity feed: the hero entry ALSO renders in its date group** (measured on the re-deployed live, 2026-09-22 — retires the v1.9 `slice(1)` reading): the most recent entry appears BOTH as the standalone "Last agent action" hero card AND as the first timestamped row of its date group — `activity-view.tsx` now groups the FULL feed (`groupActivityByDate(activity)`), so the "Online · N" pill count equals the number of `… ago` rows (live: 36/36; the old clone rendered N−1).
+- `[MOD]` **The dashboard's Agent Activity panel CAPS AT 20 ROWS** (measured): `dashboard-view.tsx` slices `activity.slice(0, 20)` — the full feed lives on the Activity view ("Full log"). With the new 36-entry seed the panel renders exactly 20 rows on both apps.
+- `[MOD]` **Next Planned Action derives from BLOCKED TASKS, not the feed** (the regenerated live carries zero status-update rows yet still shows `Resolve blocker on "Review Q3 project milestones"`): `src/lib/next-action.ts` rewritten as a task-based seam — `nextPlannedAction(tasks, goals)` sorts blocked tasks by display order (goal order via the goals list, then task `sortOrder`; unknown goals last) and surfaces the first; fallback unchanged. The store gained an `allTasks` slice (`/api/tasks`) refreshed at every activity-refresh site (12 call sites), and the dashboard passes `allTasks + goals`.
+- `[MOD]` **Logged-out LOG IN pill re-measured** (first crawl of the logged-out shell ≥1024 — the state v2.4 flagged as uncrawled): desktop/tablet (≥768) = radius **12**, pad **11px 20px** (content-driven h40 = 11 + lh18 + 11), the STANDARD raised pair; mobile app-bar variant = radius **10**, pad **6px 14px** (h≈28.5), the SMALL pair `-3px -3px 6px rgba(255,250,244,0.78) / 3px 3px 6px rgba(160,143,126,0.22)`. Trap: `rounded-xl` resolves to 20px through the shadcn `--radius: 1rem` token — use explicit `rounded-[12px]`/`rounded-[10px]`.
+- `[MOD]` **Seed data regenerated to mirror the live's new workspace**: goal 2 "Launch new landing page" (new description + a new 9-task plan — 8 done + Templates Base44's overdue in-progress A/B task); goal 3 "Q3 Content Marketing Campaign" (new description + a new 10-task plan — all done, incl. the manual no-AI "Draft Q3 blog post calendar"); people directory += "Templates Base44" + "Content Team" (11 named people); activity feed = **36 entries** (3 `goal_analyzed` + 3 `tasks_generated` at 12/9/10 + 30 `task_assigned`, all 2026-07-16, one "Thu Jul 16 2026" group, newest-first).
+- `[NOTE]` **Verification**: full gate green — lint 0 · typecheck 0 · **137/137 unit** (next-action seam rewritten under TDD: 6 checks) · build clean · 30/30 smoke · **36/36 Playwright** (29 + 7 new v2.5 checks) — plus computed-style re-probes of every changed surface (activity view 36 rows + single date label exact on both apps; dashboard cap 20 + NPA string exact; goals 2–3 detail text IDENTICAL word-for-word; goal-detail named-glyph census identical; LOG IN pill exact at 1440/768/390).
 
 #### Revision Block — v2.4
 

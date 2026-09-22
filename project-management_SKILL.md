@@ -1,6 +1,6 @@
 ---
 name: project-management
-description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 20 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (137 Vitest unit + 29 Playwright browser + 30 curl smoke checks)."
+description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 22 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (137 Vitest unit + 36 Playwright browser + 30 curl smoke checks)."
 version: 1.0.0
 last_updated: 2026-09-22
 ---
@@ -83,7 +83,7 @@ Design philosophy, in priority order:
 | AI | z-ai-web-dev-sdk | 0.0.x | Server-side only; deterministic fallbacks |
 | Icons | lucide-react | 0.5.x | `square-check-big` for tasks everywhere |
 | Unit tests | Vitest | 5 | 137 checks, `src/**/*.test.ts` + `tests/**/*.test.ts` |
-| Browser tests | Playwright | 1.63 | 29 checks, `tests/e2e/*.spec.ts`, own port + scratch DB |
+| Browser tests | Playwright | 1.63 | 36 checks, `tests/e2e/*.spec.ts`, own port + scratch DB |
 | Runtime | Bun (or Node ≥ 20) | 1.3+ | Scripts run from repo root — this matters (see §10) |
 
 Environment contract (`.env`, gitignored; see `.env.example`):
@@ -319,7 +319,7 @@ bun run typecheck      # 0 errors (the build won't catch types)
 bun run test           # 137 unit checks
 bun run build          # clean compile + standalone assembly
 ./scripts/smoke-test.sh  # 30 curl checks against the standalone build
-bun run test:e2e       # 29 Playwright checks (needs the build)
+bun run test:e2e       # 36 Playwright checks (needs the build)
 ```
 
 Then: re-probe any changed surface against the live reference at
@@ -359,6 +359,21 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
 7. **Re-measure when parity drifts.** The live app is a moving target —
    the v1.7 mobile-tab reading was correct once and wrong by v2.3.
    Sessions that skip the re-crawl inherit stale specs.
+8. **Derive UI text from the data it describes, not from a sibling feed
+   (v2.5).** The dashboard's "Next Planned Action" was read off
+   `status_update` activity rows — correct only because the OLD reference
+   data happened to log a blocked check-in. The regenerated live carries
+   zero status updates yet still shows the blocked-task NPA: the seam now
+   takes the task list + goals. Same class of bug as reading layout off
+   screenshots: the input must be the SOURCE of the fact.
+9. **A "duplicate" row can be the spec (v2.5).** The activity view's hero
+   looked like it should be sliced out of the date groups — it renders in
+   BOTH places on the live ("Online · N" == timestamped rows). Verify
+   count invariants against the reference before deduplicating.
+10. **`rounded-xl` is not 12px here.** The shadcn `--radius: 1rem` token
+    override makes Tailwind's `rounded-xl` compute to 20px — the logged-out
+    LOG IN pill needed explicit `rounded-[12px]`/`rounded-[10px]` values
+    to match the measured reference.
 
 ## §13 Pitfalls to Avoid
 
@@ -555,7 +570,7 @@ string | null`, `candidateRoots(): string[]`,
 | Neumorphic classes | `src/app/globals.css` `@layer utilities` |
 | DB resolution | `src/lib/db-path.ts` (tested by `tests/db-path.test.ts`) |
 | Unit tests | `src/**/*.test.ts` + `tests/**/*.test.ts` (137) |
-| Browser tests | `tests/e2e/*.spec.ts` (29) — scratch DB `db/e2e.db`, port 3100 |
+| Browser tests | `tests/e2e/*.spec.ts` (36) — scratch DB `db/e2e.db`, port 3100 |
 | Smoke tests | `scripts/smoke-test.sh` (30, curl, port 3000) |
 | Screenshots | `docs/screenshots/*.png` — ALWAYS from the production build |
 | Deployment | `docs/DEPLOYMENT.md` (§4 = database location) |

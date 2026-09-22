@@ -28,8 +28,15 @@ export function UserMenuOrLogin({ compact = false }: { compact?: boolean }) {
         }}
         className={
           compact
-            ? "inline-flex h-[34px] items-center justify-center rounded-xl bg-orb-raised px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
-            : "inline-flex h-10 items-center justify-center rounded-xl bg-orb-raised px-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
+            ? // v2.5 (measured live at 390): the mobile app-bar pill — r10,
+              // pad 6px 14px (content-driven h≈28.5 = 6 + lh16.5 + 6), the
+              // SMALL raised pair (-3px/-3px 6px 0.78 / 3px 3px 6px 0.22).
+              "inline-flex items-center justify-center rounded-[10px] bg-orb-raised px-[14px] py-[6px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-3px_-3px_6px_rgba(255,250,244,0.78),3px_3px_6px_rgba(160,143,126,0.22)] transition-colors hover:text-orb-body"
+            : // v2.5 (measured live at 768+): the desktop pill — r12, pad
+              // 11px 20px (content-driven h40 = 11 + lh18 + 11), the
+              // STANDARD raised pair. rounded-xl is a trap here: the shadcn
+              // --radius: 1rem override resolves it to 20px.
+              "inline-flex items-center justify-center rounded-[12px] bg-orb-raised px-5 py-[11px] text-[12px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
         }
         aria-label="Log in"
       >

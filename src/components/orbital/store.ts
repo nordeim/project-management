@@ -65,6 +65,10 @@ interface OrbitalState {
   goals: GoalDTO[];
   goalTasks: Record<string, TaskDTO[]>;
   myTasks: TaskDTO[];
+  // v2.5: every task in the workspace — the dashboard's NPA derives from
+  // the blocked tasks (the live's semantics; the old activity-based
+  // derivation retired with the regenerated reference feed).
+  allTasks: TaskDTO[];
   activity: ActivityDTO[];
   people: PersonDTO[];
   members: TeamMemberDTO[];
@@ -78,6 +82,7 @@ interface OrbitalState {
   refreshGoals: () => Promise<void>;
   refreshGoalDetail: (goalId: string) => Promise<void>;
   refreshMyTasks: () => Promise<void>;
+  refreshAllTasks: () => Promise<void>;
   refreshActivity: () => Promise<void>;
   refreshStats: () => Promise<void>;
   refreshTeam: () => Promise<void>;
@@ -129,6 +134,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
   goals: [],
   goalTasks: {},
   myTasks: [],
+  allTasks: [],
   activity: [],
   people: [],
   members: [],
@@ -179,6 +185,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
     await Promise.all([
       get().refreshGoals(),
       get().refreshActivity(),
+      get().refreshAllTasks(),
       get().refreshStats(),
       get().refreshTeam(),
       get().refreshSettings(),
@@ -209,6 +216,13 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
     if (tasks) set({ myTasks: tasks });
   },
 
+  refreshAllTasks: async () => {
+    // v2.5: the dashboard's NPA reads the blocked tasks — one lightweight
+    // fetch alongside the activity refresh.
+    const tasks = await call<TaskDTO[]>("/api/tasks");
+    if (tasks) set({ allTasks: tasks });
+  },
+
   refreshActivity: async () => {
     const activity = await call<ActivityDTO[]>("/api/activity");
     if (activity) set({ activity });
@@ -235,7 +249,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       body: JSON.stringify(input),
     });
     if (!created) return null;
-    await Promise.all([get().refreshGoals(), get().refreshStats(), get().refreshActivity()]);
+    await Promise.all([get().refreshGoals(), get().refreshStats(), get().refreshActivity(), get().refreshAllTasks()]);
     return created.id;
   },
 
@@ -245,7 +259,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       body: JSON.stringify(input),
     });
     if (!payload) return null;
-    await get().refreshActivity();
+    await Promise.all([get().refreshActivity(), get().refreshAllTasks()]);
     return payload.questions;
   },
 
@@ -259,6 +273,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       get().refreshGoalDetail(goalId),
       get().refreshGoals(),
       get().refreshActivity(),
+      get().refreshAllTasks(),
       get().refreshStats(),
     ]);
     return result.created;
@@ -270,7 +285,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       body: JSON.stringify(patch),
     });
     if (!okResult) return false;
-    await Promise.all([get().refreshGoals(), get().refreshActivity(), get().refreshStats()]);
+    await Promise.all([get().refreshGoals(), get().refreshActivity(), get().refreshAllTasks(), get().refreshStats()]);
     if (get().goalId === goalId) await get().refreshGoalDetail(goalId);
     return true;
   },
@@ -278,7 +293,13 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
   deleteGoal: async (goalId) => {
     const okResult = await call<{ deleted: boolean }>(`/api/goals/${goalId}`, { method: "DELETE" });
     if (!okResult) return false;
-    await Promise.all([get().refreshGoals(), get().refreshActivity(), get().refreshStats(), get().refreshMyTasks()]);
+    await Promise.all([
+      get().refreshGoals(),
+      get().refreshActivity(),
+      get().refreshAllTasks(),
+      get().refreshStats(),
+      get().refreshMyTasks(),
+    ]);
     if (get().view === "goal-detail") get().navigate("goals");
     return true;
   },
@@ -293,6 +314,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       get().refreshGoalDetail(input.goalId),
       get().refreshGoals(),
       get().refreshActivity(),
+      get().refreshAllTasks(),
       get().refreshStats(),
       get().refreshMyTasks(),
     ]);
@@ -309,6 +331,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       get().refreshGoalDetail(goalId),
       get().refreshGoals(),
       get().refreshActivity(),
+      get().refreshAllTasks(),
       get().refreshStats(),
       get().refreshMyTasks(),
     ]);
@@ -322,6 +345,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       get().refreshGoalDetail(goalId),
       get().refreshGoals(),
       get().refreshActivity(),
+      get().refreshAllTasks(),
       get().refreshStats(),
       get().refreshMyTasks(),
     ]);
@@ -338,6 +362,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       get().refreshGoalDetail(goalId),
       get().refreshGoals(),
       get().refreshActivity(),
+      get().refreshAllTasks(),
       get().refreshStats(),
       get().refreshMyTasks(),
     ]);
@@ -350,7 +375,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
       body: JSON.stringify(input),
     });
     if (!created) return false;
-    await Promise.all([get().refreshTeam(), get().refreshActivity()]);
+    await Promise.all([get().refreshTeam(), get().refreshActivity(), get().refreshAllTasks()]);
     return true;
   },
 
@@ -361,7 +386,7 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
     });
     if (!settings) return false;
     set({ settings });
-    await get().refreshActivity();
+    await Promise.all([get().refreshActivity(), get().refreshAllTasks()]);
     return true;
   },
 

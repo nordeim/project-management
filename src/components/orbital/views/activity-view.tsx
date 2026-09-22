@@ -1,15 +1,18 @@
 "use client";
 
-// Agent Activity: full transparency feed (v1.8, re-measured): header with
-// an inset-well online pill (dot + "Online · N" in 11px/600) aligned to the
-// h1 top, the most recent entry as a standalone hero card (deeper tier,
-// 36px FIXED search icon — the "last agent action" marker — with the
-// "Last agent action" caption, no timestamp), then date-grouped PLAIN rows
-// ("Thu Jul 16 2026" small labels) on the canvas — no card wrapper —
-// separated by 1px rgba(160,143,126,0.15) hairlines. Every group row ends
-// with a type tag (10px/600 #B3B3B3 uppercase) from the pure activity-tags
-// seam; the icon mapping lives in the tested activity-icons seam. Grouping
-// lives in src/lib/activity-groups.ts.
+// Agent Activity: full transparency feed (v1.8, re-measured; grouping
+// semantics corrected v2.5): header with an inset-well online pill (dot +
+// "Online · N" in 11px/600) aligned to the h1 top, the most recent entry
+// as a standalone hero card (deeper tier, 36px FIXED search icon — the
+// "last agent action" marker — with the "Last agent action" caption, no
+// timestamp), then date-grouped PLAIN rows ("Thu Jul 16 2026" small
+// labels) on the canvas — no card wrapper — separated by 1px
+// rgba(160,143,126,0.15) hairlines. v2.5 (measured on the live): the hero
+// entry ALSO renders as the first row of its date group — "Online · N"
+// equals the count of timestamped rows; the old slice(1) reading retired.
+// Every group row ends with a type tag (10px/600 #B3B3B3 uppercase) from
+// the pure activity-tags seam; the icon mapping lives in the tested
+// activity-icons seam. Grouping lives in src/lib/activity-groups.ts.
 
 import { useMemo } from "react";
 import { Search, SquareCheckBig } from "lucide-react";
@@ -46,10 +49,11 @@ function FeedRow({ entry, divider }: { entry: ActivityDTO; divider: boolean }) {
 export function ActivityView() {
   const activity = useOrbital((s) => s.activity);
 
-  // The most recent entry renders as the hero card above the date groups;
-  // the rest group under date labels (newest day first).
+  // The most recent entry renders as the hero card above the date groups
+  // AND repeats as the first row of its group (v2.5, measured on the live:
+  // "Online · 36" with 36 timestamped rows).
   const hero = activity[0] ?? null;
-  const groups = useMemo(() => groupActivityByDate(activity.slice(1)), [activity]);
+  const groups = useMemo(() => groupActivityByDate(activity), [activity]);
 
   return (
     <div className="w-full px-3 pt-6 md:px-7 lg:px-0 lg:pt-0">

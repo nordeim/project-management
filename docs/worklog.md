@@ -110,3 +110,33 @@ Work Log:
 
 Stage Summary:
 - v2.4 shipped: the mobile-nav chips now fill their tabs exactly like the live, the icon system matches the live's two-class stroke convention (incl. the zap AI chip and plain Calendar glyphs), and the mobile goal card renders the live's bare-status + well-chipped-pct top row.
+
+---
+Task ID: 1
+Agent: main (Super Z)
+Task: Session 22 — v2.5 survey (workspace refresh + live re-crawl incl. logged-out shell)
+
+Work Log:
+- Pulled 3f19ed4 (session_21 log); baseline gate green (137/137 · 30/30 · 29/29).
+- Re-crawled the live vs the production clone at 390/768/1440 with computed-style probes; covered the previously-uncrawled LOGGED-OUT shell at all three widths (the state session_21 flagged).
+- The live's workspace DATA was regenerated: goals 2–3 carry new descriptions + new task sets (Templates Base44 + Content Team appear), the feed is 36 entries (3 goal_analyzed + 3 tasks_generated at 12/9/10 + 30 task_assigned, one Thu Jul 16 2026 group), and the dashboard derives its NPA from blocked TASKS (its feed has no status updates).
+- Wrote docs/parity-remediation-v2.5.md (F1–F7, WS-1–WS-7) and validated it against the codebase.
+
+Stage Summary:
+- Four verified semantic deltas (hero-in-group, 20-row dashboard cap, logged-out LOG IN spec, task-based NPA) plus the seed-data regeneration; task/chrome/wizard surfaces re-confirmed equal.
+
+---
+Task ID: 2
+Agent: main (Super Z)
+Task: Session 22 — v2.5 execution (WS-1..WS-7 + NPA seam rewrite)
+
+Work Log:
+- RED: 8 new Playwright assertions (hero-in-group, 12-task entry, 20-cap, goals 2–3 plans, LOG IN desktop+mobile) + the NPA unit contract rewritten (3 failing).
+- WS-1: activity-view groups the FULL feed (slice(1) removed). WS-2: dashboard caps at 20 rows. WS-3: LOG IN pill — rounded-[12px] py-[11px] px-5 standard pair / rounded-[10px] py-[6px] px-[14px] small pair (the rounded-xl → 20px shadcn trap documented). WS-4: seed regenerated (goals 2–3 plans, 2 new people, 36-entry feed in the live's order).
+- NPA: next-action.ts rewritten task-based (display order = goal order then task sortOrder; 6 unit checks); store gained an allTasks slice wired into all 12 activity-refresh sites; dashboard passes allTasks + goals.
+- GREEN hardening: two feed tests made order-independent (≥36 floor + hero==first-row), one race fixed (wait on feed content, not the static header); "Target crashed" runs were the sandbox thread-budget trap.
+- Final gate green — lint 0 · typecheck 0 · 137/137 unit · build clean · 30/30 smoke · 36/36 e2e; re-probes EXACT (activity 36/36; dashboard 20 + NPA; goals 2–3 identical word-for-word; glyph censuses identical; LOG IN exact at 3 widths).
+- 15 screenshots regenerated (incl. real-AI wizard flow, scratch goal cleaned up); README/AGENTS/CLAUDE/PAD v2.5/SKILL/session_22/worklog aligned; plan marked executed; committed and pushed via docs/ssh_git_wrapper_v3.py.
+
+Stage Summary:
+- v2.5 shipped: the activity view mirrors the live's hero-in-group semantics, the dashboard panel caps at 20 with the task-based NPA, the logged-out LOG IN pill matches the measured spec, and the seed mirrors the live's regenerated workspace data — all pinned by 36 Playwright checks.

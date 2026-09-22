@@ -139,12 +139,16 @@ export function DashboardView() {
   const stats = useOrbital((s) => s.stats);
   const goals = useOrbital((s) => s.goals);
   const activity = useOrbital((s) => s.activity);
+  const allTasks = useOrbital((s) => s.allTasks);
   const navigate = useOrbital((s) => s.navigate);
   const [newGoalOpen, setNewGoalOpen] = useState(false);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
 
-  const nextPlanned = useMemo(() => nextPlannedAction(activity), [activity]);
+  // v2.5: the NPA derives from the blocked TASKS in display order (the
+  // live's semantics — measured on its regenerated feed with no status
+  // updates); the goals list provides the display order.
+  const nextPlanned = useMemo(() => nextPlannedAction(allTasks, goals), [allTasks, goals]);
 
   return (
     <div
@@ -279,14 +283,15 @@ export function DashboardView() {
             <p className="mt-[5px] text-[13px] font-normal leading-[19.5px] text-orb-heading">{nextPlanned}</p>
           </div>
 
-          {/* v1.9 (measured): ALL feed entries render inside an
-              overflow-hidden container — the panel clips at the viewport
-              bottom exactly like the live app; the rows start flush at the
-              NPA well's bottom edge (no list margin), and each detail line
-              carries a 2px top margin. */}
+          {/* v1.9 (measured): feed entries render inside an overflow-hidden
+              container — the panel clips at the viewport bottom exactly like
+              the live app; the rows start flush at the NPA well's bottom
+              edge (no list margin), and each detail line carries a 2px top
+              margin. v2.5 (measured on the live): the panel caps at 20
+              rows — the full feed lives on the Activity view ("Full log"). */}
           <ul className="min-h-0 flex-1 overflow-hidden">
-            {activity.map((entry, index) => (
-              <ActivityRow key={entry.id} entry={entry} divider={index < activity.length - 1} />
+            {activity.slice(0, 20).map((entry, index, visible) => (
+              <ActivityRow key={entry.id} entry={entry} divider={index < visible.length - 1} />
             ))}
           </ul>
         </div>
