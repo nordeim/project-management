@@ -138,7 +138,7 @@ async function main() {
       description: "Drive 25% more organic traffic with a coordinated Q3 content push across blog, social and email.",
       status: "done",
       targetDate: d("2026-08-15T00:00:00Z"),
-      sortOrder: 2,
+      sortOrder: 3,
       createdAt: d("2026-05-06T10:00:00Z"),
     },
   });
@@ -181,7 +181,7 @@ async function main() {
       description: "Ship a redesigned marketing landing page with clearer positioning and a stronger call to action.",
       status: "active",
       targetDate: d("2026-07-30T00:00:00Z"),
-      sortOrder: 3,
+      sortOrder: 2,
       createdAt: d("2026-05-08T11:00:00Z"),
     },
   });

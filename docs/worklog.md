@@ -47,3 +47,36 @@ Work Log:
 Stage Summary:
 - v1.9 shipped: time-aware chrome (photo rotation, long-form relative time, greeting boundaries) + wizard/login/dialog corrections + micro-parity sweep.
 - Docs aligned to v1.9 (README, AGENTS, CLAUDE, PAD revision blocks, session logs rewritten).
+
+---
+Task ID: 1
+Agent: main (Super Z)
+Task: Session 18 — v2.3 survey + plan (workspace refresh, doc review, live crawl)
+
+Work Log:
+- Cloned project-management @ 23ae338 + scandihaven reference repo; internalized the 709-line coding-agent operating contract (modes, decision hierarchy, TDD, evidence-based verification).
+- Read AGENTS.md, CLAUDE.md, README.md, PAD v2.2, sessions 15–17, skills catalog (tdd, agent-browser, clone-app-pat-pro, nextjs16-tailwind4 mobile-nav + Tailwind v4 debugging, distill skills).
+- Baseline gate green in the fresh clone (122/122 unit · 30/30 smoke).
+- Set .env DATABASE_URL="file:../db/custom.db" + db/ at repo root; seeded; discovered the shell's absolute DATABASE_URL override + the .env.example's four phantom references (db-path.ts, tests/db-path.test.ts, DEPLOYMENT.md, NEXT_PUBLIC_SITE_URL).
+- Crawled the live app (authenticated, 390/768/1440) vs the clone with computed-style probes; wrote docs/parity-remediation-v2.3.md (F1–F10, WS-1–WS-10) and validated it against the codebase.
+
+Stage Summary:
+- Six verified parity deltas: mobile tab active-well chip, responsive INVITE label, blocked-count case/tracking, seed goal order, Team header wrap, circular login logo.
+- Four repo misalignments: .env.example phantom refs, CWD-dependent db resolution, no Playwright layer, stale docs.
+
+---
+Task ID: 2
+Agent: main (Super Z)
+Task: Session 18 — v2.3 execution (WS-1..WS-10)
+
+Work Log:
+- WS-1 TDD: tests/db-path.test.ts red → src/lib/db-path.ts green → db.ts refactor; root-caused the Next standalone process.chdir trap + Turbopack's virtual import.meta.url with runtime instrumentation; final anchor order = standaloneRepoRoot detector → disk-validated module root → cwd; vitest include extended to tests/; db/.gitkeep committed. Unit 122 → 137.
+- WS-2..WS-5: mobile tab well wrapper (.orb-nav-active chip, MORE never welled); responsive INVITE label + no-wrap Team headers with shrink-0; normal-case tracking-normal blocked spans; seed sortOrder swap (Launch→2, Q3→3); circular login logo chip (ring-4 white/50 + shadow-lg, 80/96px).
+- WS-6: metadataBase + sitemap.ts + docs/DEPLOYMENT.md — the .env.example contract is now fully implemented.
+- WS-7: @playwright/test installed via bun; playwright.config.ts (setup project + storageState, isolated db/e2e.db on :3100); 26 checks across auth/workspace/goals/mobile-navigation; solved rate-limiter poisoning (one login per run), sandbox thread limits, hasTouch, webkit device trap, multi-subtree strict mode, Tailwind v4 computed-value quirks.
+- WS-8: full gate green (137/137 · 30/30 · 26/26) + computed-style re-probes of every changed surface (all exact) + VLM sanity (NEAR-IDENTICAL ×4).
+- WS-9: production screenshots regenerated (15 files incl. new login chip); README/AGENTS/CLAUDE aligned; PAD v2.3 revision block; project-management_SKILL.md distilled (20 sections + appendices); session_18 + this worklog; plan marked executed.
+- WS-10: pending — commit + push via SSH wrapper.
+
+Stage Summary:
+- v2.3 shipped: mobile-nav parity restored against the live, the db-path seam makes <repo>/db/custom.db authoritative in every context (incl. the standalone chdir trap), the repo gained a real browser test layer, and every committed doc claim is code-verified.

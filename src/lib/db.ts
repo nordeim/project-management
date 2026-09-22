@@ -1,42 +1,21 @@
-import path from 'node:path'
 import { PrismaClient } from '@prisma/client'
+import { resolveProcessDatabaseUrl } from './db-path'
 
 // ---------------------------------------------------------------------------
-// SQLite URL resolution
-//
-// The Prisma CLI resolves relative `file:` URLs against prisma/schema.prisma,
-// while the query engine at runtime anchors them against the process CWD —
-// two different answers for the same string. To keep `db:push`, `db:seed`,
-// `next dev` and the standalone server all opening ONE database file, this
-// module normalizes the URL to an absolute path before the first client is
-// constructed, using the CLI's rule (schema-relative) with the schema's
-// canonical location `<project root>/prisma`.
+// SQLite URL resolution — the rule lives in src/lib/db-path.ts (pure, unit
+// tested by tests/db-path.test.ts). Summary:
 //
 //   .env DATABASE_URL="file:../db/custom.db"
-//     -> CLI:      <root>/prisma/../db/custom.db = <root>/db/custom.db
-//     -> runtime:  path.resolve(<cwd>/prisma, "../db/custom.db")
-//     Both equal <root>/db/custom.db as long as the server is started from
-//     the project root, which every npm/bun script in package.json does.
+//     -> Prisma CLI (schema-relative):   <root>/db/custom.db
+//     -> runtime (db-path.ts, same rule): <root>/db/custom.db
 //
-// Absolute file: URLs and non-SQLite URLs (e.g. Postgres in a hosted deploy)
-// pass through untouched.
+// Both resolve against the repo that owns prisma/schema.prisma, so `db:push`,
+// `db:seed`, `next dev`, `next build` and the standalone server all open ONE
+// database file at <repo>/db/custom.db regardless of the process working
+// directory. Absolute file: URLs and non-SQLite URLs pass through untouched.
 // ---------------------------------------------------------------------------
-function resolveDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL?.trim()
-  if (!url) {
-    // Fresh checkout default — matches .env.example and the README setup.
-    return `file:${path.resolve(process.cwd(), 'prisma', '../db/custom.db')}`
-  }
-  if (/^file:/i.test(url)) {
-    const raw = url.replace(/^file:/i, '')
-    // Windows drive letters (file:C:\...) are absolute too.
-    if (path.isAbsolute(raw) || /^[A-Za-z]:[\\/]/.test(raw)) return `file:${raw}`
-    return `file:${path.resolve(process.cwd(), 'prisma', raw)}`
-  }
-  return url
-}
 
-process.env.DATABASE_URL = resolveDatabaseUrl()
+process.env.DATABASE_URL = resolveProcessDatabaseUrl()
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined

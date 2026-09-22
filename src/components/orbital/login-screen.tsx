@@ -125,12 +125,13 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
         <div className="rounded-2xl bg-[rgba(255,255,255,0.95)] p-[48px_40px_40px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
           {mode === "signin" ? (
             <>
-              {/* v1.9 (measured): the logo is centered; the title and
-                  subtitle are LEFT-aligned full-width blocks 32px below the
-                  logo (title wraps to two 36px lines). */}
+              {/* v2.3 (measured): the logo is a 96px CIRCULAR chip from sm up
+                  (80px below sm) — centered; the title and subtitle are
+                  LEFT-aligned full-width blocks 32px below the logo (title
+                  wraps to two 36px lines). */}
               <div className="mb-8">
                 <div className="flex justify-center">
-                  <LogoPyramid size={96} />
+                  <LogoPyramid className="h-20 w-20 sm:h-24 sm:w-24" />
                 </div>
                 <h1 className="mt-8 text-left text-[30px] font-bold leading-[36px] tracking-[-0.025em] text-[#0F172A]">
                   Welcome to Project Management App

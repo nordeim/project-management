@@ -81,7 +81,7 @@ function GoalCard({
             />
             {meta.label}
             {goal.blockedCount > 0 && goal.status === "active" ? (
-              <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
+              <span className="font-medium normal-case tracking-normal text-orb-coral-deep">· {goal.blockedCount} blocked</span>
             ) : null}
           </span>
           <span className="text-[13px] font-medium text-orb-heading">{pct}%</span>
@@ -171,7 +171,7 @@ function GoalCard({
             <span className="h-[7px] w-[7px] rounded-full bg-[#C9B3F5]" aria-hidden="true" />
             {meta.label}
             {goal.blockedCount > 0 && goal.status === "active" ? (
-              <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
+              <span className="font-medium normal-case tracking-normal text-orb-coral-deep">· {goal.blockedCount} blocked</span>
             ) : null}
             <span className="text-[11px] text-[#767676]" aria-hidden="true">
               ›

@@ -15,6 +15,7 @@
     "db:reset": "prisma migrate reset",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -40,6 +41,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/react": "^19",
     "@types/react-dom": "^19",

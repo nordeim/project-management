@@ -217,11 +217,17 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             </div>
           </main>
 
-          {/* Mobile bottom tab bar (reference, v1.7, measured): a
-              FULL-WIDTH bottom-attached bar — rounded top corners only
-              (20px), upward drop shadow, pad 8px 8px 12px. Tabs carry 20px
-              icons and 9px/600 uppercase labels; the active tab is darker
-              text only (no highlight pill). Mobile chrome runs through 767
+          {/* Mobile bottom tab bar (reference, v1.7, measured; active state
+              re-measured v2.3): a FULL-WIDTH bottom-attached bar — rounded
+              top corners only (20px), upward drop shadow, pad 8px 8px 12px.
+              EVERY tab wraps its icon+label in a flex-column chip (gap 4px,
+              pad 8px 4px, radius 14px); the ACTIVE tab's chip gets the
+              BRIGHT inset-well treatment (bg #EBE7E2 + the
+              rgba(255,252,248,0.75)/rgba(180,165,150,0.32) inset pair — the
+              .orb-nav-active pair, re-used here) — the v1.7 "color-only
+              active state" reading no longer matches the live. Labels are
+              9px/600 uppercase; the MORE tab never receives the well (its
+              active state stays color-only). Mobile chrome runs through 767
               (v2.2) — at md the floating pill nav replaces it. */}
           <nav
             className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_20px_rgba(160,143,126,0.22)] md:hidden"
@@ -236,12 +242,19 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                   onClick={() => go(tab.view)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-[54px] flex-1 flex-col items-center justify-center gap-1 px-1 text-[9px] font-semibold uppercase tracking-[0.05em] transition-colors",
+                    "flex min-h-[54px] flex-1 flex-col items-center justify-center px-1 text-[9px] font-semibold uppercase tracking-[0.05em] transition-colors",
                     active ? "text-orb-heading" : "text-[#767676]",
                   )}
                 >
-                  {tab.icon}
-                  {tab.label}
+                  <span
+                    className={cn(
+                      "flex flex-col items-center gap-1 rounded-[14px] px-1 py-2 transition-colors",
+                      active && "orb-nav-active",
+                    )}
+                  >
+                    {tab.icon}
+                    {tab.label}
+                  </span>
                 </button>
               );
             })}

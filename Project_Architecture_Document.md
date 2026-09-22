@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.2
+# ORBITAL — Master Project Architecture Document (PAD) v2.3
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,18 @@
 **Last Updated:** 2026-09-19
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.3
+
+- `[MOD]` **Mobile bottom-nav ACTIVE tab carries an INSET-WELL chip** (re-measured on the live after the v1.7 "color-only active state" reading stopped matching): EVERY tab wraps its icon+label in a `flex column center` chip (gap 4, pad 8/4, radius 14); the ACTIVE tab's chip gets the BRIGHT inset pair — `bg #EBE7E2`, `inset -3px -3px 6px rgba(255,252,248,0.75)`, `inset 3px 3px 6px rgba(180,165,150,0.32)` (the `.orb-nav-active` pair) — inactive chips stay transparent. The MORE tab NEVER carries the well (its active state remains color-only). Pinned by the Playwright mobile-navigation spec.
+- `[MOD]` **Team view (v2.3, measured)**: the INVITE button label is RESPONSIVE — `<Plus 12/> <span class="hidden sm:inline">Invite Member</span><span class="sm:hidden">Invite</span>` (w≈96 below sm, w≈150 from sm; aria-label "Invite Member"); both the Team h1 header and the AI-Agents section header are NO-WRAP `flex … justify-between` rows with `shrink-0` buttons (the AI-Agents NEW AGENT pill stays inline right at every width — the old `flex-wrap` dropped it below at 390).
+- `[MOD]` **Goal-card blocked count renders in BODY CASE + NORMAL TRACKING** (`normal-case tracking-normal` on the "· N blocked" span — measured w55.9 vs the uppercase 73.1; the surrounding status chip stays uppercase/ls 0.08em).
+- `[MOD]` **Seed goal order matches the live**: Product Onboarding Redesign (sortOrder 1) → Launch new landing page (2) → Q3 Content Marketing Campaign (3); the API orders by `sortOrder asc, createdAt desc`.
+- `[MOD]` **Login logo is a CIRCULAR chip** (v2.3 re-measurement retires the v1.9 rounded-square reading): `rounded-full ring-4 ring-white/50 shadow-lg`, 80px below sm / 96px from sm, same purple 1-2-3 dot pyramid.
+- `[NEW]` **SQLite URL resolution extracted into `src/lib/db-path.ts`** (pure seam, pinned by `tests/db-path.test.ts` — 15 checks): relative `file:` URLs resolve against the first anchor containing `prisma/schema.prisma`. Anchor order: (1) the standalone-detector root — Next's standalone `server.js` runs `process.chdir(__dirname)` into `.next/standalone` BEFORE modules execute, and the file tracer copies `prisma/schema.prisma` into that folder, so the plain CWD rule resolves against the BUILD OUTPUT; the detector (`standaloneRepoRoot`) recognizes the in-repo standalone dir (basename + server.js + grandparent schema) and returns the real repo two levels up; (2) the module's own repo root, validated by the source file existing on disk (the Turbopack standalone runtime rewrites `import.meta.url` into a VIRTUAL `<standalone>/src/lib/db-path.ts` that must be ignored); (3) the CWD (pre-v2.3 behavior, kept as fallback — deployed copies own their CWD; `docs/DEPLOYMENT.md` §4 tells production to use absolute URLs).
+- `[NEW]` **Playwright E2E layer** (`tests/e2e/`, 26 checks — `bun run test:e2e`): boots the production standalone server on :3100 with an isolated `db/e2e.db` (global setup pushes + seeds), a setup project signs the demo user in ONCE via storageState (per-test logins trip the 10/IP/15min auth rate limiter), and the specs pin the login round-trip, SPA path routes + back/forward, goals surface (seed order, blocked typography, add-task dialog, inline delete) and the mobile + 768 navigation chrome.
+- `[NEW]` **Site metadata wired**: `metadataBase` from `NEXT_PUBLIC_SITE_URL` in `layout.tsx` + `src/app/sitemap.ts` — the `.env.example` contract now matches the code; `docs/DEPLOYMENT.md` added (§4 = database location).
+- `[NOTE]` **Verification**: full gate green — lint 0 · typecheck 0 · **137/137 unit** (122 + 15 db-path) · build clean · 30/30 smoke · **26/26 Playwright** — plus a two-session computed-style re-probe of every changed surface at 390/1440 (tab-bar chip exact; INVITE x276.4 y102 w95.6 exact; NEW AGENT x243.3 inline exact; blocked span w55.9 ls-normal exact; login chip 96px circular) and a VLM sanity pass (NEAR-IDENTICAL on all four changed mobile surfaces; 9 VLM misreads disproven by measurement across the session).
 
 #### Revision Block — v2.2
 

@@ -34,6 +34,9 @@ export const metadata: Metadata = {
   title: "Project Management App",
   description:
     "ORBITAL is an AI-assisted project workspace: goals, tasks, agent activity and team check-ins in one calm dashboard.",
+  // v2.3: canonical origin for metadata-resolved URLs (og images,
+  // sitemap.ts). Falls back to the local default when the env var is unset.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   icons: {
     icon: "/orbital-logo.svg",
   },

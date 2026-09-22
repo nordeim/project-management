@@ -20,8 +20,10 @@ export function TeamView() {
   return (
     <div className="w-full px-3 pt-6 md:px-7 lg:px-0 lg:pt-0">
       {/* v1.8 (measured): the Invite Member button aligns with the h1 top
-          (y=48 on live) — items-start. */}
-      <header className="flex flex-wrap items-start justify-between gap-3">
+          (y=48 on live) — items-start. v2.3 (measured): the live header
+          never wraps and the label is RESPONSIVE — "Invite Member" from
+          sm up, just "Invite" below (hidden sm:inline / sm:hidden spans). */}
+      <header className="flex items-start justify-between">
         <div>
           <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Team</h1>
           <p className="mt-1 text-[14px] text-orb-muted">
@@ -30,14 +32,16 @@ export function TeamView() {
         </div>
         <button
           type="button"
-          className="orb-pill-round"
+          className="orb-pill-round shrink-0"
+          aria-label="Invite Member"
           onClick={() => {
             setInviteKind("human");
             setInviteOpen(true);
           }}
         >
-          <Plus size={14} aria-hidden="true" />
-          Invite Member
+          <Plus size={12} aria-hidden="true" />
+          <span className="hidden sm:inline">Invite Member</span>
+          <span className="sm:hidden">Invite</span>
         </button>
       </header>
 
@@ -83,22 +87,24 @@ export function TeamView() {
       )}
 
       <section className="mt-[35px]" aria-label="AI agents">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center justify-between">
           <div>
             {/* v1.7 (measured): 16px/500 — quieter than the v1.6 18px/600.
-                v1.9: the subtitle is 13px (measured). */}
+                v1.9: the subtitle is 13px (measured). v2.3 (measured): the
+                live keeps this header on ONE row at every width (no wrap,
+                button shrink-0 beside the heading). */}
             <h2 className="text-[16px] font-medium text-orb-heading">AI Agents</h2>
             <p className="mt-0.5 text-[13px] text-orb-muted">Autonomous assistants that help manage your project</p>
           </div>
           <button
             type="button"
-            className="orb-pill-round"
+            className="orb-pill-round shrink-0"
             onClick={() => {
               setInviteKind("agent");
               setInviteOpen(true);
             }}
           >
-            <Plus size={14} aria-hidden="true" />
+            <Plus size={12} aria-hidden="true" />
             New Agent
           </button>
         </div>

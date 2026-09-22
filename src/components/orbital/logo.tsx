@@ -66,21 +66,24 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
   );
 }
 
-/** Login-card mark (v1.9, measured from the live app's actual Frame24.svg:
- * a WHITE ROUNDED SQUARE — rx 98 on a 1200-unit canvas ≈ 8.2% — not a
- * circle) carrying the 1-2-3 dot pyramid at the reference's proportions
- * (dots ≈ 13.75% of the mark). No shadow — the reference logo is a flat
- * white chip. */
-export function LogoPyramid({ size = 96, className }: { size?: number; className?: string }) {
+/** Login-card mark (v2.3, re-measured on the live app): a WHITE CIRCULAR
+ * chip — rounded-full with a 4px white/50 ring and the soft lg drop shadow
+ * (the live wraps its uploaded logo in exactly that container; the earlier
+ * v1.9 "flat rounded square" reading no longer matches). The chip is 80px
+ * below sm and 96px from sm up — size it at the call site with h/w
+ * utilities (or the `size` prop for a fixed mark). Carries the same 1-2-3
+ * purple dot pyramid at the reference's proportions (dots ≈ 13.75% of the
+ * mark). */
+export function LogoPyramid({ size, className }: { size?: number; className?: string }) {
   const dots = pyramidDotPositions();
-  const corner = Math.round((98 / 1200) * size * 10) / 10;
+  const dims = size ? { width: size, height: size } : {};
   return (
     <span
-      className={`flex items-center justify-center bg-white ${className ?? ""}`}
-      style={{ width: size, height: size, borderRadius: corner }}
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-lg ring-4 ring-white/50 ${className ?? ""}`}
+      style={dims}
       aria-hidden="true"
     >
-      <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+      <svg className="h-full w-full" viewBox="0 0 40 40" fill="none" {...dims}>
         {dots.map((d, i) => (
           <circle key={i} cx={d.cx} cy={d.cy} r={PYRAMID_DOT_R} fill="#996CE4" />
         ))}
