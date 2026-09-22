@@ -10,7 +10,7 @@
 // seam; row dividers are rgba(160,143,126,0.15).
 
 import { useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { ProgressRing } from "@/components/orbital/progress-ring";
 import { UserMenuOrLogin } from "@/components/orbital/user-menu";
@@ -172,9 +172,7 @@ export function DashboardView() {
               12px/600 — distinct from the goals header's 121×35 base pill
               (the live renders two different New Goal pills). */}
           <button type="button" className="orb-pill-outline orb-pill-outline-lg self-start" onClick={() => setNewGoalOpen(true)}>
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <Plus size={13} strokeWidth={2} aria-hidden="true" />
             New Goal
           </button>
         </div>
@@ -270,7 +268,7 @@ export function DashboardView() {
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
               onClick={() => navigate("activity")}
             >
-              Full log <ArrowRight size={14} />
+              Full log <ArrowRight size={12} strokeWidth={1.5} />
             </button>
           </div>
 
@@ -303,7 +301,7 @@ export function DashboardView() {
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
               onClick={() => navigate("goals")}
             >
-              Full log <ArrowRight size={14} />
+              Full log <ArrowRight size={12} strokeWidth={1.5} />
             </button>
           </div>
           <ul className="space-y-[6px] pb-[18px]">

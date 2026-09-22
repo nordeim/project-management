@@ -1,11 +1,19 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.3
+# ORBITAL — Master Project Architecture Document (PAD) v2.4
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
 **Companion Documents:** `README.md` (user-facing), `CLAUDE.md` (agent contract), `AGENTS.md` (operator notes)
-**Last Updated:** 2026-09-19
+**Last Updated:** 2026-09-22
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.4
+
+- `[MOD]` **Mobile bottom-nav chips STRETCH THE FULL TAB WIDTH** (re-measured on the re-deployed live, 2026-09-22 — retires v2.3's content-width reading): the view-tab buttons carry NO padding (and NO min-height — the bar is content-height driven at 73.5 = pad 8/12 + chip 53.5); every tab's chip (gap 4, pad 8/4, r14, transition 150ms) fills the entire tab (73.2 of 73.2 at 390, 67.2 at 360 — scales with viewport); the ACTIVE chip keeps the `.orb-nav-active` bright inset pair. The MORE button carries its OWN pad 8/4 plus an 8px flex basis (`flex-[1_1_8px]`, mirroring the live's content-box basis participation) so it renders ~6.4px WIDER than each view tab (81.2 vs 73.2 — verified at 390 and 360) and never carries the well. Pinned by three new Playwright checks (full-width chip, wider MORE, 1.5 stroke).
+- `[MOD]` **Icon strokes are a two-class system** (live re-deploy normalization): NAV CHROME renders lucide glyphs at strokeWidth **1.5** — mobile tabs (20px), MORE-sheet rows (20px), pill tabs (18px), sidebar nav (16px) + the inline panel glyph (18px), dashboard "Full log" arrows (also resized 14→12px), the AI-chip zap, and every empty-state icon (22/28px). CONTENT icons use the lucide DEFAULT **2** — task/goal edit-delete pencils+trash, login Mail/Lock, the wizard's sparkles/X, the NEW GOAL plus (the dashboard pill's plus is the LUCIDE glyph at 13px@2 — the hand-rolled 14-viewBox plus was fuller). Exceptions: the 768 back-strip chevron stays **1.8** (verified equal on the live); the wizard's Bot avatar is **1.6**. Glyph swaps: date glyphs are plain `Calendar` (NOT `CalendarDays`) everywhere (picker trigger 14px `#9A9A9A`@1.5, task meta 11px, goal-detail target line 13px); the AI chip carries a `Zap` (NOT `Sparkles`) at 9px/1.5 with 0.5px letter-spacing. Trap fixed en route: the shadcn Button base `[&_svg:not([class*='size-'])]:size-4` forces 16px on child glyphs — the wizard's 13px icons now opt out via an explicit `size-[13px]` class.
+- `[MOD]` **Mobile goal-card top row is INVERTED vs v2.1's reading** (live re-measurement): the status renders as BARE text — 7px status-colored dot (gap 6) + 11px/600/uppercase/ls 0.88 `#6E6E6E` + normal-case coral blocked count, NO pill — and the percentage moves into a SMALL WELL CHIP: bg `#EBE7E2`, radius 8, pad 3/10, the 2px inset pair rgba(255,250,244,0.8)/rgba(160,143,126,0.28), 13px/500 `#3A3A3A` (h25.5; verified on all three seeded goals). The row carries mb 10 and the title mt 0 (card h≈136). The DESKTOP card keeps the pill status chip + bare 42px pct (v1.6, unchanged — re-verified).
+- `[MOD]` **Wizard micro-spec**: close X color `#5A5A5A`; close-square dark-shadow blur 10px; CONTINUE/GENERATE sparkles at 13px (size-class opt-out above).
+- `[NOTE]` **Verification**: full gate green — lint 0 · typecheck 0 · **137/137 unit** · build clean · 30/30 smoke · **29/29 Playwright** (26 + 3 new) — plus computed-style re-probes of every changed surface at 390/768/1440 (tab census EXACT: [73.2×4, 81.2] both apps; goal-card internals exact to the decimal; named-glyph censuses identical across goals/goal-detail/dashboard/team/my-tasks/wizard; AI chip zap/1.5/ls-0.5 exact) and a VLM sanity pass (goal-card pair MATCH; tab-bar VLM claims contradicted by bounding-box measurement — documented misreads).
 
 #### Revision Block — v2.3
 

@@ -134,7 +134,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             onOpenChange(false);
             reset();
           }}
-          className="absolute top-[18px] right-[18px] flex h-8 w-8 items-center justify-center rounded-[9px] bg-orb-well text-orb-body shadow-[-4px_-4px_8px_rgba(255,250,244,0.82),4px_4px_8px_rgba(160,143,126,0.28)] transition-colors hover:text-orb-heading"
+          className="absolute top-[18px] right-[18px] flex h-8 w-8 items-center justify-center rounded-[9px] bg-orb-well text-[#5A5A5A] shadow-[-4px_-4px_8px_rgba(255,250,244,0.82),4px_4px_10px_rgba(160,143,126,0.28)] transition-colors hover:text-orb-heading"
           aria-label="Close"
         >
           <X size={14} strokeWidth={2} aria-hidden="true" />
@@ -149,7 +149,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orb-raised text-[#7C6FA0] shadow-[-4px_-4px_12px_rgba(202,181,245,0.56),4px_4px_13px_rgba(160,143,126,0.29)]"
             aria-hidden="true"
           >
-            <Bot size={16} strokeWidth={1.8} />
+            <Bot size={16} strokeWidth={1.6} />
           </span>
           <div className="max-w-[400px] rounded-[0px_14px_14px_14px] bg-orb-raised px-4 py-[10px] shadow-[-4px_-4px_8px_rgba(255,250,244,0.82),4px_4px_8px_rgba(160,143,126,0.28)]">
             <p className="text-[13px] font-normal leading-[19.5px] text-orb-heading">
@@ -218,7 +218,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               {/* v2.0: px-[18px]! — the Button base's has-[>svg]:px-3 carries
                   a :has() specificity bump that beats the custom class. */}
               <Button type="submit" className="orb-btn-dark px-[18px]!" disabled={busy || !title.trim()}>
-                {busy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} aria-hidden="true" />}
+                {busy ? <Loader2 size={13} className="size-[13px] animate-spin" /> : <Sparkles size={13} className="size-[13px]" aria-hidden="true" />}
                 Continue
               </Button>
             </div>
@@ -267,7 +267,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                   onClick={() => void generate()}
                   disabled={busy}
                 >
-                  {busy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} aria-hidden="true" />}
+                  {busy ? <Loader2 size={13} className="size-[13px] animate-spin" /> : <Sparkles size={13} className="size-[13px]" aria-hidden="true" />}
                   Generate Tasks
                 </Button>
               </div>

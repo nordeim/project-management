@@ -79,7 +79,7 @@ export function MyTasksView() {
       <div className="mt-5 space-y-3">
         {visible.length === 0 ? (
           <EmptyState
-            icon={<CheckSquare size={28} color="#B3B3B3" />}
+            icon={<CheckSquare size={28} strokeWidth={1.5} color="#B3B3B3" />}
             title="No tasks assigned"
             description="Tasks will show up here once goals are created and assigned."
           />

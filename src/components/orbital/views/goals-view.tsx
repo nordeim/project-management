@@ -69,13 +69,18 @@ function GoalCard({
         className="block w-full p-[14px_16px] text-left md:hidden"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-[5px] rounded-full bg-orb-well px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.8),inset_2px_2px_5px_rgba(160,143,126,0.24)]">
-            {/* v2.1 (measured live mobile): the pip is STATUS-COLORED here
-                (active = green #2ECC8A, others = the light purple) — unlike
-                the desktop chip's always-purple pip. */}
+        {/* v2.4 (measured live mobile): the status renders as BARE text —
+            dot 7px (status-colored, gap 6) + 11px/600/uppercase label +
+            normal-case coral blocked count, NO pill background — and the
+            percentage moves into a SMALL WELL CHIP (bg #EBE7E2, radius 8,
+            pad 3px 10px, the 2px inset pair, 13px/500). The row carries
+            mb 10px and the title mt 0 (card h 136 for the seed goal). The
+            DESKTOP card below keeps the pill status chip + bare 42px pct
+            (unchanged since v1.6 — re-verified v2.4). */}
+        <div className="mb-[10px] flex items-center justify-between">
+          <span className="flex items-center gap-[6px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-muted">
             <span
-              className="h-[7px] w-[7px] rounded-full"
+              className="h-[7px] w-[7px] shrink-0 rounded-full"
               style={{ backgroundColor: goal.status === "active" ? "#2ECC8A" : "#C9B3F5" }}
               aria-hidden="true"
             />
@@ -84,9 +89,11 @@ function GoalCard({
               <span className="font-medium normal-case tracking-normal text-orb-coral-deep">· {goal.blockedCount} blocked</span>
             ) : null}
           </span>
-          <span className="text-[13px] font-medium text-orb-heading">{pct}%</span>
+          <span className="rounded-[8px] bg-orb-well px-[10px] py-[3px] text-[13px] font-medium text-orb-heading shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.8),inset_2px_2px_5px_rgba(160,143,126,0.28)]">
+            {pct}%
+          </span>
         </div>
-        <p className="mb-3 mt-[8px] truncate text-[16px] font-medium leading-[1.31] text-orb-heading">{goal.title}</p>
+        <p className="mb-3 truncate text-[16px] font-medium leading-[1.3] text-orb-heading">{goal.title}</p>
         <div
           className="mb-[10px] h-1.5 w-full overflow-hidden rounded-full bg-orb-track shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
           role="progressbar"
@@ -138,7 +145,7 @@ function GoalCard({
                   className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-heading"
                   aria-label={`Edit goal ${goal.title}`}
                 >
-                  <Pencil size={13} strokeWidth={1.8} />
+                  <Pencil size={13} strokeWidth={2} />
                 </button>
                 <button
                   type="button"
@@ -146,7 +153,7 @@ function GoalCard({
                   className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-coral-deep"
                   aria-label={`Delete goal ${goal.title}`}
                 >
-                  <Trash2 size={13} strokeWidth={1.8} />
+                  <Trash2 size={14} strokeWidth={2} />
                 </button>
               </div>
             )}
@@ -242,7 +249,7 @@ function GoalCard({
               className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-heading"
               aria-label={`Edit goal ${goal.title}`}
             >
-              <Pencil size={13} strokeWidth={1.8} />
+              <Pencil size={13} strokeWidth={2} />
             </button>
             <button
               type="button"
@@ -250,7 +257,7 @@ function GoalCard({
               className="flex h-[23px] items-center rounded-[8px] px-2 text-[#B3B3B3] transition-colors hover:text-orb-coral-deep"
               aria-label={`Delete goal ${goal.title}`}
             >
-              <Trash2 size={13} strokeWidth={1.8} />
+              <Trash2 size={14} strokeWidth={2} />
             </button>
           </div>
         )}
@@ -336,7 +343,7 @@ export function GoalsView() {
       <div className="mt-[26px] space-y-3">
         {visible.length === 0 ? (
           <EmptyState
-            icon={<Plus size={22} color="#B3B3B3" />}
+            icon={<Plus size={22} strokeWidth={1.5} color="#B3B3B3" />}
             title={filter === "all" ? "No goals yet" : `No ${FILTERS.find((f) => f.id === filter)?.label.toLowerCase()} goals`}
             description="Create your first goal and the AI assistant will draft a task plan for it."
             action={

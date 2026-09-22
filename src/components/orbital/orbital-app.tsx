@@ -26,10 +26,10 @@ import { cn } from "@/lib/utils";
 import type { ViewId } from "@/lib/router";
 
 const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutGrid size={20} strokeWidth={1.8} /> },
-  { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={1.8} /> },
-  { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={1.8} /> },
-  { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={1.8} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutGrid size={20} strokeWidth={1.5} /> },
+  { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={1.5} /> },
+  { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={1.5} /> },
+  { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={1.5} /> },
 ];
 
 // v2.2 (measured live middle state): the md–lg floating pill nav carries
@@ -38,12 +38,12 @@ const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
 // 18px glyphs; every live nav uses lucide's square-check-big for the tasks
 // view (the mobile tab bar's My Tasks glyph was swapped to match too).
 const PILL_TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutGrid size={18} strokeWidth={1.8} /> },
-  { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={1.8} /> },
-  { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={1.8} /> },
-  { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={1.8} /> },
-  { view: "team", label: "Team", icon: <Users size={18} strokeWidth={1.8} /> },
-  { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={1.8} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutGrid size={18} strokeWidth={1.5} /> },
+  { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={1.5} /> },
+  { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={1.5} /> },
+  { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={1.5} /> },
+  { view: "team", label: "Team", icon: <Users size={18} strokeWidth={1.5} /> },
+  { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={1.5} /> },
 ];
 
 function tabActive(current: ViewId, target: ViewId): boolean {
@@ -218,17 +218,24 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
           </main>
 
           {/* Mobile bottom tab bar (reference, v1.7, measured; active state
-              re-measured v2.3): a FULL-WIDTH bottom-attached bar — rounded
-              top corners only (20px), upward drop shadow, pad 8px 8px 12px.
-              EVERY tab wraps its icon+label in a flex-column chip (gap 4px,
-              pad 8px 4px, radius 14px); the ACTIVE tab's chip gets the
-              BRIGHT inset-well treatment (bg #EBE7E2 + the
-              rgba(255,252,248,0.75)/rgba(180,165,150,0.32) inset pair — the
-              .orb-nav-active pair, re-used here) — the v1.7 "color-only
-              active state" reading no longer matches the live. Labels are
-              9px/600 uppercase; the MORE tab never receives the well (its
-              active state stays color-only). Mobile chrome runs through 767
-              (v2.2) — at md the floating pill nav replaces it. */}
+              re-measured v2.3; width semantics re-measured v2.4): a
+              FULL-WIDTH bottom-attached bar — rounded top corners only
+              (20px), upward drop shadow, pad 8px 8px 12px. The view-tab
+              buttons carry NO padding — every tab's icon+label sits in a
+              flex-column chip (gap 4px, pad 8px 4px, radius 14px,
+              transition 150ms) that STRETCHES TO THE FULL TAB WIDTH
+              (73.2 of 73.2 at 390 — the live's anchors wrap full-width
+              divs); the ACTIVE tab's chip gets the BRIGHT inset-well
+              treatment (bg #EBE7E2 + the rgba(255,252,248,0.75)/
+              rgba(180,165,150,0.32) inset pair — the .orb-nav-active
+              pair). The MORE tab carries its OWN padding (8px 4px) plus
+              an 8px flex-basis (mirroring the live's content-box basis
+              participation), rendering it ~6.4px wider than the view tabs
+              — and NEVER receives the well (color-only active state).
+              Labels are 9px/600 uppercase; the bar is content-height
+              driven (chip 53.5 — no min-height). Mobile chrome runs
+              through 767 (v2.2) — at md the floating pill nav replaces
+              it. */}
           <nav
             className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_20px_rgba(160,143,126,0.22)] md:hidden"
             aria-label="Primary"
@@ -242,13 +249,13 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                   onClick={() => go(tab.view)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-[54px] flex-1 flex-col items-center justify-center px-1 text-[9px] font-semibold uppercase tracking-[0.05em] transition-colors",
+                    "flex flex-1 flex-col items-stretch justify-center text-[9px] font-semibold uppercase tracking-[0.05em] transition-colors",
                     active ? "text-orb-heading" : "text-[#767676]",
                   )}
                 >
                   <span
                     className={cn(
-                      "flex flex-col items-center gap-1 rounded-[14px] px-1 py-2 transition-colors",
+                      "flex w-full flex-col items-center gap-1 rounded-[14px] px-1 py-2 transition-colors duration-150",
                       active && "orb-nav-active",
                     )}
                   >
@@ -264,11 +271,11 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               aria-expanded={moreOpen}
               aria-current={moreActive ? "page" : undefined}
               className={cn(
-                "flex min-h-[54px] flex-1 flex-col items-center justify-center gap-1 px-1 text-[9px] font-semibold uppercase tracking-[0.05em] transition-colors",
+                "flex flex-[1_1_8px] flex-col items-center justify-center gap-1 px-1 py-2 text-[9px] font-semibold uppercase tracking-[0.05em] transition-colors",
                 moreActive ? "text-orb-heading" : "text-[#767676]",
               )}
             >
-              <Menu size={20} strokeWidth={1.8} />
+              <Menu size={20} strokeWidth={1.5} />
               More
             </button>
           </nav>
@@ -359,9 +366,9 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 <ul className="space-y-[8px]">
                   {(
                     [
-                      { view: "my-tasks", label: "Tasks", icon: <ListTodo size={20} strokeWidth={1.8} /> },
-                      { view: "team", label: "Team", icon: <Users size={20} strokeWidth={1.8} /> },
-                      { view: "settings", label: "Settings", icon: <Settings size={20} strokeWidth={1.8} /> },
+                      { view: "my-tasks", label: "Tasks", icon: <ListTodo size={20} strokeWidth={1.5} /> },
+                      { view: "team", label: "Team", icon: <Users size={20} strokeWidth={1.5} /> },
+                      { view: "settings", label: "Settings", icon: <Settings size={20} strokeWidth={1.5} /> },
                     ] as const
                   ).map((item) => (
                     <li key={item.view}>

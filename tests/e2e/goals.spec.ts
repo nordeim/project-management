@@ -50,6 +50,44 @@ test.describe("goals view", () => {
   });
 });
 
+test.describe("mobile goal cards (v2.4)", () => {
+  // The live's mobile card (re-measured 2026-09-22): the status renders as
+  // BARE text (dot + 11px uppercase label, NO pill background) and the
+  // percentage moves into a small WELL CHIP — bg #EBE7E2, radius 8, pad
+  // 3px 10px, the 2px inset pair. The desktop card keeps the pill status
+  // chip + bare 42px pct (unchanged since v1.6).
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/goals");
+  });
+
+  test("the status is bare text and the percentage carries the well chip", async ({ page }) => {
+    // Wait for the seeded cards.
+    const firstCard = page.getByRole("button", { name: /Product Onboarding Redesign/ }).first();
+    await expect(firstCard).toBeVisible();
+
+    // The percentage: a well chip (v2.4) — bg, radius 8, inset pair.
+    const pct = firstCard.getByText("67%", { exact: true });
+    await expect(pct).toBeVisible();
+    await expect(pct).toHaveCSS("background-color", "rgb(235, 231, 226)");
+    await expect(pct).toHaveCSS("border-radius", "8px");
+    await expect(pct).toHaveCSS("padding", "3px 10px");
+    const shadow = await pct.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(shadow).toContain("rgba(255, 250, 244, 0.8)");
+    expect(shadow).toContain("rgba(160, 143, 126, 0.28)");
+    expect(shadow).toContain("inset");
+
+    // The status label: BARE text — no pill background, no padding. (The
+    // span wraps dot + label + blocked count, so match by containment.)
+    const status = firstCard.locator("span").filter({ hasText: "Active" }).first();
+    await expect(status).toBeVisible();
+    await expect(status).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(status).toHaveCSS("padding", "0px");
+    await expect(status).toHaveCSS("text-transform", "uppercase");
+  });
+});
+
 test.describe("goal detail", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/goals");

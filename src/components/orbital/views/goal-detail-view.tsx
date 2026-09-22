@@ -5,7 +5,7 @@
 // and the full task list (per-card inline delete confirms).
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, Trash2 } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { TaskCard } from "@/components/orbital/task-card";
 import { AddTaskDialog } from "@/components/orbital/dialogs/add-task-dialog";
@@ -40,7 +40,7 @@ export function GoalDetailView() {
     return (
       <div className="w-full px-7 pt-6 lg:px-0 lg:pt-0">
         <EmptyState
-          icon={<ArrowLeft size={22} color="#B3B3B3" />}
+          icon={<ArrowLeft size={22} strokeWidth={1.5} color="#B3B3B3" />}
           title="Goal not found"
           description="This goal may have been deleted."
           action={
@@ -63,7 +63,7 @@ export function GoalDetailView() {
         onClick={() => navigate("goals")}
         className="flex items-center gap-2 text-[13px] font-normal text-orb-muted hover:text-orb-heading"
       >
-        <ArrowLeft size={15} /> Back to Goals
+        <ArrowLeft size={14} /> Back to Goals
       </button>
 
       {/* v2.2 (measured): header sits 24px below the back row (mt-6) and
@@ -87,7 +87,7 @@ export function GoalDetailView() {
           {goal.targetDate ? (
             // v1.8 (measured): 13px #767676 with a 13px calendar glyph.
             <p className="mt-[8px] flex items-center gap-1.5 text-[13px] text-[#767676]">
-              <CalendarDays size={13} aria-hidden="true" />
+              <Calendar size={13} aria-hidden="true" />
               Target:{" "}
               {new Date(goal.targetDate).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -185,7 +185,7 @@ export function GoalDetailView() {
             className="inline-flex items-center gap-2 rounded-[12px] bg-orb-raised px-[14px] py-[7px] text-[11px] font-semibold uppercase tracking-[0.08em] text-orb-heading shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_12px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-body"
             onClick={() => setAddOpen(true)}
           >
-            <Plus size={13} aria-hidden="true" />
+            <Plus size={12} aria-hidden="true" />
             Add Task
           </button>
         </div>
@@ -194,7 +194,7 @@ export function GoalDetailView() {
       <div className="mt-4 space-y-3">
         {tasks.length === 0 ? (
           <EmptyState
-            icon={<Plus size={22} color="#B3B3B3" />}
+            icon={<Plus size={22} strokeWidth={1.5} color="#B3B3B3" />}
             title="No tasks yet"
             description="Add tasks manually or let the AI assistant draft a plan when you create a goal."
             action={

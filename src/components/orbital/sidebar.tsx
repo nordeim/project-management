@@ -19,15 +19,15 @@ interface NavItem {
 }
 
 const workspaceItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} strokeWidth={1.8} /> },
-  { id: "goals", label: "Goals", icon: <Target size={16} strokeWidth={1.8} /> },
-  { id: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={16} strokeWidth={1.8} /> },
+  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} strokeWidth={1.5} /> },
+  { id: "goals", label: "Goals", icon: <Target size={16} strokeWidth={1.5} /> },
+  { id: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={16} strokeWidth={1.5} /> },
 ];
 
 const managementItems: NavItem[] = [
-  { id: "activity", label: "Agent Activity", icon: <Activity size={16} strokeWidth={1.8} /> },
-  { id: "team", label: "Team", icon: <Users size={16} strokeWidth={1.8} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={16} strokeWidth={1.8} /> },
+  { id: "activity", label: "Agent Activity", icon: <Activity size={16} strokeWidth={1.5} /> },
+  { id: "team", label: "Team", icon: <Users size={16} strokeWidth={1.5} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={16} strokeWidth={1.5} /> },
 ];
 
 function isActive(current: ViewId, target: ViewId, goalId: string | null): boolean {
@@ -182,7 +182,7 @@ export function Sidebar({
 
 function PanelLeftCloseGlyph() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <path d="M9 3v18" />
     </svg>

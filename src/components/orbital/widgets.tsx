@@ -2,7 +2,7 @@
 
 // Small shared visual primitives for the ORBITAL UI.
 
-import { Sparkles } from "lucide-react";
+import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/orbital";
 
@@ -35,17 +35,19 @@ export function AvatarBubble({
 
 export function AiBadge({ className }: { className?: string }) {
   return (
-    // v1.8 (re-measured — corrects v1.6): the chip carries a 9px sparkles
-    // glyph beside the "AI" text, both in #996CE4, plus a hairline border
-    // (1px rgba(160,143,126,0.2)) on the solid #EEEAE6 pill — radius 6,
-    // p 1px 5px, gap 2px, 10px/500.
+    // v1.8 (re-measured — corrects v1.6; icon re-measured v2.4): the chip
+    // carries a 9px ZAP glyph beside the "AI" text, both in #996CE4, plus
+    // a hairline border (1px rgba(160,143,126,0.2)) on the solid #EEEAE6
+    // pill — radius 6, p 1px 5px, gap 2px, 10px/500, letter-spacing 0.5px.
+    // (The live swapped the sparkles glyph for a lightning bolt at the
+    // 1.5 chrome stroke in its 2026-09-22 re-deploy.)
     <span
       className={cn(
-        "inline-flex items-center gap-[2px] rounded-[6px] border border-[rgba(160,143,126,0.2)] bg-orb-raised px-[5px] py-px text-[10px] font-medium text-orb-purple",
+        "inline-flex items-center gap-[2px] rounded-[6px] border border-[rgba(160,143,126,0.2)] bg-orb-raised px-[5px] py-px text-[10px] font-medium tracking-[0.05em] text-orb-purple",
         className,
       )}
     >
-      <Sparkles size={9} strokeWidth={2} aria-hidden="true" />
+      <Zap size={9} strokeWidth={1.5} aria-hidden="true" />
       AI
     </span>
   );

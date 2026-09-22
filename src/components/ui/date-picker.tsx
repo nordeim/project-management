@@ -9,7 +9,7 @@
 // (unit tested).
 
 import { useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { formatLongDate, isSameDay, monthGrid } from "@/lib/calendar";
@@ -72,7 +72,7 @@ export function DatePicker({
           aria-label={ariaLabel}
           className="flex h-auto w-full items-center gap-2.5 rounded-[10px] bg-orb-well px-3.5 py-[9px] text-left text-[13px] text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-colors disabled:opacity-50"
         >
-          <CalendarDays size={15} aria-hidden="true" className="shrink-0 text-orb-muted" />
+          <Calendar size={14} strokeWidth={1.5} aria-hidden="true" className="shrink-0 text-[#9A9A9A]" />
           <span className={value ? "" : "text-orb-muted"}>{triggerLabel}</span>
         </button>
       </PopoverTrigger>

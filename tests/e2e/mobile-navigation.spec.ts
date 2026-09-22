@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-// Mobile navigation (390×844 — the reference's mobile chrome, v1.7–v2.3):
+// Mobile navigation (390×844 — the reference's mobile chrome, v1.7–v2.4):
 // the full-bleed app bar, the bottom tab bar with the ACTIVE tab's
 // inset-well chip, the MORE bottom sheet, and the 768 middle state's
 // floating pill nav. This is the highest-regression-risk chrome — the
-// active-tab well was added in v2.3 after re-measuring the live app.
+// active-tab well was added in v2.3 after re-measuring the live app, and
+// v2.4 pinned the chip's FULL-TAB WIDTH (the live's chips stretch across
+// the whole tab; the More button renders 8px wider via its flex basis).
 // Contexts arrive AUTHENTICATED (setup-project storageState).
 
 // A touch-enabled 390×844 chromium context (the iPhone geometry without
@@ -28,7 +30,7 @@ test.describe("mobile navigation", () => {
     }
   });
 
-  test("the ACTIVE tab carries the inset-well chip (v2.3 parity)", async ({ page }) => {
+  test("the ACTIVE tab carries the inset-well chip (v2.3/v2.4 parity)", async ({ page }) => {
     const home = page.getByRole("navigation", { name: "Primary" }).getByRole("button", { name: "Home", exact: true });
     const chip = home.locator("span").first();
 
@@ -39,6 +41,42 @@ test.describe("mobile navigation", () => {
     expect(shadow).toContain("rgba(255, 252, 248, 0.75)");
     expect(shadow).toContain("rgba(180, 165, 150, 0.32)");
     expect(shadow).toContain("inset");
+
+    // v2.4 (measured live): the chip FILLS the tab — the live's tab anchors
+    // carry no padding and the inner chip stretches to the full tab width
+    // (73.2 of 73.2 at 390). A content-width chip (the v2.3 clone bug) is
+    // ~36px — half the tab.
+    const chipBox = await chip.boundingBox();
+    const tabBox = await home.boundingBox();
+    expect(chipBox).not.toBeNull();
+    expect(tabBox).not.toBeNull();
+    expect(Math.abs((chipBox?.width ?? 0) - (tabBox?.width ?? 0))).toBeLessThan(2);
+  });
+
+  test("the MORE tab renders wider than the view tabs (v2.4 flex-basis parity)", async ({ page }) => {
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const home = nav.getByRole("button", { name: "Home", exact: true });
+    const more = nav.getByRole("button", { name: "More", exact: true });
+    const homeBox = await home.boundingBox();
+    const moreBox = await more.boundingBox();
+    expect(homeBox).not.toBeNull();
+    expect(moreBox).not.toBeNull();
+    // The live's More button carries 8px of horizontal padding that
+    // participates in its flex basis (content-box sizing), rendering it
+    // ~6.4px wider than each view tab (81.2 vs 73.2 at 390).
+    expect((moreBox?.width ?? 0) - (homeBox?.width ?? 0)).toBeGreaterThan(4);
+  });
+
+  test("tab bar icons render at the live's 1.5 stroke (v2.4)", async ({ page }) => {
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const home = nav.getByRole("button", { name: "Home", exact: true });
+    const icon = home.locator("svg").first();
+    await expect(icon).toBeVisible();
+    await expect(icon).toHaveCSS("stroke-width", "1.5px");
+    // The bar is content-height driven: pad 8/12 + chip 53.5 = 73.5 (the
+    // v2.3 clone's min-h-[54px] forced 74).
+    const bar = nav;
+    await expect(bar).toHaveCSS("padding", "8px 8px 12px");
   });
 
   test("INACTIVE tabs render no well", async ({ page }) => {

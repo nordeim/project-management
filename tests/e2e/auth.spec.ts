@@ -31,7 +31,10 @@ test.describe("login route", () => {
     await page.getByLabel("Email").fill("demo@orbital.app");
     await page.getByLabel("Password").fill("definitely-wrong");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByText("Incorrect email or password")).toBeVisible({ timeout: 15_000 });
+    // .first(): a double-render of the toast (observed once in a full-suite
+    // run) must not turn the rejection check into a strict-mode violation —
+    // any visible instance proves the 401 path.
+    await expect(page.getByText("Incorrect email or password").first()).toBeVisible({ timeout: 15_000 });
     await expect(page).toHaveURL(/\/login/);
   });
 

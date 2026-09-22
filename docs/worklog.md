@@ -80,3 +80,33 @@ Work Log:
 
 Stage Summary:
 - v2.3 shipped: mobile-nav parity restored against the live, the db-path seam makes <repo>/db/custom.db authoritative in every context (incl. the standalone chdir trap), the repo gained a real browser test layer, and every committed doc claim is code-verified.
+
+---
+Task ID: 1
+Agent: main (Super Z)
+Task: Session 20 — v2.4 drift-correction survey (workspace refresh + live re-crawl)
+
+Work Log:
+- Pulled d671b2d (session_19 log); baseline gate green (137/137 · 30/30 · 26/26).
+- Re-crawled the re-deployed live vs the production clone at 390/768/1440 with computed-style probes; covered the previously-uncrawled logged-out login at 1440 (exact).
+- Wrote docs/parity-remediation-v2.4.md: F1 mobile tab chips must fill the tab width (MORE +8px basis), F2 icon stroke/size/glyph normalization (chrome 1.5 / content 2, Calendar + Zap swaps, wizard micro-spec), F3 mobile goal-card top row inverted (bare status + pct well chip).
+
+Stage Summary:
+- The live drifted again after v2.3; three verified deltas, everything else re-confirmed equal (incl. 6 VLM misreads disproven by measurement).
+
+---
+Task ID: 2
+Agent: main (Super Z)
+Task: Session 20 — v2.4 execution (WS-1..WS-6)
+
+Work Log:
+- RED: 4 new Playwright assertions (full-width chip, wider MORE, 1.5 stroke, goal-card inversion) — failed as expected.
+- WS-1: tab buttons lose px-1/min-h; chips w-full pad 8/4 r14 gap 4 transition 150ms; MORE flex-[1_1_8px] + own pad.
+- WS-2: ~35 icon edits across 11 files (strokes 1.8→1.5 chrome / →2 content, Trash2 13→14, ArrowLeft 15→14, Plus 13→12, ArrowRight 14→12@1.5, Bot 1.6, X #5A5A5A, close blur 10, Calendar+Zap glyph swaps, AI chip ls 0.5); fixed the shadcn Button size-4 svg trap in the wizard; swapped the dashboard pill's hand-rolled plus for lucide 13@2.
+- WS-3: mobile goal-card top row inverted (bare status dot+label+blocked; pct → r8 pad-3/10 well chip; row mb 10, title mt 0).
+- WS-4: full gate green — lint 0 · typecheck 0 · 137/137 unit · build clean · 30/30 smoke · 29/29 e2e; re-probes exact (tab census [73.2×4, 81.2] both apps; goal-card internals to the decimal; named-glyph censuses identical on every view); VLM sanity: goal-card MATCH, tab-bar claims = misreads.
+- WS-5: 16 screenshots regenerated from the production build (incl. wizard flow with real AI generation, scratch goal deleted after); README/AGENTS/CLAUDE/PAD v2.4/SKILL.md/session_20 aligned.
+- WS-6: pending — commit + push via SSH wrapper.
+
+Stage Summary:
+- v2.4 shipped: the mobile-nav chips now fill their tabs exactly like the live, the icon system matches the live's two-class stroke convention (incl. the zap AI chip and plain Calendar glyphs), and the mobile goal card renders the live's bare-status + well-chipped-pct top row.

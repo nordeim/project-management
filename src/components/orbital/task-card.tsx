@@ -9,7 +9,7 @@
 // INLINE (reference pattern): the icons swap for a "Delete? Yes No" row.
 
 import { useState } from "react";
-import { CalendarDays, Clock, Pencil, Trash2, User } from "lucide-react";
+import { Calendar, Clock, Pencil, Trash2, User } from "lucide-react";
 import { AiBadge } from "@/components/orbital/widgets";
 import { isOverdue, TASK_STATUS_META, type TaskDTO } from "@/lib/orbital";
 import { cn } from "@/lib/utils";
@@ -81,7 +81,7 @@ export function TaskCard({
           ) : null}
           {task.deadline ? (
             <span className={cn("flex items-center gap-1", overdue && "font-medium text-orb-coral-deep")}>
-              <CalendarDays size={11} strokeWidth={1.5} aria-hidden="true" />
+              <Calendar size={11} strokeWidth={1.5} aria-hidden="true" />
               {overdue ? "Overdue · " : ""}
               {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </span>
@@ -132,7 +132,7 @@ export function TaskCard({
               className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] bg-orb-raised text-[#9A9A9A] shadow-[-2px_-2px_5px_rgba(255,250,244,0.78),2px_2px_5px_rgba(160,143,126,0.24)] transition-colors hover:text-orb-heading"
               aria-label={`Edit task ${task.title}`}
             >
-              <Pencil size={11} strokeWidth={1.8} />
+              <Pencil size={11} strokeWidth={2} />
             </button>
             <button
               type="button"
@@ -140,7 +140,7 @@ export function TaskCard({
               className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] bg-orb-raised text-[#9A9A9A] shadow-[-2px_-2px_5px_rgba(255,250,244,0.78),2px_2px_5px_rgba(160,143,126,0.24)] transition-colors hover:text-orb-coral-deep"
               aria-label={`Delete task ${task.title}`}
             >
-              <Trash2 size={11} strokeWidth={1.8} />
+              <Trash2 size={11} strokeWidth={2} />
             </button>
           </>
         )}
