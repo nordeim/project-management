@@ -154,7 +154,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 onClick={toggleSidebarCollapsed}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 aria-pressed={collapsed}
-                className="flex h-[30px] w-full items-center justify-center rounded-[10px] bg-orb-raised text-orb-muted shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_10px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-heading"
+                className="flex h-[30px] w-full items-center justify-center rounded-[10px] bg-orb-raised p-2 text-orb-muted shadow-[-5px_-5px_10px_rgba(255,250,244,0.78),5px_5px_10px_rgba(160,143,126,0.27)] transition-colors hover:text-orb-heading"
               >
                 <ChevronRight
                   size={14}
@@ -212,7 +212,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               <button
                 type="button"
                 onClick={() => navigate("dashboard")}
-                className="inline-flex h-[34px] items-center gap-[5px] rounded-[10px] bg-orb-raised p-[7px_14px_7px_10px] text-[13px] font-medium text-orb-muted shadow-[-3px_-3px_7px_rgba(255,250,244,0.78),3px_3px_8px_rgba(160,143,126,0.22)] transition-colors hover:text-orb-heading"
+                className="orb-back-btn inline-flex h-[34px] items-center gap-[5px] rounded-[10px] bg-orb-raised p-[7px_14px_7px_10px] text-[13px] font-medium text-orb-muted transition-colors hover:text-orb-heading"
               >
                 <ChevronLeft size={15} strokeWidth={1.8} aria-hidden="true" className="text-[#9A9A9A]" />
                 Dashboard
@@ -267,7 +267,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               through 767 (v2.2) — at md the floating pill nav replaces
               it. */}
           <nav
-            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] orb-tabbar-shadow md:hidden"
+            className="fixed inset-x-0 bottom-0 z-[100] flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] orb-tabbar-shadow md:hidden"
             aria-label="Primary"
           >
             {TABS.map((tab) => {
@@ -354,7 +354,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                     className={cn(
                       "flex min-w-[52px] flex-col items-center gap-[3px] rounded-[12px] px-3 py-2 transition-colors duration-150",
                       active
-                        ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,252,248,0.75),inset_3px_3px_6px_rgba(180,165,150,0.32)]"
+                        ? "orb-chip-active text-orb-heading"
                         : "text-[#767676]",
                     )}
                   >
