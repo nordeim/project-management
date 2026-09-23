@@ -161,7 +161,14 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      // v2.10: NO base typography. The Radix `asChild` Slot CONCATENATES
+      // the base classes with the child's (it never runs tailwind-merge),
+      // so a base `text-lg leading-none` used to survive alongside the
+      // child's `leading-[22.5px]` — and in Tailwind v4's stylesheet
+      // order `.leading-none` (line-height: 1) is emitted AFTER the
+      // arbitrary value and wins the same-specificity cascade. Every
+      // caller now carries its own explicit typography.
+      className={cn(className)}
       {...props}
     />
   )
