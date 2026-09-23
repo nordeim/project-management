@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -76,15 +76,24 @@ export function AddTaskDialog({
       }}
     >
       {/* v2.1 (measured): add-task scrim is 0.3 (form dialogs), not the
-          0.25 default. */}
-      <DialogContent overlayClassName="bg-[rgba(46,42,38,0.3)]">
-        <DialogHeader>
-          <DialogTitle className="text-[15px] font-semibold text-orb-heading">Add Task</DialogTitle>
-        </DialogHeader>
+          0.25 default. v2.10 (measured): the form dialogs render the panel
+          INSIDE the scrim — one fixed flex root at z-200 (pad 24/16, flex
+          center) with this panel as its relative child. */}
+      <DialogContent
+        scrimFlex
+        overlayClassName="z-[200] bg-[rgba(46,42,38,0.3)]"
+      >
+        {/* v2.10 (measured): the heading is a <p> 15/600 lh 22.5 with a 20px
+            bottom margin (not an H2 — the panel carries no heading role). */}
+        <DialogTitle asChild>
+          <p className="mb-5 text-[15px] font-semibold leading-[22.5px] text-orb-heading">Add Task</p>
+        </DialogTitle>
 
-        <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="task-title" className="orb-label">
+        {/* v2.10 (measured): the form is a flex column with a 14px gap (no
+            per-row margins — field rows are label 16.5 + 6 + input 35.5). */}
+        <form onSubmit={submit} className="flex flex-col gap-[14px]">
+          <div>
+            <Label htmlFor="task-title" className="orb-label-dlg">
               Title *
             </Label>
             <Input
@@ -94,12 +103,12 @@ export function AddTaskDialog({
               placeholder="Task title"
               required
               maxLength={200}
-              className=""
+              className="h-[35.5px]"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="task-description" className="orb-label">
+          <div>
+            <Label htmlFor="task-description" className="orb-label-dlg">
               Description
             </Label>
             <Textarea
@@ -114,8 +123,8 @@ export function AddTaskDialog({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="task-status" className="orb-label">
+            <div>
+              <Label htmlFor="task-status" className="orb-label-dlg">
                 Status
               </Label>
               {/* v2.9 (measured): the live's status control is a NATIVE
@@ -134,8 +143,8 @@ export function AddTaskDialog({
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="task-deadline" className="orb-label">
+            <div>
+              <Label htmlFor="task-deadline" className="orb-label-dlg">
                 Deadline
               </Label>
               <Input
@@ -143,14 +152,14 @@ export function AddTaskDialog({
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="h-[38px]"
+                className="h-[37.5px]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="task-assignee" className="orb-label">
+            <div>
+              <Label htmlFor="task-assignee" className="orb-label-dlg">
                 Assignee
               </Label>
               {/* v2.9 (measured): a NATIVE select like the live's. */}
@@ -168,8 +177,8 @@ export function AddTaskDialog({
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="task-hours" className="orb-label">
+            <div>
+              <Label htmlFor="task-hours" className="orb-label-dlg">
                 Estimated Hours
               </Label>
               <Input
@@ -186,7 +195,9 @@ export function AddTaskDialog({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-1">
+          {/* v2.10 (measured): the button row sits 4px under the form with a
+              10px gap (goal-edit uses 6px) — 34px-tall flat pills. */}
+          <div className="mt-[4px] flex items-center justify-end gap-[10px]">
             <Button
               type="button"
               className="orb-btn-cancel-std"
