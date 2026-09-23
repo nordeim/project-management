@@ -384,7 +384,7 @@ export function GoalsView() {
       <div className="mt-[26px] space-y-3">
         {visible.length === 0 ? (
           <EmptyState
-            icon={<Plus size={22} strokeWidth={2} color="#B3B3B3" />}
+            icon={<Plus size={22} strokeWidth={1.5} color="#B3B3B3" />}
             title={filter === "all" ? "No goals yet" : `No ${FILTERS.find((f) => f.id === filter)?.label.toLowerCase()} goals`}
             description="Create your first goal and the AI assistant will draft a task plan for it."
             action={

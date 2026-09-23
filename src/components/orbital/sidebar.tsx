@@ -20,15 +20,15 @@ interface NavItem {
 }
 
 const workspaceItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} strokeWidth={2} /> },
-  { id: "goals", label: "Goals", icon: <Target size={16} strokeWidth={2} /> },
-  { id: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={16} strokeWidth={2} /> },
+  { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} strokeWidth={1.5} /> },
+  { id: "goals", label: "Goals", icon: <Target size={16} strokeWidth={1.5} /> },
+  { id: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={16} strokeWidth={1.5} /> },
 ];
 
 const managementItems: NavItem[] = [
-  { id: "activity", label: "Agent Activity", icon: <Activity size={16} strokeWidth={2} /> },
-  { id: "team", label: "Team", icon: <Users size={16} strokeWidth={2} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={16} strokeWidth={2} /> },
+  { id: "activity", label: "Agent Activity", icon: <Activity size={16} strokeWidth={1.5} /> },
+  { id: "team", label: "Team", icon: <Users size={16} strokeWidth={1.5} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={16} strokeWidth={1.5} /> },
 ];
 
 function isActive(current: ViewId, target: ViewId, goalId: string | null): boolean {

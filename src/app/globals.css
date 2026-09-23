@@ -622,6 +622,44 @@
   .orb-sheet-close {
     box-shadow: -3px -3px 6px rgba(255, 250, 244, 0.78), 3px 3px 6px rgba(160, 143, 126, 0.27);
   }
+
+  /* v2.9: the standard 3px inset well pair as a PLAIN declaration.
+     Tailwind v4's `shadow-[inset…]` utilities compose with the unset
+     --tw-inset-* ring vars, so the computed box-shadow string carries
+     four zero-alpha prefixes the live's clean declarations lack (the
+     same artifact class the v2.8 chrome-shadow pass fixed). Inputs,
+     textareas, select triggers, the date-picker trigger and the user
+     pills use this pair byte-identically. */
+  .orb-inset {
+    box-shadow: inset -3px -3px 6px rgba(255, 250, 244, 0.68), inset 3px 3px 6px rgba(160, 143, 126, 0.24);
+  }
+
+  /* v2.9 (measured on the live): the dialog form selects are NATIVE
+     <select> elements — bg #EBE7E2, radius 10, 35px tall, 13px text
+     (the UA dropdown arrow renders by default). The dialogs' selects
+     (add-task status/assignee, task-edit status/assignee, goal-edit
+     status) swapped from shadcn button-triggers to these; the SETTINGS
+     selects keep the shadcn triggers (their chevron-downs are measured
+     live at stroke 2). */
+  .orb-select {
+    height: 35px;
+    width: 100%;
+    border: 0;
+    border-radius: 10px;
+    background-color: #ebe7e2;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #3a3a3a;
+    box-shadow: inset -3px -3px 6px rgba(255, 250, 244, 0.68), inset 3px 3px 6px rgba(160, 143, 126, 0.24);
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* v2.9 (measured): the user-popover's raised pair as a plain
+     declaration (the utility composed v4 zero-alpha prefixes). */
+  .orb-pop-shadow {
+    box-shadow: -6px -6px 12px rgba(255, 250, 244, 0.78), 6px 6px 14px rgba(160, 143, 126, 0.31);
+  }
 }
 
 /* Soft, unobtrusive scrollbars for long lists */

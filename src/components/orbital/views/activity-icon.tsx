@@ -20,7 +20,7 @@ export function ActivityIcon({ type, size = 30 }: { type: string; size?: number 
       style={{ backgroundColor: spec.tone === "green" ? "#2ECC8A" : "#C9B3F5", width: size, height: size }}
       aria-hidden="true"
     >
-      <Icon size={glyph} strokeWidth={2} />
+      <Icon size={glyph} strokeWidth={1.5} />
     </span>
   );
 }

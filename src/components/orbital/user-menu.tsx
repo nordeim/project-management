@@ -54,18 +54,24 @@ export function UserMenuOrLogin({ compact = false }: { compact?: boolean }) {
           type="button"
           className={
             compact
-              ? "flex items-center gap-[7px] rounded-[10px] bg-orb-well px-3 py-[7px] shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
-              : "flex h-11 items-center gap-2.5 rounded-xl bg-orb-well px-4 py-2.5 shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-transform hover:-translate-y-0.5"
+              ? "flex items-center gap-[7px] rounded-[10px] bg-orb-well px-3 py-[7px] orb-inset transition-transform hover:-translate-y-0.5"
+              : // v2.9 (measured): the desktop pill is radius 12 (NOT
+                // rounded-xl — the shadcn --radius trap resolves it to
+                // 20px), pad 11/16, with the 12px/500 #6E6E6E name the
+                // live renders.
+                "flex items-center gap-2.5 rounded-[12px] bg-orb-well px-4 py-[11px] orb-inset transition-transform hover:-translate-y-0.5"
           }
           aria-label={`Account menu for ${user.name || emailPrefix}`}
         >
           <AvatarBubble name={user.name || emailPrefix} color={user.avatarColor} size={compact ? 20 : 22} />
-          <span className={compact ? "max-w-[110px] truncate text-[11px] font-medium text-[#6E6E6E]" : "max-w-[140px] truncate text-[13px] font-medium text-orb-heading"}>
+          <span className={compact ? "max-w-[110px] truncate text-[11px] font-medium text-[#6E6E6E]" : "max-w-[140px] truncate text-[12px] font-medium text-[#6E6E6E]"}>
             {emailPrefix}
           </span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[160px] rounded-xl border-0 bg-orb-raised p-0 shadow-[-6px_-6px_12px_rgba(255,250,244,0.78),6px_6px_14px_rgba(160,143,126,0.31)]">
+      {/* v2.9 (measured): the popover opens 8px below the pill (the live's
+          top: calc(100% + 8px)) — Radix's default sideOffset is 4. */}
+      <PopoverContent align="end" sideOffset={4} className="orb-pop-shadow w-[160px] rounded-[12px] border-0 bg-orb-raised p-0">
         <button
           type="button"
           onClick={async () => {
@@ -76,7 +82,7 @@ export function UserMenuOrLogin({ compact = false }: { compact?: boolean }) {
           }}
           className="flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-[13px] font-medium text-[#bd3228] transition-colors hover:bg-black/[0.03]"
         >
-          <LogOut size={24} strokeWidth={2} aria-hidden="true" />
+          <LogOut size={14} strokeWidth={2} aria-hidden="true" />
           Log Out
         </button>
       </PopoverContent>

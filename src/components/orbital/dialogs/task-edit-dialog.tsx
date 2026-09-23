@@ -10,13 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { TASK_STATUS_META, type TaskDTO, type TaskStatus } from "@/lib/orbital";
 
 const UNASSIGNED = "__unassigned__";
@@ -100,19 +93,24 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="orb-label">Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
-                <SelectTrigger className="">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {(Object.keys(TASK_STATUS_META) as TaskStatus[]).map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {TASK_STATUS_META[s].label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="edit-status" className="orb-label">
+                Status
+              </Label>
+              {/* v2.9 (measured): the live's status control is a NATIVE
+                  select (216×35, bg #EBE7E2, r10, 13px) — not a shadcn
+                  button trigger. */}
+              <select
+                id="edit-status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                className="orb-select"
+              >
+                {(Object.keys(TASK_STATUS_META) as TaskStatus[]).map((s) => (
+                  <option key={s} value={s}>
+                    {TASK_STATUS_META[s].label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-deadline" className="orb-label">
@@ -130,20 +128,23 @@ export function TaskEditDialog({ task, onClose }: { task: TaskDTO; onClose: () =
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="orb-label">Assignee</Label>
-              <Select value={assigneeId} onValueChange={setAssigneeId}>
-                <SelectTrigger className="">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-56 rounded-xl">
-                  <SelectItem value={UNASSIGNED}>— Unassigned —</SelectItem>
-                  {people.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="edit-assignee" className="orb-label">
+                Assignee
+              </Label>
+              {/* v2.9 (measured): a NATIVE select like the live's. */}
+              <select
+                id="edit-assignee"
+                value={assigneeId}
+                onChange={(e) => setAssigneeId(e.target.value)}
+                className="orb-select"
+              >
+                <option value={UNASSIGNED}>— Unassigned —</option>
+                {people.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-hours" className="orb-label">

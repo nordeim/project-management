@@ -36,28 +36,42 @@ test.describe("icon strokes (v2.6 reversion)", () => {
     });
     expect(glyphs.length).toBeGreaterThan(10);
     for (const g of glyphs) {
-      // Every visible main-area icon on the live is stroke 2 (the two
-      // zero-width goal-ring svgs are filtered out above).
-      expect(g.sw, `${g.name} should be stroke 2`).toBe("2");
+      // v2.9: the live's chrome/content glyphs render at 1.5 (computed);
+      // the NEW GOAL plus keeps the lucide default 2.
+      const expected = g.name === "plus" ? "2" : "1.5";
+      expect(g.sw, `${g.name} should be stroke ${expected}`).toBe(expected);
     }
   });
 
-  test("goal-detail task meta icons + AI chip zap render at stroke 2", async ({ page }) => {
+  test("goal-detail task meta icons + AI chip zap render at the v2.9 strokes", async ({ page }) => {
     await page.goto("/goals");
     await page.getByText("Product Onboarding Redesign").filter({ visible: true }).first().click();
     await expect(
       page.getByRole("heading", { name: "Product Onboarding Redesign", exact: true }).filter({ visible: true }).first(),
     ).toBeVisible();
-    const strokes = await page.evaluate(() => {
+    const glyphs = await page.evaluate(() => {
       const main = document.querySelector("main");
-      if (!main) return [] as string[];
+      if (!main) return [] as Array<{ name: string; w: number; sw: string }>;
       return [...main.querySelectorAll("svg")]
         .filter((s) => s.getBoundingClientRect().width > 0 && s.getBoundingClientRect().height > 0)
-        .map((s) => s.getAttribute("stroke-width") ?? "");
+        .map((s) => ({
+          name: s.getAttribute("class")?.match(/lucide-([a-z0-9-]+)/)?.[1] ?? "other",
+          w: Math.round(s.getBoundingClientRect().width),
+          sw: getComputedStyle(s).strokeWidth,
+        }));
     });
-    expect(strokes.length).toBeGreaterThan(5);
-    for (const sw of strokes) {
-      expect(sw, `goal-detail icon should be stroke 2, got "${sw}"`).toBe("2");
+    expect(glyphs.length).toBeGreaterThan(5);
+    // v2.9 (computed re-measure): task meta glyphs (user/clock/calendar
+    // at 11px), the AI chip zap and the 14px Back-to-Goals arrow-left
+    // render at 1.5; the action squares (pencil/trash 11), the DELETE
+    // trash (13) and the Target-line calendar (13) keep the default 2.
+    for (const g of glyphs) {
+      const isActionSquare = (g.name === "pencil" || g.name === "trash2") && g.w === 11;
+      const isHeader13 = (g.name === "trash2" || g.name === "calendar") && g.w === 13;
+      const isBackArrow = g.name === "arrow-left" && g.w === 14;
+      const isAddTaskPlus = g.name === "plus" && g.w === 12;
+      const expected = isActionSquare || isHeader13 || isBackArrow || isAddTaskPlus ? "2px" : "1.5px";
+      expect(g.sw, `${g.name}@${g.w} should be ${expected}, got ${g.sw}`).toBe(expected);
     }
   });
 });

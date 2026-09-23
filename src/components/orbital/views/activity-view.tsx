@@ -89,7 +89,7 @@ export function ActivityView() {
               style={{ backgroundColor: "#C9B3F5" }}
               aria-hidden="true"
             >
-              <Search size={16} strokeWidth={2} />
+              <Search size={16} strokeWidth={1.5} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="mb-[2px] text-[13px] font-medium leading-[19.5px] text-orb-heading">{hero.message}</p>

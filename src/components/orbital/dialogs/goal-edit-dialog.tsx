@@ -3,20 +3,13 @@
 // Edit Goal: title, description, status, target date.
 
 import { useState } from "react";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { GOAL_STATUS_META, type GoalDTO, type GoalStatus } from "@/lib/orbital";
 
 function toDateInput(iso: string | null): string {
@@ -57,14 +50,15 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
       {/* v2.1 (measured): goal-edit scrim is 0.3 (form dialogs). */}
-      <DialogContent className="sm:max-w-[480px]" overlayClassName="bg-[rgba(46,42,38,0.3)]">
+      {/* v2.9 (measured on the live): the Edit Goal dialog carries NO
+          close square — its only controls are the status select, Cancel
+          and Save (add-task/task-edit keep the 30px close). */}
+      <DialogContent showCloseButton={false} className="sm:max-w-[480px]" overlayClassName="bg-[rgba(46,42,38,0.3)]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[15px] font-semibold text-orb-heading">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.05]" aria-hidden="true">
-              <Pencil size={14} />
-            </span>
-            Edit Goal
-          </DialogTitle>
+          {/* v2.9 (measured): the live's Edit Goal heading is a plain
+              15px/600 "Edit Goal" — no icon circle (their panel carries
+              zero svgs). */}
+          <DialogTitle className="text-[15px] font-semibold text-orb-heading">Edit Goal</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
@@ -98,19 +92,24 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="orb-label">Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as GoalStatus)}>
-                <SelectTrigger className="">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {(Object.keys(GOAL_STATUS_META) as GoalStatus[]).map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {GOAL_STATUS_META[s].label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="edit-goal-status" className="orb-label">
+                Status
+              </Label>
+              {/* v2.9 (measured): the live's status control is a NATIVE
+                  select (216×35, bg #EBE7E2, r10, 13px, UA arrow) — not a
+                  shadcn button trigger. */}
+              <select
+                id="edit-goal-status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as GoalStatus)}
+                className="orb-select"
+              >
+                {(Object.keys(GOAL_STATUS_META) as GoalStatus[]).map((s) => (
+                  <option key={s} value={s}>
+                    {GOAL_STATUS_META[s].label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-goal-target" className="orb-label">

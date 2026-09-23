@@ -35,10 +35,16 @@ import { cn } from "@/lib/utils";
 import { toPath, type ViewId } from "@/lib/router";
 
 const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutDashboard size={20} strokeWidth={2} /> },
-  { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={2} /> },
-  { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={2} /> },
-  { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={2} /> },
+  // v2.9 (computed-style re-measure): the live stamps inline
+  // `stroke-width: 1.5` styles on every chrome/content icon — the
+  // computed stroke is 1.5 even though the attribute reads 2 (the v2.6
+  // attribute census missed the inline override). Action-button and
+  // form-control glyphs (plus/pencil/trash/close/chevron-down) keep the
+  // lucide default 2 on the live.
+  { view: "dashboard", label: "Home", icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
+  { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={1.5} /> },
+  { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={1.5} /> },
+  { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={1.5} /> },
 ];
 
 // v2.2 (measured live middle state): the md–lg floating pill nav carries
@@ -47,12 +53,12 @@ const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
 // 18px glyphs; every live nav uses lucide's square-check-big for the tasks
 // view (the mobile tab bar's My Tasks glyph was swapped to match too).
 const PILL_TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutDashboard size={18} strokeWidth={2} /> },
-  { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={2} /> },
-  { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={2} /> },
-  { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={2} /> },
-  { view: "team", label: "Team", icon: <Users size={18} strokeWidth={2} /> },
-  { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={2} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutDashboard size={18} strokeWidth={1.5} /> },
+  { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={1.5} /> },
+  { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={1.5} /> },
+  { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={1.5} /> },
+  { view: "team", label: "Team", icon: <Users size={18} strokeWidth={1.5} /> },
+  { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={1.5} /> },
 ];
 
 function tabActive(current: ViewId, target: ViewId): boolean {
@@ -152,7 +158,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               >
                 <ChevronRight
                   size={14}
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                   className={cn("transition-transform duration-200", !collapsed && "rotate-180")}
                 />
               </button>
@@ -164,14 +170,17 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             height (minus the 2×24px canvas frame) so the dashboard can fill
             it with a 1fr bottom row while other views scroll inside main. */}
         <div className="flex min-w-0 flex-1 flex-col lg:h-[calc(100vh-3rem)]">
-          {/* Mobile app bar (reference, v1.6/v1.7, measured): below md the
-              desktop greeting header is REPLACED by a full-bleed raised bar
-              holding the ORBITAL logo (left) and the user pill (right) —
-              sticky top, bottom drop shadow, 62px tall, p 14px 20px. The
-              live's mobile chrome runs through 767 (v2.2); at md the
-              MIDDLE state takes over (greeting header + pill nav). */}
+          {/* Mobile app bar (reference, v1.6/v1.7, measured; v2.9 re-measured):
+              below md the desktop greeting header is REPLACED by a
+              full-bleed raised bar holding the ORBITAL logo (left) and
+              the user pill (right) — sticky top, bottom drop shadow,
+              ROUNDED BOTTOM CORNERS (0 0 20 20), pad 14px 20px, and a
+              CONTENT-DRIVEN height (56.5 logged-out with the 28.5px
+              Log In pill; 62 authenticated with the 34px user pill).
+              The live's mobile chrome runs through 767 (v2.2); at md
+              the MIDDLE state takes over (greeting header + pill nav). */}
           <header
-            className="sticky top-0 z-50 flex h-[62px] shrink-0 items-center justify-between bg-orb-raised px-5 orb-appbar-shadow md:hidden"
+            className="sticky top-0 z-50 flex shrink-0 items-center justify-between rounded-b-[20px] bg-orb-raised p-[14px_20px] orb-appbar-shadow md:hidden"
             aria-label="App bar"
           >
             {/* v2.7 (measured live): the mobile app-bar brand is NOT
@@ -179,11 +188,13 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 the mark (the desktop sidebar's brand IS a link; see
                 sidebar.tsx). */}
             <div className="flex items-center gap-2">
-              {/* v1.9 (measured): the mobile brand is the compact variant —
-                  a 9px six-dot mark (3px dots) + "ORBITAL" in Archivo
-                  12px/600/ls 2.16px #2F2823, 8px apart. */}
+              {/* v1.9 (measured; v2.9 re-measured): the mobile brand is
+                  the compact variant — a 9px six-dot mark (3px dots) + the
+                  literal "ORBITAL" in Archivo 12px/600/ls 2.16px #2F2823,
+                  8px apart (the live's textContent, with its redundant
+                  uppercase transform). */}
               <LogoMark size={9} />
-              <span className="font-archivo text-[12px] font-semibold uppercase leading-[18px] tracking-[0.18em] text-orb-body">Orbital</span>
+              <span className="font-archivo text-[12px] font-semibold uppercase leading-[18px] tracking-[0.18em] text-orb-body">ORBITAL</span>
             </div>
             <UserMenuOrLogin compact />
           </header>
@@ -203,7 +214,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 onClick={() => navigate("dashboard")}
                 className="inline-flex h-[34px] items-center gap-[5px] rounded-[10px] bg-orb-raised p-[7px_14px_7px_10px] text-[13px] font-medium text-orb-muted shadow-[-3px_-3px_7px_rgba(255,250,244,0.78),3px_3px_8px_rgba(160,143,126,0.22)] transition-colors hover:text-orb-heading"
               >
-                <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" className="text-[#9A9A9A]" />
+                <ChevronLeft size={15} strokeWidth={1.8} aria-hidden="true" className="text-[#9A9A9A]" />
                 Dashboard
               </button>
             </div>
@@ -294,7 +305,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 moreActive ? "text-orb-heading" : "text-[#767676]",
               )}
             >
-              <Menu size={20} strokeWidth={2} />
+              <Menu size={20} strokeWidth={1.5} />
               More
             </button>
           </nav>
@@ -313,38 +324,49 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               uppercase; inactive tabs stay transparent with #767676 and a
               400-weight label. */}
           <nav
-            className="fixed bottom-4 left-1/2 z-40 hidden -translate-x-1/2 items-center gap-1 rounded-[20px] bg-orb-raised p-[10px_16px] orb-pill-nav-shadow md:flex lg:hidden"
+            className="fixed bottom-4 left-1/2 z-[100] hidden -translate-x-1/2 items-center gap-1 rounded-[20px] bg-orb-raised p-[10px_16px] orb-pill-nav-shadow md:flex lg:hidden"
             aria-label="Primary"
           >
             {/* v2.2 (measured): the live brand block carries mr-4px (the pill
-                gap 4px does NOT separate brand from tabs — the margin does). */}
-            <span className="mr-1 flex items-center gap-1.5 p-[4px_10px_4px_4px]" aria-hidden="true">
+                gap 4px does NOT separate brand from tabs — the margin does).
+                v2.9 (re-measured): the brand wrapper additionally carries a
+                1px right DIVIDER (rgba(160,143,126,0.18)) like the live. */}
+            <span className="mr-1 flex items-center gap-1.5 border-r border-[rgba(160,143,126,0.18)] p-[4px_10px_4px_4px]" aria-hidden="true">
               <LogoMark size={9} />
               <span className="font-archivo text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-orb-body">ORBITAL</span>
             </span>
             {PILL_TABS.map((tab) => {
               const active = tabActive(view, tab.view);
               return (
+                /* v2.9 (re-measured): the live's tab is a bare anchor
+                    wrapping an inner CHIP div (flex col, gap 3, pad 8/12,
+                    r12, transition .15s, min-width 52) — the ACTIVE well
+                    treatment (bg + the 0.75/0.32 inset pair) lives on the
+                    chip, and every tab is at least 52px wide. */
                 <a
                   key={tab.view}
                   href={toPath(tab.view)}
                   onClick={(e) => anchorGo(e, go, tab.view)}
                   aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-[3px] rounded-[12px] px-3 py-2 transition-colors",
-                    active
-                      ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,252,248,0.75),inset_3px_3px_6px_rgba(180,165,150,0.32)]"
-                      : "text-[#767676]",
-                  )}
+                  className="flex flex-col items-center"
                 >
-                  {tab.icon}
                   <span
                     className={cn(
-                      "text-[9px] uppercase leading-[13.5px] tracking-[0.04em]",
-                      active ? "font-semibold" : "font-normal",
+                      "flex min-w-[52px] flex-col items-center gap-[3px] rounded-[12px] px-3 py-2 transition-colors duration-150",
+                      active
+                        ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,252,248,0.75),inset_3px_3px_6px_rgba(180,165,150,0.32)]"
+                        : "text-[#767676]",
                     )}
                   >
-                    {tab.label}
+                    {tab.icon}
+                    <span
+                      className={cn(
+                        "text-[9px] uppercase leading-[13.5px] tracking-[0.04em]",
+                        active ? "font-semibold" : "font-normal",
+                      )}
+                    >
+                      {tab.label}
+                    </span>
                   </span>
                 </a>
               );
@@ -362,7 +384,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               side="bottom"
               showCloseButton={false}
               overlayClassName="bg-[rgba(0,0,0,0.2)] backdrop-blur-[4px]"
-              className="gap-0 rounded-t-[24px] border-t-0 bg-orb-raised px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+40px)] orb-sheet-shadow"
+              className="z-[201] gap-0 rounded-t-[24px] border-t-0 bg-orb-raised px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+40px)] orb-sheet-shadow"
             >
               <div className="mx-auto h-1 w-10 rounded-full bg-[#CCC7C0]" aria-hidden="true" />
               <SheetHeader className="flex-row items-center justify-between space-y-0 px-0 pb-6 pt-[20px]">
@@ -391,9 +413,9 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                       // v2.7 (measured live): the MORE sheet rows are real
                       // links now — "Tasks" targets the NEW all-tasks view
                       // at /tasks (not /my-tasks).
-                      { view: "tasks", label: "Tasks", href: "/tasks", icon: <ListTodo size={20} strokeWidth={2} /> },
-                      { view: "team", label: "Team", href: "/team", icon: <Users size={20} strokeWidth={2} /> },
-                      { view: "settings", label: "Settings", href: "/settings", icon: <Settings size={20} strokeWidth={2} /> },
+                      { view: "tasks", label: "Tasks", href: "/tasks", icon: <ListTodo size={20} strokeWidth={1.5} /> },
+                      { view: "team", label: "Team", href: "/team", icon: <Users size={20} strokeWidth={1.5} /> },
+                      { view: "settings", label: "Settings", href: "/settings", icon: <Settings size={20} strokeWidth={1.5} /> },
                     ] as const
                   ).map((item) => (
                     <li key={item.view}>

@@ -306,7 +306,7 @@ export function DashboardView() {
               }}
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
             >
-              Full log <ArrowRight size={12} strokeWidth={2} />
+              Full log <ArrowRight size={12} strokeWidth={1.5} />
             </a>
           </div>
 
@@ -345,7 +345,7 @@ export function DashboardView() {
               }}
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
             >
-              Full log <ArrowRight size={12} strokeWidth={2} />
+              Full log <ArrowRight size={12} strokeWidth={1.5} />
             </a>
           </div>
           <ul className="space-y-[6px] pb-[18px]">

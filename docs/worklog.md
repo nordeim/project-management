@@ -228,3 +228,33 @@ Work Log:
 
 Stage Summary:
 - v2.8 shipped: every button renders the pointing cursor like the reference, the mobile goal-card actions work again (guarded full-card anchors), the chrome shadows compute byte-identical clean declarations, the chips pin the literal 9999px radius, and the brand strings are the literal ORBITAL — all pinned by 73 Playwright checks.
+
+---
+Task ID: 1
+Agent: main (Super Z)
+Task: Session 29 — v2.9 survey (workspace refresh + live re-crawl, stroke-system discovery)
+
+Work Log:
+- Pulled 377008d (the session_28 transcript log); baseline gate green (138/138 unit · 30/30 smoke · 73/73 e2e); re-seeded custom.db to the pristine 3/31/36.
+- Re-crawled the live vs the production clone at 390/768/1440 with fresh authenticated paired sessions. The MOBILE NAVIGATION verified working as expected on both (tab census EXACT, MORE sheet + navigation functional).
+- The Tailwind v4 hunt found the systemic icon-stroke artifact: the live's icons compute at 1.5px via inline styles (the v2.6 census read the svg ATTRIBUTE and missed the CSS-over-attribute override) with a measured 2px action-button set, plus the 1.8 back-chevron and 1.6 wizard bot.
+- Also found: the login page redesigned (slate gradient, top gradient bar, centered column, blur halo, 20px Google glyph), the app bar's rounded bottom corners + literal ORBITAL, the pill nav's brand divider + chip structure (min-width 52), the goal-edit's missing close + NATIVE dialog selects, the user-menu radius/name/glyph specs, and the sheet/pill z-indexes.
+- Wrote docs/parity-remediation-v2.9.md (F1–F8, WS-1–WS-10) and validated it against the codebase.
+
+Stage Summary:
+- One systemic computed-style re-split (strokes), one page redesign (login), four structural dialog/chrome corrections, and two systemic v4 serialization cleanups — all computed-style verified on both apps; the mobile navigation menu confirmed working as expected.
+
+---
+Task ID: 2
+Agent: main (Super Z)
+Task: Session 29 — v2.9 execution (WS-1..WS-8 TDD + gate + re-probe + ship)
+
+Work Log:
+- RED: 18 new Playwright assertions in v29-parity.spec.ts — all failed as expected.
+- WS-1: the stroke re-split (~45 sites / 15 files → 1.5; the action set stays 2; back-chevron 1.8; bot 1.6; the wizard calendar trigger 1.5). WS-2: the login restyle (gradient page, gradient-bar card + blur, responsive pad, centered column, halo, 20px Google glyph via the size-5 opt-out, "or" divider, sm:flex-row footer). WS-3: the app bar rounded-b-[20px] + p-[14px_20px] content-driven + ORBITAL. WS-4: the pill-nav brand divider + chip-wrapped tabs (min-w 52, active on the chip) + z-[100]. WS-5: goal-edit showCloseButton={false} + plain heading + native status select. WS-6: the user menu r12 + 12px name + 14px LogOut + popover offset 8. WS-7/8: the sheet z-[201]; .orb-inset/.orb-select/.orb-pop-shadow custom classes; the dialog selects converted to native elements (add-task ×2, task-edit ×2, goal-edit ×1).
+- GREEN hardening: the retired v2.6/v2.7 stroke pins moved to computed values with glyph+size disambiguation; the mobile-navigation active-chip assertion moved to the inner chip; the login pins assert the lab() gradient serialization.
+- Final gate green — lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · 91/91 e2e; re-probes EXACT on every changed surface (stroke censuses 30/30 · 29/29 · 27/27 sheet-adjusted; app bar, pill nav 494, back-chevron 1.8, wizard set, goal-edit, LogOut row, sheet z 201, clean inset declarations; the login VLM flags disproven by measurement).
+- 15 screenshots regenerated + VLM sanity (PASS ×3); README/AGENTS/CLAUDE/PAD v2.9/SKILL (lesson 17)/session_29/worklog aligned; plan marked EXECUTED; committed and pushed via docs/ssh_git_wrapper_v3.py.
+
+Stage Summary:
+- v2.9 shipped: the icon system computes at the live's 1.5/2 split (with the 1.8/1.6 specials), the login mirrors the live's redesign, the app bar/pill nav/user menu/dialog selects match the measured DOM, and the remaining v4 shadow-composition artifacts are gone — all pinned by 91 Playwright checks.

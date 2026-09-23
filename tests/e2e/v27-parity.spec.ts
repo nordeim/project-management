@@ -245,7 +245,8 @@ test.describe("mobile + pill nav anchor census (v2.7)", () => {
     await page.goto("/");
     const icon = page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Home", exact: true }).locator("svg").first();
     await expect(icon).toHaveClass(/lucide-layout-dashboard/);
-    await expect(icon).toHaveCSS("stroke-width", "2px");
+    // v2.9: computed stroke 1.5 (the live's inline-style override).
+    await expect(icon).toHaveCSS("stroke-width", "1.5px");
   });
 });
 
