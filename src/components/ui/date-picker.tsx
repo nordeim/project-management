@@ -72,7 +72,7 @@ export function DatePicker({
           aria-label={ariaLabel}
           className="flex h-auto w-full items-center gap-2.5 rounded-[10px] bg-orb-well px-3.5 py-[9px] text-left text-[13px] text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)] transition-colors disabled:opacity-50"
         >
-          <Calendar size={14} strokeWidth={1.5} aria-hidden="true" className="shrink-0 text-[#9A9A9A]" />
+          <Calendar size={14} strokeWidth={2} aria-hidden="true" className="shrink-0 text-[#9A9A9A]" />
           <span className={value ? "" : "text-orb-muted"}>{triggerLabel}</span>
         </button>
       </PopoverTrigger>
@@ -89,7 +89,11 @@ export function DatePicker({
         className="w-[262px] rounded-[14px] border border-[#D8D4CF] bg-[#ECEBE9] p-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]"
       >
         <div className="rounded-[16px] bg-[#EEEAE6] p-[16px_18px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)]">
-        <div className="mb-3 flex items-center justify-between">
+        {/* v2.6 (measured live): the month row is a 20px line box (the
+            28px chevrons overflow it vertically — h-5 with items-center
+            centers them exactly like the live) with a 12px bottom margin;
+            the weekday row starts 12px below the label's row bottom. */}
+        <div className="mb-3 flex h-5 items-center justify-between">
           <button
             type="button"
             onClick={() => shiftMonth(-1)}
@@ -98,7 +102,7 @@ export function DatePicker({
           >
             <ChevronLeft size={14} />
           </button>
-          <p className="text-[14px] font-semibold text-orb-heading">{monthLabel}</p>
+          <p className="text-[14px] font-semibold leading-5 text-orb-heading">{monthLabel}</p>
           <button
             type="button"
             onClick={() => shiftMonth(1)}
@@ -111,7 +115,10 @@ export function DatePicker({
 
         <div className="grid grid-cols-7 gap-y-1" role="grid" aria-label={monthLabel}>
           {WEEKDAYS.map((wd) => (
-            <div key={wd} role="columnheader" className="pb-1 text-center text-[11px] font-medium text-orb-muted">
+            /* v2.6 (measured live): weekday headers are 11px/700 #9A9A9A
+                on a 25px row (the clone's old 500/#6E6E6E 21px row read
+                as 4px shorter overall). */
+            <div key={wd} role="columnheader" className="text-center text-[11px] font-bold leading-[25px] text-[#9A9A9A]">
               {wd}
             </div>
           ))}

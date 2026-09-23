@@ -34,12 +34,15 @@ test.describe("goals view", () => {
     ]);
   });
 
-  test("the blocked count renders lowercase inside the uppercase chip", async ({ page }) => {
+  test("the blocked count renders uppercase with the chip's tracking (v2.6)", async ({ page }) => {
     const blocked = page.getByText(/· \d+ blocked/).filter({ visible: true }).first();
     await expect(blocked).toBeVisible();
-    // v2.3: the live renders this fragment with text-transform: none even
-    // though the surrounding status chip is uppercase.
-    await expect(blocked).toHaveCSS("text-transform", "none");
+    // v2.6: the re-deployed live renders the DESKTOP chip's blocked count
+    // with the chip's own uppercase + 0.88 tracking — the v2.3 normal-case
+    // reading retired (the MOBILE card's blocked span keeps normal-case,
+    // pinned in the mobile describe below).
+    await expect(blocked).toHaveCSS("text-transform", "uppercase");
+    await expect(blocked).toHaveCSS("letter-spacing", "0.88px");
     await expect(blocked).toHaveText(/· 2 blocked/);
   });
 

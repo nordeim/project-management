@@ -57,7 +57,7 @@ export function TeamView() {
             className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
             aria-hidden="true"
           >
-            <Users size={22} strokeWidth={1.5} color="#B3B3B3" />
+            <Users size={22} strokeWidth={2} color="#B3B3B3" />
           </span>
           <p className="mt-4 text-[15px] font-normal text-orb-heading">No team members yet</p>
           <p className="mt-1.5 text-[13px] font-normal text-[#767676]">Invite your team to get started.</p>
@@ -115,7 +115,7 @@ export function TeamView() {
           // not Bot) and two compact text lines — no action button (the
           // NEW AGENT action lives in the section header above).
           <div className="mt-4 flex flex-col items-center justify-center rounded-2xl bg-orb-well px-6 py-8 shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.68),inset_4px_4px_8px_rgba(160,143,126,0.24)]">
-            <Sparkles size={22} strokeWidth={1.5} color="#B3B3B3" aria-hidden="true" />
+            <Sparkles size={22} strokeWidth={2} color="#B3B3B3" aria-hidden="true" />
             <p className="mt-2.5 text-[14px] font-normal text-orb-heading">No agents yet</p>
             <p className="mt-1 text-[12px] font-normal text-[#767676]">Create an AI agent to automate project tasks.</p>
           </div>

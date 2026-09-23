@@ -67,12 +67,15 @@ test.describe("mobile navigation", () => {
     expect((moreBox?.width ?? 0) - (homeBox?.width ?? 0)).toBeGreaterThan(4);
   });
 
-  test("tab bar icons render at the live's 1.5 stroke (v2.4)", async ({ page }) => {
+  test("tab bar icons render at the live's stroke 2 (v2.6 reversion)", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
     const home = nav.getByRole("button", { name: "Home", exact: true });
     const icon = home.locator("svg").first();
     await expect(icon).toBeVisible();
-    await expect(icon).toHaveCSS("stroke-width", "1.5px");
+    // v2.6 (measured live): the re-deployed live reverted its chrome icons
+    // to the lucide DEFAULT 2 — the v2.4 two-class system (chrome 1.5 /
+    // content 2) is gone. Every icon on the live now renders at 2.
+    await expect(icon).toHaveCSS("stroke-width", "2px");
     // The bar is content-height driven: pad 8/12 + chip 53.5 = 73.5 (the
     // v2.3 clone's min-h-[54px] forced 74).
     const bar = nav;

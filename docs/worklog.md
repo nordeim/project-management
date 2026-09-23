@@ -140,3 +140,32 @@ Work Log:
 
 Stage Summary:
 - v2.5 shipped: the activity view mirrors the live's hero-in-group semantics, the dashboard panel caps at 20 with the task-based NPA, the logged-out LOG IN pill matches the measured spec, and the seed mirrors the live's regenerated workspace data — all pinned by 36 Playwright checks.
+
+---
+Task ID: 1
+Agent: main (Super Z)
+Task: Session 23 — v2.6 survey (workspace refresh + live re-crawl)
+
+Work Log:
+- Pulled b6bfb35; baseline gate green (137/137 unit · 30/30 smoke · 36/36 e2e).
+- Re-crawled the live vs the production clone at 390/768/1440 with paired computed-style sessions; the live re-deployed since v2.5 and reverted its icon system to universal stroke 2 (the v2.4 two-class chrome-1.5/content-2 split is gone) plus five layout seams (dashboard row gap/wrap, activity group card + label block, desktop chip case, picker headers, check-in spacing).
+- Wrote docs/parity-remediation-v2.6.md (F1–F8, WS-1–WS-10) and validated it against the codebase.
+
+Stage Summary:
+- One systemic reversion (icon strokes, ~33 sites/13 files) + five layout seams + two low-priority chips, all computed-style verified on both apps; full non-findings list recorded for the next pass.
+
+---
+Task ID: 2
+Agent: main (Super Z)
+Task: Session 23 — v2.6 execution (WS-1..WS-7 TDD + gate + re-probe)
+
+Work Log:
+- RED: 9 new/rewritten Playwright assertions (v26-parity.spec.ts) — stroke census, row wrap, group card, chip case, picker headers, modal spacing, mobile tab stroke 2.
+- WS-1: stroke sweep 13 files (~33 sites → lucide default 2). WS-2: ActivityRow gap 12 + wrapping detail. WS-3: activity group card (orb-row-card r14 deeper pair) + lh-24 label block. WS-4: desktop chip blocked count uppercase 0.88. WS-5: picker headers 700 #9A9A9A + 271 popover. WS-6: check-in mt-16 + content-width radio labels. WS-7: mobile pct tracking.
+- GREEN hardening: v25 pill race (wait on feed content), order-independent group-card probe, modal/radio measurement probes fixed.
+- Final gate green — lint 0 · typecheck 0 · 137/137 unit · build clean · 30/30 smoke · 44/44 e2e; re-probes EXACT on every changed surface (stroke census identical, rows 86.5 wrap, group card, chip, picker 271, modal 352≈353, mobile tabs 73×4+81 @2).
+- 15 screenshots regenerated from the final build (wizard 05/06 with a real AI 9-task generation; scratch goal + 12 feed entries cleaned up — seed back to 3/31/36); VLM sanity pass on the key shots.
+- README/AGENTS/CLAUDE/PAD v2.6/SKILL/session_23/worklog aligned; plan marked EXECUTED; committed and pushed via docs/ssh_git_wrapper_v3.py.
+
+Stage Summary:
+- v2.6 shipped: every icon renders at the lucide default stroke 2, the dashboard activity rows wrap at gap 12, the activity view groups rows in the deeper-pair card, the desktop goal-chip blocked count is uppercase, the date-picker headers and check-in modal spacing match the live — all pinned by 44 Playwright checks.

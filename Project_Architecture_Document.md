@@ -1,11 +1,21 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.5
+# ORBITAL — Master Project Architecture Document (PAD) v2.6
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
 **Companion Documents:** `README.md` (user-facing), `CLAUDE.md` (agent contract), `AGENTS.md` (operator notes)
-**Last Updated:** 2026-09-22
+**Last Updated:** 2026-09-23
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.6
+
+- `[MOD]` **Icon strokes are SINGLE-CLASS: every lucide glyph renders at the DEFAULT strokeWidth 2** (measured on the re-deployed live, 2026-09-23 — retires v2.4's two-class chrome-1.5/content-2 split; the live has flipped strokes twice in three deploys): mobile tabs ×4 (20px), MORE sheet rows ×3 (20), pill tabs ×6 (18), sidebar nav ×6 (16) + collapse chevron (14), the 768 back-strip chevron (15, was 1.8), dashboard activity glyphs (13) + "Full log" arrows (12), activity-view hero Search (16), task-card meta User/Calendar/Clock (11), the AI-chip Zap (9), the date-picker trigger Calendar (14), the wizard Bot (was 1.6) — ~33 sites across 13 files normalized, mostly by DELETING the `strokeWidth` prop so the lucide default applies (the durable convention — the simplest reading survives re-deploys).
+- `[MOD]` **Dashboard activity rows: gap 12 + the detail WRAPS** (measured): `ActivityRow` gap 14→12 (`gap-[12px]`) and the detail sub-line no longer truncates — the live's long first row renders 86.5px (two 18px lines); the divider reading is border-bottom `rgba(163,163,163,0.18)` on all but the last row (the earlier border-top `#D8D4CF` was an inert declaration, verified equal).
+- `[MOD]` **Activity view: each date group's rows wrap in ONE big radius-14 deeper-pair card** (measured — retires the v1.9 "plain rows, no card wrapper" reading and finally aligns the code with what AGENTS.md has claimed since v1.9): the card spans the full content width and carries `.orb-row-card` (the existing primitive); rows inside keep pad 14/18, gap 14, border-bottom `rgba(160,143,126,0.15)` dividers. The date label renders as an inline span inside a 24px line box with margin-bottom 10px (the text sits ~7px lower than a plain block P; the old P was lh 15 + mb 14).
+- `[MOD]` **Desktop goal-card chip: the blocked count renders UPPERCASE with 0.88 tracking** (measured — retires the v2.3 normal-case reading for the DESKTOP chip; live inner span 73px vs the clone's 56px, same 11px/500 `#BD3228`): the MOBILE goal card's blocked count stays normal-case (verified equal on the live). The mobile pct chip gains `tracking-[-0.01em]` (−0.13px at 13px, measured).
+- `[MOD]` **Date picker: weekday headers 11px/700 `#9A9A9A` on a 25px row** (measured; was 500 `#6E6E6E` on 21px) with the month-row margin rebalanced so the popover height matches the live's 271px (was 275).
+- `[MOD]` **Check-in modal spacing**: the radio grid → textarea → Post Update stack uses margin-top 16 (was mb 8), and the radio labels render as CONTENT-WIDTH blocks with the input as a sibling (grid columns auto; was fixed 196px flex labels) — panel 353px tall (was 322).
+- `[NOTE]` **Verification**: full gate green — lint 0 · typecheck 0 · **137/137 unit** · build clean · 30/30 smoke · **44/44 Playwright** (36 + 8 net-new v2.6 checks; the four v2.4-era stroke assertions rewritten to stroke 2 in place) — plus computed-style re-probes of every changed surface (stroke census IDENTICAL via named-glyph scan on both apps; dashboard rows 86.5 wrap exact; group card + label block exact; chip exact; picker 271 + headers 700 `#9A9A9A` exact; modal 352≈353 exact; mobile tabs 73×4+81 at stroke 2 identical) and a VLM sanity pass on the regenerated screenshots.
 
 #### Revision Block — v2.5
 

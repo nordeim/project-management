@@ -55,12 +55,17 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
           </p>
         ) : null}
 
-        <div className="space-y-2">
+        {/* v2.6 (measured live): the form block carries pt 16 and 16px
+            gaps between the radio grid, the note, and the submit (the
+            clone's old space-y-2 read 8px; the live's panel is 353 tall
+            vs 322). */}
+        <div className="pt-4">
           {/* v2.0 (measured): 12px/600/ls 0.96/lh 18 — one tier up from the
               11px .orb-label, with a 12px gap to the radios. */}
           <p className="mb-[12px] text-[12px] font-semibold uppercase tracking-[0.96px] leading-[18px] text-orb-muted">Post Status Update</p>
           {/* Reference (v1.5): plain radio labels in a 2-col grid — no card
-              wrappers, no borders; 14px fw 500 charcoal text. */}
+              wrappers, no borders; 14px fw 500 charcoal text. v2.6: lh 20
+              (the live's radio block is 48px = 2 rows of 24). */}
           <RadioGroup
             value={status ?? undefined}
             onValueChange={(v) => setStatus(v as UpdateStatus)}
@@ -71,7 +76,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
                 key={option}
                 htmlFor={`update-${option}`}
                 className={cn(
-                  "flex cursor-pointer items-center gap-2.5 text-[14px] font-medium transition-colors",
+                  "flex cursor-pointer items-center gap-2.5 text-[14px] font-medium leading-5 transition-colors",
                   status === option ? "text-orb-heading" : "text-orb-body",
                 )}
               >
@@ -89,7 +94,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
             placeholder="Add a note (optional)..."
             rows={3}
             maxLength={1000}
-            className="h-20 rounded-[14px] border border-[#D8D4CF] bg-transparent px-3 py-2 text-[14px] text-orb-body placeholder:text-orb-muted focus-visible:border-orb-purple/60 focus-visible:ring-0"
+            className="mt-4 h-20 rounded-[14px] border border-[#D8D4CF] bg-transparent px-3 py-2 text-[14px] text-orb-body placeholder:text-orb-muted focus-visible:border-orb-purple/60 focus-visible:ring-0"
             aria-label="Status update note"
           />
 
@@ -98,7 +103,7 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
               label (.orb-btn-post is the dedicated class). */}
           <button
             type="button"
-            className="orb-btn-post"
+            className="orb-btn-post mt-4"
             disabled={!status || busy}
             onClick={() => void submit()}
           >

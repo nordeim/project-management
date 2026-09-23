@@ -118,18 +118,20 @@ function StatColumn({
 
 function ActivityRow({ entry, divider }: { entry: ActivityDTO; divider: boolean }) {
   return (
-    // v1.8 (measured): icon gap 12px; message lh 20 / detail lh 18; the
+    // v2.6 (measured live): icon gap 12px (the activity VIEW's rows keep
+    // 14); message lh 20 / detail lh 18 with the detail WRAPPING (the
+    // live's long first detail renders 2 lines — no truncate); the
     // timestamp sits INSIDE the message flex row (right-aligned); the
     // dashboard rows divide with 1px rgba(163,163,163,0.18) (the feed
     // uses the warmer rgba(160,143,126,0.15)).
-    <li className={`flex items-start gap-[14px] px-[18px] py-[14px] ${divider ? "border-b border-[rgba(163,163,163,0.18)]" : ""}`}>
+    <li className={`flex items-start gap-[12px] px-[18px] py-[14px] ${divider ? "border-b border-[rgba(163,163,163,0.18)]" : ""}`}>
       <ActivityIcon type={entry.type} />
       <div className="min-w-0 flex-1">
         <p className="flex items-baseline justify-between gap-3 leading-[19.5px]">
           <span className="truncate text-[13px] font-medium text-orb-heading">{entry.message}</span>
           <span className="shrink-0 text-[11px] font-normal leading-[16.5px] text-[#767676]">{relativeTime(entry.createdAt)}</span>
         </p>
-        {entry.detail ? <p className="mt-[2px] truncate text-[12px] leading-[18px] text-orb-muted">{entry.detail}</p> : null}
+        {entry.detail ? <p className="mt-[2px] text-[12px] leading-[18px] text-orb-muted">{entry.detail}</p> : null}
       </div>
     </li>
   );
@@ -272,7 +274,7 @@ export function DashboardView() {
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
               onClick={() => navigate("activity")}
             >
-              Full log <ArrowRight size={12} strokeWidth={1.5} />
+              Full log <ArrowRight size={12} strokeWidth={2} />
             </button>
           </div>
 
@@ -306,7 +308,7 @@ export function DashboardView() {
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
               onClick={() => navigate("goals")}
             >
-              Full log <ArrowRight size={12} strokeWidth={1.5} />
+              Full log <ArrowRight size={12} strokeWidth={2} />
             </button>
           </div>
           <ul className="space-y-[6px] pb-[18px]">

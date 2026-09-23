@@ -24,6 +24,10 @@ test.describe("activity feed (v2.5 parity)", () => {
     await expect(
       page.getByRole("heading", { name: "Agent Activity", exact: true }).filter({ visible: true }).first(),
     ).toBeVisible();
+    // Wait for the FEED CONTENT (the heading/pill render on the static
+    // shell — the rows arrive with the store's fetch; reading the pill
+    // count before that races and sees "Online · 0").
+    await expect(page.getByText("Analyzed goal: Product Onboarding Redesign").filter({ visible: true }).first()).toBeVisible();
 
     // The pill's count — the v2.5 seed carries 36 entries; earlier specs in
     // the suite may have legitimately added feed rows (the add-task and

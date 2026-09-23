@@ -1,18 +1,20 @@
 "use client";
 
 // Agent Activity: full transparency feed (v1.8, re-measured; grouping
-// semantics corrected v2.5): header with an inset-well online pill (dot +
-// "Online · N" in 11px/600) aligned to the h1 top, the most recent entry
-// as a standalone hero card (deeper tier, 36px FIXED search icon — the
-// "last agent action" marker — with the "Last agent action" caption, no
-// timestamp), then date-grouped PLAIN rows ("Thu Jul 16 2026" small
-// labels) on the canvas — no card wrapper — separated by 1px
-// rgba(160,143,126,0.15) hairlines. v2.5 (measured on the live): the hero
-// entry ALSO renders as the first row of its date group — "Online · N"
-// equals the count of timestamped rows; the old slice(1) reading retired.
-// Every group row ends with a type tag (10px/600 #B3B3B3 uppercase) from
-// the pure activity-tags seam; the icon mapping lives in the tested
-// activity-icons seam. Grouping lives in src/lib/activity-groups.ts.
+// semantics corrected v2.5, card wrapper added v2.6): header with an
+// inset-well online pill (dot + "Online · N" in 11px/600) aligned to the
+// h1 top, the most recent entry as a standalone hero card (deeper tier,
+// 36px FIXED search icon — the "last agent action" marker — with the
+// "Last agent action" caption, no timestamp), then date-grouped rows
+// ("Thu Jul 16 2026" small labels) WRAPPED IN ONE BIG RADIUS-14 CARD
+// carrying the deeper pair (v2.6, measured on the live — the v1.9
+// "plain rows, no card wrapper" reading retired), separated by 1px
+// rgba(160,143,126,0.15) hairlines. v2.5: the hero entry ALSO renders as
+// the first row of its date group — "Online · N" equals the count of
+// timestamped rows. Every group row ends with a type tag (10px/600
+// #B3B3B3 uppercase) from the pure activity-tags seam; the icon mapping
+// lives in the tested activity-icons seam. Grouping lives in
+// src/lib/activity-groups.ts.
 
 import { useMemo } from "react";
 import { Search, SquareCheckBig } from "lucide-react";
@@ -87,7 +89,7 @@ export function ActivityView() {
               style={{ backgroundColor: "#C9B3F5" }}
               aria-hidden="true"
             >
-              <Search size={16} strokeWidth={1.5} />
+              <Search size={16} strokeWidth={2} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="mb-[2px] text-[13px] font-medium leading-[19.5px] text-orb-heading">{hero.message}</p>
@@ -109,19 +111,28 @@ export function ActivityView() {
         <div className="space-y-6">
           {groups.map((group) => (
             <section key={group.key} aria-label={group.label}>
-              {/* v1.9 (measured): label bottom → first row top = 14px. */}
-              <p className="orb-label-sm mb-[14px]">{group.label}</p>
-              {/* v1.8 (measured): NO card wrapper — plain rows with hairline
-                  dividers, directly on the canvas. */}
-              <ul>
-                {group.entries.map((entry, index) => (
-                  <FeedRow
-                    key={entry.id}
-                    entry={entry}
-                    divider={index < group.entries.length - 1}
-                  />
-                ))}
-              </ul>
+              {/* v2.6 (measured live): the label renders as an inline span
+                  inside a 24px LINE BOX whose margin-bottom is 10px — the
+                  label text sits ~7px lower than a plain block P and the
+                  group card starts 5px lower (the old block P: lh 15,
+                  mb 14). */}
+              <div className="mb-[10px] leading-6">
+                <span className="orb-label-sm">{group.label}</span>
+              </div>
+              {/* v2.6 (measured live): the group's rows are wrapped in ONE
+                  big radius-14 card carrying the DEEPER pair (like the
+                  hero) — the v1.9 "no card wrapper" reading retired. */}
+              <div className="orb-row-card overflow-hidden">
+                <ul>
+                  {group.entries.map((entry, index) => (
+                    <FeedRow
+                      key={entry.id}
+                      entry={entry}
+                      divider={index < group.entries.length - 1}
+                    />
+                  ))}
+                </ul>
+              </div>
             </section>
           ))}
         </div>

@@ -75,20 +75,20 @@ export function TaskCard({
         <div className="flex flex-wrap items-center gap-4 text-[11px] text-orb-muted">
           {task.assignee ? (
             <span className="flex items-center gap-1">
-              <User size={11} strokeWidth={1.5} aria-hidden="true" />
+              <User size={11} strokeWidth={2} aria-hidden="true" />
               {task.assignee.name}
             </span>
           ) : null}
           {task.deadline ? (
             <span className={cn("flex items-center gap-1", overdue && "font-medium text-orb-coral-deep")}>
-              <Calendar size={11} strokeWidth={1.5} aria-hidden="true" />
+              <Calendar size={11} strokeWidth={2} aria-hidden="true" />
               {overdue ? "Overdue · " : ""}
               {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </span>
           ) : null}
           {task.estimatedHours != null ? (
             <span className="flex items-center gap-1">
-              <Clock size={11} strokeWidth={1.5} aria-hidden="true" />
+              <Clock size={11} strokeWidth={2} aria-hidden="true" />
               {task.estimatedHours}h
             </span>
           ) : null}

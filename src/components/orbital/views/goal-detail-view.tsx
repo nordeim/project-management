@@ -40,7 +40,7 @@ export function GoalDetailView() {
     return (
       <div className="w-full px-7 pt-6 lg:px-0 lg:pt-0">
         <EmptyState
-          icon={<ArrowLeft size={22} strokeWidth={1.5} color="#B3B3B3" />}
+          icon={<ArrowLeft size={22} strokeWidth={2} color="#B3B3B3" />}
           title="Goal not found"
           description="This goal may have been deleted."
           action={
@@ -194,7 +194,7 @@ export function GoalDetailView() {
       <div className="mt-4 space-y-3">
         {tasks.length === 0 ? (
           <EmptyState
-            icon={<Plus size={22} strokeWidth={1.5} color="#B3B3B3" />}
+            icon={<Plus size={22} strokeWidth={2} color="#B3B3B3" />}
             title="No tasks yet"
             description="Add tasks manually or let the AI assistant draft a plan when you create a goal."
             action={

@@ -26,10 +26,10 @@ import { cn } from "@/lib/utils";
 import type { ViewId } from "@/lib/router";
 
 const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutGrid size={20} strokeWidth={1.5} /> },
-  { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={1.5} /> },
-  { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={1.5} /> },
-  { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={1.5} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutGrid size={20} strokeWidth={2} /> },
+  { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={2} /> },
+  { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={2} /> },
+  { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={2} /> },
 ];
 
 // v2.2 (measured live middle state): the md–lg floating pill nav carries
@@ -38,12 +38,12 @@ const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
 // 18px glyphs; every live nav uses lucide's square-check-big for the tasks
 // view (the mobile tab bar's My Tasks glyph was swapped to match too).
 const PILL_TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutGrid size={18} strokeWidth={1.5} /> },
-  { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={1.5} /> },
-  { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={1.5} /> },
-  { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={1.5} /> },
-  { view: "team", label: "Team", icon: <Users size={18} strokeWidth={1.5} /> },
-  { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={1.5} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutGrid size={18} strokeWidth={2} /> },
+  { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={2} /> },
+  { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={2} /> },
+  { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={2} /> },
+  { view: "team", label: "Team", icon: <Users size={18} strokeWidth={2} /> },
+  { view: "settings", label: "Settings", icon: <Settings size={18} strokeWidth={2} /> },
 ];
 
 function tabActive(current: ViewId, target: ViewId): boolean {
@@ -133,7 +133,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               >
                 <ChevronRight
                   size={14}
-                  strokeWidth={1.5}
+                  strokeWidth={2}
                   className={cn("transition-transform duration-200", !collapsed && "rotate-180")}
                 />
               </button>
@@ -185,7 +185,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 onClick={() => navigate("dashboard")}
                 className="inline-flex h-[34px] items-center gap-[5px] rounded-[10px] bg-orb-raised p-[7px_14px_7px_10px] text-[13px] font-medium text-orb-muted shadow-[-3px_-3px_7px_rgba(255,250,244,0.78),3px_3px_8px_rgba(160,143,126,0.22)] transition-colors hover:text-orb-heading"
               >
-                <ChevronLeft size={15} strokeWidth={1.8} aria-hidden="true" className="text-[#9A9A9A]" />
+                <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" className="text-[#9A9A9A]" />
                 Dashboard
               </button>
             </div>
@@ -275,7 +275,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 moreActive ? "text-orb-heading" : "text-[#767676]",
               )}
             >
-              <Menu size={20} strokeWidth={1.5} />
+              <Menu size={20} strokeWidth={2} />
               More
             </button>
           </nav>
@@ -366,9 +366,9 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 <ul className="space-y-[8px]">
                   {(
                     [
-                      { view: "my-tasks", label: "Tasks", icon: <ListTodo size={20} strokeWidth={1.5} /> },
-                      { view: "team", label: "Team", icon: <Users size={20} strokeWidth={1.5} /> },
-                      { view: "settings", label: "Settings", icon: <Settings size={20} strokeWidth={1.5} /> },
+                      { view: "my-tasks", label: "Tasks", icon: <ListTodo size={20} strokeWidth={2} /> },
+                      { view: "team", label: "Team", icon: <Users size={20} strokeWidth={2} /> },
+                      { view: "settings", label: "Settings", icon: <Settings size={20} strokeWidth={2} /> },
                     ] as const
                   ).map((item) => (
                     <li key={item.view}>

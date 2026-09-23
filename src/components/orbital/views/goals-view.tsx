@@ -89,7 +89,7 @@ function GoalCard({
               <span className="font-medium normal-case tracking-normal text-orb-coral-deep">· {goal.blockedCount} blocked</span>
             ) : null}
           </span>
-          <span className="rounded-[8px] bg-orb-well px-[10px] py-[3px] text-[13px] font-medium text-orb-heading shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.8),inset_2px_2px_5px_rgba(160,143,126,0.28)]">
+          <span className="rounded-[8px] bg-orb-well px-[10px] py-[3px] text-[13px] font-medium tracking-[-0.01em] text-orb-heading shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.8),inset_2px_2px_5px_rgba(160,143,126,0.28)]">
             {pct}%
           </span>
         </div>
@@ -178,7 +178,11 @@ function GoalCard({
             <span className="h-[7px] w-[7px] rounded-full bg-[#C9B3F5]" aria-hidden="true" />
             {meta.label}
             {goal.blockedCount > 0 && goal.status === "active" ? (
-              <span className="font-medium normal-case tracking-normal text-orb-coral-deep">· {goal.blockedCount} blocked</span>
+              /* v2.6 (measured live): the desktop chip's blocked count
+                  renders with the chip's own uppercase + 0.88 tracking —
+                  the v2.3 normal-case reading retired (desktop only; the
+                  MOBILE card's blocked span below keeps normal-case). */
+              <span className="font-medium text-orb-coral-deep">· {goal.blockedCount} blocked</span>
             ) : null}
             <span className="text-[11px] text-[#767676]" aria-hidden="true">
               ›
@@ -343,7 +347,7 @@ export function GoalsView() {
       <div className="mt-[26px] space-y-3">
         {visible.length === 0 ? (
           <EmptyState
-            icon={<Plus size={22} strokeWidth={1.5} color="#B3B3B3" />}
+            icon={<Plus size={22} strokeWidth={2} color="#B3B3B3" />}
             title={filter === "all" ? "No goals yet" : `No ${FILTERS.find((f) => f.id === filter)?.label.toLowerCase()} goals`}
             description="Create your first goal and the AI assistant will draft a task plan for it."
             action={

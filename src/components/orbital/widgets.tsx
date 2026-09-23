@@ -47,7 +47,7 @@ export function AiBadge({ className }: { className?: string }) {
         className,
       )}
     >
-      <Zap size={9} strokeWidth={1.5} aria-hidden="true" />
+      <Zap size={9} strokeWidth={2} aria-hidden="true" />
       AI
     </span>
   );
