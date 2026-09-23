@@ -1,6 +1,6 @@
 ---
 name: project-management
-description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 25 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 60 Playwright browser + 30 curl smoke checks)."
+description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 25 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 73 Playwright browser + 30 curl smoke checks)."
 version: 1.0.0
 last_updated: 2026-09-23
 ---
@@ -83,7 +83,7 @@ Design philosophy, in priority order:
 | AI | z-ai-web-dev-sdk | 0.0.x | Server-side only; deterministic fallbacks |
 | Icons | lucide-react | 0.5.x | `square-check-big` for tasks everywhere |
 | Unit tests | Vitest | 5 | 138 checks, `src/**/*.test.ts` + `tests/**/*.test.ts` |
-| Browser tests | Playwright | 1.63 | 60 checks, `tests/e2e/*.spec.ts`, own port + scratch DB |
+| Browser tests | Playwright | 1.63 | 73 checks, `tests/e2e/*.spec.ts`, own port + scratch DB |
 | Runtime | Bun (or Node ≥ 20) | 1.3+ | Scripts run from repo root — this matters (see §10) |
 
 Environment contract (`.env`, gitignored; see `.env.example`):
@@ -316,10 +316,10 @@ make a gate pass.
 ```bash
 bun run lint           # 0 errors
 bun run typecheck      # 0 errors (the build won't catch types)
-bun run test           # 137 unit checks
+bun run test           # 138 unit checks
 bun run build          # clean compile + standalone assembly
 ./scripts/smoke-test.sh  # 30 curl checks against the standalone build
-bun run test:e2e       # 60 Playwright checks (needs the build)
+bun run test:e2e       # 73 Playwright checks (needs the build)
 ```
 
 Then: re-probe any changed surface against the live reference at
@@ -403,6 +403,31 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
     inheriting the default is the drift-resistant choice — bespoke values
     are a maintenance liability. Run a named-glyph stroke census BEFORE
     any survey so a systemic flip is caught in one pass.
+
+15. **Audit Tailwind v4's computed-style serialization against the
+    reference, not just the visuals (v2.8).** Three v4 artifacts had no
+    visual signature yet failed a computed-style probe: (a) the preflight
+    sets NO `cursor: pointer` on buttons — the reference's own global
+    `button, [role="button"] { cursor: pointer }` rule must be re-added
+    or every button renders the UA arrow; (b) every `shadow-[…]` utility
+    composes with the unset `--tw-*` ring/inset vars, emitting four
+    zero-alpha prefixes in the computed box-shadow string (the reference
+    renders clean single declarations — plain-declaration custom classes
+    byte-match them); (c) `rounded-full` serializes as `calc(infinity *
+    1px)` = 33554432px in Chrome while the reference computes a literal
+    9999px. Paired computed-style censuses (cursor / shadow / radius)
+    are the detectors — screenshots and VLM see none of these.
+
+16. **Anchor-wrapped interactive children need a button-origin click
+    guard WITH preventDefault (v2.8).** Converting a card to an anchor
+    (v2.7) silently broke the action buttons INSIDE it: their clicks
+    bubbled to the anchor's navigate handler. The guard is
+    `if (e.target.closest("button")) { e.preventDefault(); return; }` —
+    the preventDefault is mandatory: returning early WITHOUT it lets the
+    browser follow the anchor's href as the DEFAULT action (a full page
+    load, worse than the original bug). Any time an anchor gains
+    interactive descendants, pin the child controls' behavior with e2e
+    (click child → dialog opens, URL unchanged).
 
 ## §13 Pitfalls to Avoid
 

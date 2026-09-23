@@ -64,7 +64,7 @@ export function MyTasksView() {
               className={cn(
                 // v1.7 (measured): ls 0.72px, 600 weight on every state,
                 // py 7px px 14px; the active chip keeps the inset well.
-                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] whitespace-nowrap shrink-0 transition-colors",
+                "rounded-[9999px] px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] whitespace-nowrap shrink-0 transition-colors", // v2.8: literal radius — rounded-full computes calc(infinity*1px)=33554432px, the live pins 9999px
                 active
                   ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
                   : "text-orb-muted hover:text-orb-heading",

@@ -117,8 +117,9 @@ test.describe("mobile navigation", () => {
     await more.tap();
     const sheet = page.getByRole("dialog");
     await expect(sheet).toBeVisible();
-    // (The brand renders as "Orbital" in the DOM — uppercase is CSS.)
-    await expect(sheet).toContainText("Orbital");
+    // v2.8 (measured live): the brand textContent is the literal "ORBITAL"
+    // (no text-transform — the old "Orbital" + uppercase reading retired).
+    await expect(sheet).toContainText("ORBITAL");
     // v2.7: the sheet rows are real links now; Tasks targets the new
     // /tasks (all-tasks) view.
     await expect(sheet.getByRole("link", { name: "Tasks", exact: true })).toHaveAttribute("href", "/tasks");

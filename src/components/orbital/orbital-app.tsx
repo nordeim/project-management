@@ -171,7 +171,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               live's mobile chrome runs through 767 (v2.2); at md the
               MIDDLE state takes over (greeting header + pill nav). */}
           <header
-            className="sticky top-0 z-50 flex h-[62px] shrink-0 items-center justify-between bg-orb-raised px-5 shadow-[0_4px_16px_rgba(160,143,126,0.18)] md:hidden"
+            className="sticky top-0 z-50 flex h-[62px] shrink-0 items-center justify-between bg-orb-raised px-5 orb-appbar-shadow md:hidden"
             aria-label="App bar"
           >
             {/* v2.7 (measured live): the mobile app-bar brand is NOT
@@ -256,7 +256,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               through 767 (v2.2) — at md the floating pill nav replaces
               it. */}
           <nav
-            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_20px_rgba(160,143,126,0.22)] md:hidden"
+            className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around rounded-t-[20px] bg-orb-raised px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] orb-tabbar-shadow md:hidden"
             aria-label="Primary"
           >
             {TABS.map((tab) => {
@@ -313,14 +313,14 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               uppercase; inactive tabs stay transparent with #767676 and a
               400-weight label. */}
           <nav
-            className="fixed bottom-4 left-1/2 z-40 hidden -translate-x-1/2 items-center gap-1 rounded-[20px] bg-orb-raised p-[10px_16px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)] md:flex lg:hidden"
+            className="fixed bottom-4 left-1/2 z-40 hidden -translate-x-1/2 items-center gap-1 rounded-[20px] bg-orb-raised p-[10px_16px] orb-pill-nav-shadow md:flex lg:hidden"
             aria-label="Primary"
           >
             {/* v2.2 (measured): the live brand block carries mr-4px (the pill
                 gap 4px does NOT separate brand from tabs — the margin does). */}
             <span className="mr-1 flex items-center gap-1.5 p-[4px_10px_4px_4px]" aria-hidden="true">
               <LogoMark size={9} />
-              <span className="font-archivo text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-orb-body">Orbital</span>
+              <span className="font-archivo text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-orb-body">ORBITAL</span>
             </span>
             {PILL_TABS.map((tab) => {
               const active = tabActive(view, tab.view);
@@ -362,20 +362,23 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               side="bottom"
               showCloseButton={false}
               overlayClassName="bg-[rgba(0,0,0,0.2)] backdrop-blur-[4px]"
-              className="gap-0 rounded-t-[24px] border-t-0 bg-orb-raised px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+40px)] shadow-[0_-8px_32px_rgba(160,143,126,0.28)]"
+              className="gap-0 rounded-t-[24px] border-t-0 bg-orb-raised px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+40px)] orb-sheet-shadow"
             >
               <div className="mx-auto h-1 w-10 rounded-full bg-[#CCC7C0]" aria-hidden="true" />
               <SheetHeader className="flex-row items-center justify-between space-y-0 px-0 pb-6 pt-[20px]">
                 <SheetTitle asChild>
+                  {/* v2.8 (measured): the live's brand textContent is the
+                      literal "ORBITAL" (their span keeps a redundant
+                      text-transform: uppercase — mirrored). */}
                   <span className="flex items-center gap-2 font-archivo text-[12px] font-semibold uppercase leading-[18px] tracking-[0.18em] text-orb-body">
                     <LogoMark size={9} />
-                    Orbital
+                    ORBITAL
                   </span>
                 </SheetTitle>
                 <button
                   type="button"
                   onClick={() => setMoreOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-orb-raised text-orb-body shadow-[-4px_-4px_8px_rgba(255,250,244,0.78),4px_4px_8px_rgba(160,143,126,0.28)] transition-colors hover:text-orb-heading"
+                  className="orb-sheet-close flex h-8 w-8 items-center justify-center rounded-[10px] bg-orb-raised text-orb-body transition-colors hover:text-orb-heading"
                   aria-label="Close menu"
                 >
                   <X size={16} strokeWidth={2} />

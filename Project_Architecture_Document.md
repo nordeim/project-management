@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.7
+# ORBITAL — Master Project Architecture Document (PAD) v2.8
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,15 @@
 **Last Updated:** 2026-09-23
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.8
+
+- `[MOD]` **Button cursor affordance (systemic, Tailwind-v4 regression class)**: the reference's global stylesheet carries `button, [role="button"] { cursor: pointer }` (read out of its CSSOM); Tailwind v4's preflight sets no pointer, so the clone's buttons silently rendered the UA arrow. The base layer in `globals.css` now mirrors the reference's exact rule — every button (NEW GOAL, filter chips, action squares, dialog controls, selects, MORE trigger/close, the user pill) computes `cursor: pointer`.
+- `[FIX]` **Mobile goal-card action regression (introduced by v2.7's anchor conversion)**: the edit/delete squares sat INSIDE the card anchor and their clicks bubbled into `navigate("goal-detail")` — clicking edit NAVIGATED instead of opening the dialog. Both card anchors now guard button-origin clicks: `e.target.closest("button")` → `preventDefault()` + return (the preventDefault matters — without it the browser follows the anchor's href as the default action).
+- `[MOD]` **Goal-card anchor coverage (measured)**: the reference's card anchor wraps the ENTIRE card — text column AND the 120px stats/action column (1072px at 1440). The desktop anchor is now the full-width flex row; the dashboard goal wells nest as BARE anchors wrapping inner well divs (the anchor's own computed shadow stays `none`).
+- `[MOD]` **Tailwind v4 shadow/radius serialization artifacts eliminated on the chrome**: v4 composes every `shadow-[…]` utility with unset `--tw-*` ring/inset vars, so computed box-shadow strings carried four zero-alpha prefixes; `rounded-full` serializes as `calc(infinity*1px)` (33554432px in Chrome). The chrome (app bar, mobile tab bar, MORE sheet, 768 pill nav, sheet close) uses plain-declaration custom classes (`.orb-appbar-shadow` / `.orb-tabbar-shadow` / `.orb-sheet-shadow` / `.orb-pill-nav-shadow` / `.orb-sheet-close`) that byte-match the reference's computed strings; the filter chips (goals / my-tasks / tasks) pin `rounded-[9999px]`. The sheet close square also moves to the re-measured 3px/6px `0.78/0.27` pair (the v2.0 4px/8px/0.28 reading retired).
+- `[MOD]` **Brand strings render the literal `ORBITAL`** (sidebar + MORE sheet + pill nav): the reference's textContent is the uppercase string with a redundant `text-transform: uppercase` on the span — mirrored exactly (the clone previously rendered "Orbital" + the transform). The sidebar brand anchor drops its `pl-2.5 rounded-xl` (hit area 101.3 → 91.3, matching the reference's classless pad-0 anchor).
+- `[NOTE]` **Verification**: full gate green — lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · **73/73 Playwright** (59 prior + 14 net-new v2.8 pins: the cursor census, the mobile-pencil-dialog fix, the full-card anchor coverage, the well nesting, the five exact chrome-shadow strings, the close-square pair, the chip radius, the brand textContent) — plus computed-style re-probes EXACT on every changed surface (cursor census 17A/2B pointer on both apps; goal wells 490×84 anchor-shadow-none/inner-well on both; card anchors 1072×166 on both; chips 9999px pointer on both; brand ORBITAL/uppercase/pad-0 on both) and a VLM sanity pass on the regenerated screenshots.
 
 #### Revision Block — v2.7
 

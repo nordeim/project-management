@@ -129,11 +129,15 @@ export function Sidebar({
         <a
           href={toPath("dashboard")}
           onClick={(e) => sidebarAnchorGo(e, navigate, "dashboard")}
-          className="flex items-center gap-2 rounded-xl pl-2.5"
+          /* v2.8 (measured live): the brand anchor carries NO pad/radius
+             (hit area 91.3 at 1440) and the text is the literal "ORBITAL"
+             (the live's textContent is uppercase; their span ALSO keeps a
+             redundant text-transform: uppercase — mirrored here). */
+          className="flex items-center gap-2"
           aria-label="Orbital home"
         >
           <LogoMark size={11} />
-          <span className="font-archivo text-[13px] font-semibold uppercase leading-[13px] tracking-[0.18em] text-orb-body">Orbital</span>
+          <span className="font-archivo text-[13px] font-semibold uppercase leading-[13px] tracking-[0.18em] text-orb-body">ORBITAL</span>
         </a>
         {onCollapse ? (
           <button

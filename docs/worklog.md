@@ -199,3 +199,32 @@ Work Log:
 
 Stage Summary:
 - v2.7 shipped: every navigation surface renders the live's real anchor DOM (with SPA click semantics preserved), the all-tasks view serves /tasks with the live's exact chips and inert rows, the New Goal deep link auto-opens the wizard, and the dead seams (ring, mobile brand) are faithfully replicated — all pinned by 60 Playwright checks.
+
+---
+Task ID: 1
+Agent: main (Super Z)
+Task: Session 27 — v2.8 survey (workspace refresh + live re-crawl, mobile-nav + Tailwind v4 focus)
+
+Work Log:
+- Pulled a7d427e (the session_26 transcript log); baseline gate green (138/138 unit · 30/30 smoke · 60/60 e2e); re-seeded custom.db to the pristine 3/31/36.
+- Re-crawled the live vs the production clone at 390/768/1440 with fresh authenticated paired sessions, focused on the operator's two named concerns. The MOBILE NAVIGATION verified working as expected on both (tab census EXACT, MORE sheet + navigation functional, VLM IDENTICAL ×2).
+- The Tailwind v4 hunt: read the live's global `button, [role="button"] { cursor: pointer }` rule out of its CSSOM (the clone's buttons rendered the UA arrow — v4's preflight sets no pointer); found the shadow-var composition zero-alpha prefixes, the rounded-full calc(infinity*1px) serialization, the stale MORE-close shadow spec, the mobile goal-card action regression (v2.7's anchor swallowed button clicks → navigation), the partial-card anchor coverage, and the transformed brand strings.
+- Wrote docs/parity-remediation-v2.8.md (F1–F7, WS-1–WS-9) and validated it against the codebase.
+
+Stage Summary:
+- One systemic affordance loss (button cursor), one functional regression (mobile goal-card actions), two invisible v4 serialization artifacts (shadow composition, infinity radius), and three structural micro-deltas — all computed-style verified on both apps; the mobile navigation menu confirmed working as expected.
+
+---
+Task ID: 2
+Agent: main (Super Z)
+Task: Session 27 — v2.8 execution (WS-1..WS-7 TDD + gate + re-probe + ship)
+
+Work Log:
+- RED: 14 new Playwright assertions in v28-parity.spec.ts — all failed as expected.
+- WS-1: the base layer gains the live's exact cursor rule. WS-2: the goal-card anchors gain the button-origin guard (closest("button") → preventDefault + return — the preventDefault is MANDATORY or the browser follows the href) and the desktop anchor wraps the full card (1072px). WS-3: the dashboard wells nest as bare anchors. WS-4/5: five plain-declaration chrome-shadow classes byte-match the live (the close square moves to the 3px/6px 0.78/0.27 pair); the sheet brand renders literal ORBITAL. WS-6: chips pin rounded-[9999px]. WS-7: the sidebar brand drops pl-2.5/rounded-xl and renders literal ORBITAL (+ the live's redundant uppercase transform).
+- GREEN hardening: the pill-nav locator disambiguated (nav.orb-pill-nav-shadow); the mobile-navigation sheet-brand assertion updated to ORBITAL.
+- Final gate green — lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · 73/73 e2e; re-probes EXACT on every changed surface (cursor census identical, wells 490×84 anchor-shadow-none, card anchors [316,1072,166], chips 9999px, shadow strings byte-identical, brand identical, the mobile pencil stays + opens the dialog).
+- 15 screenshots regenerated + VLM sanity (PASS ×3); README/AGENTS/CLAUDE/PAD v2.8/SKILL (lessons 15+16)/session_27/worklog aligned; plan marked EXECUTED; committed and pushed via docs/ssh_git_wrapper_v3.py.
+
+Stage Summary:
+- v2.8 shipped: every button renders the pointing cursor like the reference, the mobile goal-card actions work again (guarded full-card anchors), the chrome shadows compute byte-identical clean declarations, the chips pin the literal 9999px radius, and the brand strings are the literal ORBITAL — all pinned by 73 Playwright checks.

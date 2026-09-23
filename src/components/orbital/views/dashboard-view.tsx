@@ -354,7 +354,10 @@ export function DashboardView() {
               return (
                 <li key={goal.id}>
                   {/* v2.7 (measured live): the goal wells are real links →
-                      /goals/<id>. */}
+                      /goals/<id>. v2.8 (measured live): the anchor is a
+                      BARE wrapper — the inner div carries the well styles
+                      (the live's A > DIV(well) nesting; the anchor's own
+                      computed shadow stays "none"). */}
                   <a
                     href={`/goals/${goal.id}`}
                     onClick={(e) => {
@@ -362,18 +365,20 @@ export function DashboardView() {
                       e.preventDefault();
                       navigate("goal-detail", goal.id);
                     }}
-                    className="orb-well flex w-full items-center gap-[10px] p-[12px_14px] text-left transition-transform hover:-translate-y-0.5"
+                    className="block text-left"
                   >
-                    <div className="min-w-0 flex-1">
-                      {/* v1.7 (measured): 13px/500 titles, 11px meta. */}
-                      <p className="truncate text-[13px] font-medium text-orb-heading">{goal.title}</p>
-                      <p className="mt-0.5 text-[11px] font-normal text-[#767676]">
-                        {goal.doneCount}/{goal.taskCount} tasks · {goal.blockedCount > 0 ? `${goal.blockedCount} blocked` : "on track"}
-                      </p>
+                    <div className="orb-well flex w-full items-center gap-[10px] p-[12px_14px] transition-transform hover:-translate-y-0.5">
+                      <div className="min-w-0 flex-1">
+                        {/* v1.7 (measured): 13px/500 titles, 11px meta. */}
+                        <p className="truncate text-[13px] font-medium text-orb-heading">{goal.title}</p>
+                        <p className="mt-0.5 text-[11px] font-normal text-[#767676]">
+                          {goal.doneCount}/{goal.taskCount} tasks · {goal.blockedCount > 0 ? `${goal.blockedCount} blocked` : "on track"}
+                        </p>
+                      </div>
+                      <ProgressRing value={pct} size={60} thickness={5.5}>
+                        <span className="text-[14px] font-medium text-orb-heading">{pct}%</span>
+                      </ProgressRing>
                     </div>
-                    <ProgressRing value={pct} size={60} thickness={5.5}>
-                      <span className="text-[14px] font-medium text-orb-heading">{pct}%</span>
-                    </ProgressRing>
                   </a>
                 </li>
               );

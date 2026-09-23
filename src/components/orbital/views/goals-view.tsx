@@ -66,6 +66,16 @@ function GoalCard({
       <a
         href={`/goals/${goal.id}`}
         onClick={(e) => {
+          /* v2.8 (measured live): clicks that originate on a BUTTON belong
+             to the button — the live's action squares open their dialogs
+             without navigating. Without this guard the v2.7 anchor
+             swallowed the click and navigated to the detail (regression). */
+          if (e.target instanceof Element && e.target.closest("button")) {
+            /* The button owns this click — suppress the anchor's default
+               href navigation too, or the browser follows the link. */
+            e.preventDefault();
+            return;
+          }
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
           e.preventDefault();
           navigate("goal-detail", goal.id);
@@ -165,18 +175,28 @@ function GoalCard({
         </div>
       </a>
 
-      {/* ---- DESKTOP (lg and up): two-column card ---- */}
-      <div className="hidden w-full items-stretch md:flex">
+      {/* ---- DESKTOP (md and up): two-column card ---- v2.8 (measured
+          live): the anchor wraps the ENTIRE card — the text column AND
+          the 120px stats/action column — so the whole 1072px row is the
+          link (the live's coverage; the action squares keep their own
+          clicks via the button guard). */}
       <a
         href={`/goals/${goal.id}`}
         onClick={(e) => {
+          if (e.target instanceof Element && e.target.closest("button")) {
+            /* The button owns this click — suppress the anchor's default
+               href navigation too, or the browser follows the link. */
+            e.preventDefault();
+            return;
+          }
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
           e.preventDefault();
           navigate("goal-detail", goal.id);
         }}
-        className="min-w-0 flex-1 p-[18px_20px] text-left"
+        className="hidden w-full items-stretch text-left md:flex"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
+      <div className="min-w-0 flex-1 p-[18px_20px]">
         {/* Status chip (reference, v1.5; inset pair re-measured v1.7):
             inset well pill — gray label, a light-purple pip for EVERY
             status, an inline red blocked count, and a trailing chevron.
@@ -223,7 +243,7 @@ function GoalCard({
           ) : null}
         </p>
         {goal.targetDate ? <p className="text-[12px] text-[#767676]">{formatDate(goal.targetDate)}</p> : null}
-      </a>
+      </div>
 
       {/* Right column (reference, v1.6/v1.7): a fixed 120px stats strip —
           the big 42px percentage over the 12px task fraction with the
@@ -274,7 +294,7 @@ function GoalCard({
           </div>
         )}
       </div>
-      </div>
+      </a>
     </div>
   );
 }
@@ -345,7 +365,7 @@ export function GoalsView() {
               className={cn(
                 // v1.7 (measured): ls 0.72px, 600 weight on every state,
                 // py 7px px 14px; the active chip keeps the inset well.
-                "rounded-full px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] whitespace-nowrap shrink-0 transition-colors",
+                "rounded-[9999px] px-[14px] py-[7px] text-[12px] font-semibold tracking-[0.06em] whitespace-nowrap shrink-0 transition-colors", // v2.8: literal radius — rounded-full computes calc(infinity*1px)=33554432px, the live pins 9999px
                 active
                   ? "bg-orb-well text-orb-heading shadow-[inset_-3px_-3px_6px_rgba(255,250,244,0.68),inset_3px_3px_6px_rgba(160,143,126,0.24)]"
                   : "text-orb-muted hover:text-orb-heading",

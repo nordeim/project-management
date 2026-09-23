@@ -166,6 +166,18 @@
        v1.0-era "ss01" stylistic set widened the digits (18 → 44px vs the
        live 38px at 50.4px/300). Default features only. */
   }
+  /* v2.8 (read out of the live's global stylesheet): the reference ships
+     `button, [role="button"] { cursor: pointer }`. The clone relied on the
+     UA default (arrow) — Tailwind v4's preflight sets no pointer (verified
+     against tailwindcss@4.3.3 preflight.css), so every button surface
+     (NEW GOAL, filter chips, action squares, dialog controls, MORE
+     trigger/close, selects, the user pill) rendered the wrong cursor.
+     Disabled styles that set cursor: not-allowed via classes still win
+     the cascade (class > element selector). */
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
 }
 
 @layer utilities {
@@ -579,6 +591,36 @@
   .orb-nav-active {
     background-color: var(--orb-well);
     box-shadow: inset -3px -3px 6px rgba(255, 252, 248, 0.75), inset 3px 3px 6px rgba(180, 165, 150, 0.32);
+  }
+
+  /* ---- v2.8 chrome shadows (measured on the live, 2026-09-23) ----
+     Tailwind v4 composes every `shadow-[…]` utility with the unset
+     --tw-inset-shadow / --tw-inset-ring-shadow / --tw-ring-offset-shadow /
+     --tw-ring-shadow variables, so the computed box-shadow string carries
+     FOUR zero-alpha prefixes (rgba(0, 0, 0, 0) 0px 0px 0px 0px) in front of
+     the real shadow. The live renders clean single declarations. These
+     plain-declaration classes reproduce the live's exact computed strings
+     (byte-for-byte, verified with paired computed-style probes). */
+  /* Mobile app bar (sticky header) — downward 16px wash. */
+  .orb-appbar-shadow {
+    box-shadow: 0 4px 16px rgba(160, 143, 126, 0.18);
+  }
+  /* Mobile bottom tab bar — upward 20px wash. */
+  .orb-tabbar-shadow {
+    box-shadow: 0 -4px 20px rgba(160, 143, 126, 0.22);
+  }
+  /* MORE bottom sheet — upward 32px wash. */
+  .orb-sheet-shadow {
+    box-shadow: 0 -8px 32px rgba(160, 143, 126, 0.28);
+  }
+  /* 768 floating pill nav — the LARGE panel pair. */
+  .orb-pill-nav-shadow {
+    box-shadow: -8px -8px 16px rgba(255, 250, 244, 0.78), 8px 8px 18px rgba(160, 143, 126, 0.31);
+  }
+  /* MORE-sheet 32px r10 close square — the live's 3px/6px raised pair
+     (re-measured v2.8; the v2.0 4px/8px/0.28 reading is retired). */
+  .orb-sheet-close {
+    box-shadow: -3px -3px 6px rgba(255, 250, 244, 0.78), 3px 3px 6px rgba(160, 143, 126, 0.27);
   }
 }
 
