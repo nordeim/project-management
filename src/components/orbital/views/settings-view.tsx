@@ -203,7 +203,12 @@ function SettingsForm({ initial }: { initial: WorkspaceSettingsDTO }) {
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Button type="button" className="orb-pill-outline orb-pill-compact" disabled={saving} onClick={() => void save()}>
-          <Save size={14} aria-hidden="true" />
+          {/* v2.10 (measured): the live's save glyph renders 14px. The lucide
+              `size` prop sets svg width/height ATTRIBUTES, but the shadcn
+              Button base `[&_svg:not([class*='size-'])]:size-4` forces 16px
+              via a CSS class — and CSS beats presentation attributes. The
+              explicit size-3.5 class opts out and wins. */}
+          <Save size={14} className="size-3.5" aria-hidden="true" />
           {saving ? "Saving…" : "Save Settings"}
         </Button>
       </div>
