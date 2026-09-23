@@ -20,6 +20,7 @@ test.describe("workspace shell (desktop)", () => {
   for (const [path, heading] of [
     ["/goals", "Goals"],
     ["/my-tasks", "My Tasks"],
+    ["/tasks", "Tasks"],
     ["/activity", "Agent Activity"],
     ["/team", "Team"],
     ["/settings", "Settings"],
@@ -27,7 +28,8 @@ test.describe("workspace shell (desktop)", () => {
     test(`path route ${path} serves the ${heading} view`, async ({ page }) => {
       await page.goto(path);
       await expect(page.getByRole("heading", { name: heading, exact: true }).filter({ visible: true }).first()).toBeVisible();
-      await expect(page).toHaveURL(new RegExp(`${path.replace("/", "\\/")}/?$`));
+      // Anchor the pattern so /tasks does not also match /my-tasks.
+      await expect(page).toHaveURL(new RegExp(`^.*${path.replace("/", "\\/")}\\/?$`));
     });
   }
 

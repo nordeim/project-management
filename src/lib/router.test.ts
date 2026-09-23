@@ -6,6 +6,7 @@ import { parseUrl, toPath, type ViewId } from "./router";
 //   /goals       -> goals
 //   /goals/<id>  -> goal-detail (goalId)
 //   /my-tasks    -> my-tasks
+//   /tasks       -> tasks (v2.7: the live's all-tasks view)
 //   /activity    -> activity
 //   /team        -> team
 //   /settings    -> settings
@@ -19,6 +20,7 @@ describe("parseUrl", () => {
   it("maps the bare section paths to their views", () => {
     expect(parseUrl("/goals")).toEqual({ view: "goals", goalId: null });
     expect(parseUrl("/my-tasks")).toEqual({ view: "my-tasks", goalId: null });
+    expect(parseUrl("/tasks")).toEqual({ view: "tasks", goalId: null });
     expect(parseUrl("/activity")).toEqual({ view: "activity", goalId: null });
     expect(parseUrl("/team")).toEqual({ view: "team", goalId: null });
     expect(parseUrl("/settings")).toEqual({ view: "settings", goalId: null });
@@ -68,6 +70,7 @@ describe("toPath", () => {
     ["goals", null, "/goals"],
     ["goal-detail", "abc123", "/goals/abc123"],
     ["my-tasks", null, "/my-tasks"],
+    ["tasks", null, "/tasks"],
     ["activity", null, "/activity"],
     ["team", null, "/team"],
     ["settings", null, "/settings"],
@@ -78,7 +81,7 @@ describe("toPath", () => {
   });
 
   it("round-trips every view through parseUrl", () => {
-    const views: ViewId[] = ["dashboard", "goals", "goal-detail", "my-tasks", "activity", "team", "settings"];
+    const views: ViewId[] = ["dashboard", "goals", "goal-detail", "my-tasks", "tasks", "activity", "team", "settings"];
     for (const view of views) {
       const goalId = view === "goal-detail" ? "rt-42" : null;
       expect(parseUrl(toPath(view, goalId))).toEqual({ view, goalId });

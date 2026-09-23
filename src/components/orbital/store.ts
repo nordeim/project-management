@@ -74,8 +74,15 @@ interface OrbitalState {
   members: TeamMemberDTO[];
   settings: WorkspaceSettingsDTO | null;
   stats: DashboardStats | null;
+  // v2.7: the live's New Goal affordance is a real link — /goals?new=true
+  // (navigate to the goals view AND auto-open the wizard). The intent flag
+  // bridges the store navigation to the GoalsView's local dialog state;
+  // the URL keeps the ?new=true query exactly like the reference.
+  newGoalIntent: boolean;
 
   navigate: (view: ViewId, goalId?: string | null) => void;
+  openNewGoal: () => void;
+  clearNewGoalIntent: () => void;
   syncUrl: () => void;
   applyUrlState: () => void;
   boot: () => Promise<void>;
@@ -140,30 +147,48 @@ export const useOrbital = create<OrbitalState>((set, get) => ({
   members: [],
   settings: null,
   stats: null,
+  newGoalIntent: false,
 
   navigate: (view, goalId = null) => {
     set({ view, goalId });
     get().syncUrl();
   },
 
+  openNewGoal: () => {
+    // The dashboard's New Goal link (v2.7): land on the goals view with
+    // the wizard auto-opened — the URL carries ?new=true like the live.
+    set({ view: "goals", goalId: null, newGoalIntent: true });
+    get().syncUrl();
+  },
+
+  clearNewGoalIntent: () => set({ newGoalIntent: false }),
+
   syncUrl: () => {
     if (typeof window === "undefined") return;
-    const { view, goalId } = get();
+    const { view, goalId, newGoalIntent } = get();
     // pushState (not replaceState): every view switch is a real history
     // entry, so browser back/forward walks the app like the reference SPA.
-    window.history.pushState(null, "", toPath(view, goalId));
+    // v2.7: the new-goal intent rides the query string (the live's
+    // /goals?new=true contract).
+    const suffix = view === "goals" && newGoalIntent ? "?new=true" : "";
+    window.history.pushState(null, "", toPath(view, goalId) + suffix);
   },
 
   applyUrlState: () => {
     if (typeof window === "undefined") return;
     const { view, goalId } = parseUrl(window.location.pathname, window.location.search);
-    set({ view, goalId });
+    // v2.7: browser-back onto /goals?new=true re-opens the wizard (URL-
+    // driven, like the reference's deep link).
+    const newIntent = view === "goals" && new URLSearchParams(window.location.search).get("new") === "true";
+    set({ view, goalId, newGoalIntent: newIntent });
     if (view === "goal-detail" && goalId) void get().refreshGoalDetail(goalId);
   },
 
   boot: async () => {
     const { view, goalId } = readUrlState();
-    set({ view, goalId, loading: true });
+    // v2.7: /goals?new=true auto-opens the wizard (the live's deep link).
+    const newIntent = view === "goals" && typeof window !== "undefined" && new URLSearchParams(window.location.search).get("new") === "true";
+    set({ view, goalId, newGoalIntent: newIntent, loading: true });
     // Signed-out visitors get the shell without data (reference behavior,
     // v1.4): reads stay session-gated server-side, so skip them entirely
     // and clear anything a previous session left in the store.

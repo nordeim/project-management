@@ -46,7 +46,10 @@ export function TaskCard({
         type="button"
         onClick={() => onOpen(task)}
         className={cn(
-          "orb-row-card w-full p-[14px_18px] text-left transition-transform hover:-translate-y-0.5",
+          // v2.7 (measured live): the rows show the POINTER cursor (the
+          // live's task rows are cursor:pointer divs — the hover
+          // affordance matches).
+          "orb-row-card w-full cursor-pointer p-[14px_18px] text-left transition-transform hover:-translate-y-0.5",
           task.status === "blocked" && "orb-task-blocked",
         )}
         aria-label={`Open task ${task.title}, status ${meta.label}`}

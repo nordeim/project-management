@@ -45,9 +45,9 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 |:---:|:---:|
 | ![Goal detail](docs/screenshots/03-goal-detail.png) | ![Task dialog](docs/screenshots/04-task-dialog.png) |
 
-| My Tasks | Agent activity |
-|:---:|:---:|
-| ![My Tasks](docs/screenshots/07-my-tasks.png) | ![Activity](docs/screenshots/08-activity.png) |
+| My Tasks | All tasks | Agent activity |
+|:---:|:---:|:---:|
+| ![My Tasks](docs/screenshots/07-my-tasks.png) | ![Tasks](docs/screenshots/16-tasks.png) | ![Activity](docs/screenshots/08-activity.png) |
 
 | Team | Settings | Login |
 |:---:|:---:|:---:|
@@ -82,7 +82,7 @@ ORBITAL lets a team describe **goals** in natural language, then generates a con
 | Components | shadcn/ui on Radix | — | Accessible primitives (dialog, select, radio, …) |
 | State | Zustand | 5 | Single client store; server state via fetch + refresh |
 | Unit tests | Vitest | 5 | Pure domain seams: router, clarify questions, plan sanitizer, check-in mapping, rate limiter, team forms, next-action, logo geometry, calendar grid, date-fns distance time, greeting boundaries, day-image rotation, db-path resolution |
-| E2E tests | Playwright | 1.63 | Browser suite (44 checks): auth, path routes, goals CRUD, activity feed, mobile + tablet navigation, logged-out chrome |
+| E2E tests | Playwright | 1.63 | Browser suite (60 checks): auth, path routes (incl. `/tasks`), goals CRUD, activity feed, mobile + tablet navigation, anchor-nav + wizard deep links, logged-out chrome |
 | ORM | Prisma | 6 | Schema, client, `db push`, seed |
 | Database | SQLite | — | Zero-config local persistence (`db/custom.db`) |
 | Auth | Node `crypto` (scrypt + HMAC) | — | Cookie sessions, no external auth service |
@@ -102,7 +102,9 @@ flowchart LR
     B -->|Zustand store| B
 ```
 
-The page at `/` resolves the session and hands a **nullable user** to the client app — the workspace shell renders either way (reference behavior); when unauthenticated it shows empty states and a LOG IN header button, and the store skips data fetches until a session exists. `/login` is a real Next.js route (excluded from the SPA rewrites) that redirects authenticated visitors back to `/`. All data flows through the Zustand store, which calls the API routes and unwraps the `{ ok, data } | { ok, error }` envelope. Views live at **real paths** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings`) — Next.js rewrites map them onto the single page, and the store syncs view state with the History API (`src/lib/router.ts`), so every screen is deep-linkable and browser back/forward works. Same SPA architecture as the reference app.
+The page at `/` resolves the session and hands a **nullable user** to the client app — the workspace shell renders either way (reference behavior); when unauthenticated it shows empty states and a LOG IN header button, and the store skips data fetches until a session exists. `/login` is a real Next.js route (excluded from the SPA rewrites) that redirects authenticated visitors back to `/`. All data flows through the Zustand store, which calls the API routes and unwraps the `{ ok, data } | { ok, error }` envelope. Views live at **real paths** (`/goals`, `/goals/<id>`, `/my-tasks`, `/tasks`, `/activity`, `/team`, `/settings`) — Next.js rewrites map them onto the single page, and the store syncs view state with the History API (`src/lib/router.ts`), so every screen is deep-linkable and browser back/forward works. Same SPA architecture as the reference app.
+
+**v2.7 — anchor navigation (measured on the re-deployed reference):** every view-switch surface renders a real `<a href>` link — the sidebar nav ×6 + brand + TASKS STATUS widget, the mobile tab bar ×4 (MORE stays a button), the 768 pill nav ×6, the MORE sheet rows (`Tasks → /tasks` — the NEW all-tasks view), the dashboard stat wells / goal wells / "Full log" ×2, and the New Goal pill (`/goals?new=true`, which auto-opens the wizard — the deep link works on hard loads too). Plain left clicks still do in-app pushState navigation; modified/middle clicks fall through so the truthful href opens a real tab. The all-tasks view at `/tasks` shows every workspace task (31 with the seed) with the My-Tasks filter chips and inert `cursor-pointer` rows — the reference's own WIP seam, faithfully replicated (its ring and task rows don't respond to clicks either; our ring mirrors that dead state).
 
 ## File Hierarchy
 
@@ -135,7 +137,7 @@ The page at `/` resolves the session and hands a **nullable user** to the client
       📄 sidebar-clock.tsx  # Neumorphic analog clock (SVG, 15s tick)
       📄 sidebar-collapse.ts# Collapse state: useSyncExternalStore + localStorage
       📄 user-menu.tsx      # UserMenuOrLogin: avatar popover w/ Log Out, or LOG IN button
-      📂 views/             # dashboard, goals, goal-detail, my-tasks, activity, team, settings
+      📂 views/             # dashboard, goals, goal-detail, my-tasks, tasks (all-tasks, v2.7), activity, team, settings
       📂 dialogs/           # new-goal (3-step wizard + date picker), goal-edit, add-task, task-edit, task-detail, invite-member
     📂 ui/                  # shadcn/ui primitives + date-picker
   📂 lib/
@@ -250,14 +252,14 @@ Primitive classes in `globals.css`: `.orb-raised` / `.orb-raised-lg` (panels), `
 ## Testing
 
 ```bash
-bun run test              # unit tests — 137 checks on the pure domain seams
-bun run test:e2e           # Playwright — 36 browser checks (needs `bun run build` first)
+bun run test              # unit tests — 138 checks on the pure domain seams
+bun run test:e2e           # Playwright — 60 browser checks (needs `bun run build` first)
 ./scripts/smoke-test.sh    # curl E2E — 30 checks against the production build
 ```
 
-The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), the logo dot geometry (`logo.tsx`), the date-picker calendar grid + long date format (`src/lib/calendar.ts`), the activity feed's date grouping (`src/lib/activity-groups.ts`), the activity type-tag mapping (`src/lib/activity-tags.ts`), the dashboard greeting boundaries (`greetingFor`), the date-fns long-form distance (`formatDistance`/`relativeTime`), the date-card photo rotation (`src/lib/day-image.ts`), and the SQLite URL resolution incl. the standalone-server `chdir` trap (`src/lib/db-path.ts`) — **137 checks**.
+The unit layer (Vitest) pins the pure logic: path routing (`src/lib/router.ts`), the wizard's clarifying questions (`src/lib/clarify.ts`), the AI plan sanitizer + fallback (`src/lib/plan-sanitizer.ts`), the check-in status mapping (`src/lib/checkin.ts`), the auth rate limiter (`src/lib/rate-limit.ts`), the team-form normalization (`src/lib/team.ts`), the dashboard's next-planned-action derivation (`src/lib/next-action.ts`), the logo dot geometry (`logo.tsx`), the date-picker calendar grid + long date format (`src/lib/calendar.ts`), the activity feed's date grouping (`src/lib/activity-groups.ts`), the activity type-tag mapping (`src/lib/activity-tags.ts`), the dashboard greeting boundaries (`greetingFor`), the date-fns long-form distance (`formatDistance`/`relativeTime`), the date-card photo rotation (`src/lib/day-image.ts`), and the SQLite URL resolution incl. the standalone-server `chdir` trap (`src/lib/db-path.ts`) — **138 checks**.
 
-The Playwright layer (`tests/e2e/`) drives the real UI in Chromium against the production build: the login round-trip, the SPA path routes + browser back/forward, the goals surface (seed order, blocked-count typography, add-task dialog, inline delete), and — the highest-regression-risk chrome — the MOBILE navigation (bottom tab bar with the active tab's inset-well chip, the MORE bottom sheet, the 768 middle-state pill nav). A setup project signs the demo user in once and shares the session cookie via storageState (the auth rate limiter makes per-test logins a trap). The suite boots the standalone server on port 3100 with its own scratch database (`db/e2e.db`), so it never touches your dev data — **44 checks** (v2.4 added the full-tab chip width, the wider MORE tab, and the mobile goal-card chip inversion; v2.5 added the hero-in-group feed semantics, the dashboard's 20-row activity cap + task-based Next Planned Action, the regenerated seed plans, and the logged-out LOG IN button's measured spec; v2.6 rewrote the stroke assertions to the reverted single-class stroke 2 and pinned the activity group card, the dashboard row wrap, the desktop goal-chip case, the date-picker headers, and the check-in modal spacing).
+The Playwright layer (`tests/e2e/`) drives the real UI in Chromium against the production build: the login round-trip, the SPA path routes + browser back/forward, the goals surface (seed order, blocked-count typography, add-task dialog, inline delete), and — the highest-regression-risk chrome — the MOBILE navigation (bottom tab bar with the active tab's inset-well chip, the MORE bottom sheet, the 768 middle-state pill nav). A setup project signs the demo user in once and shares the session cookie via storageState (the auth rate limiter makes per-test logins a trap). The suite boots the standalone server on port 3100 with its own scratch database (`db/e2e.db`), so it never touches your dev data — **60 checks** (v2.4 added the full-tab chip width, the wider MORE tab, and the mobile goal-card chip inversion; v2.5 added the hero-in-group feed semantics, the dashboard's 20-row activity cap + task-based Next Planned Action, the regenerated seed plans, and the logged-out LOG IN button's measured spec; v2.6 rewrote the stroke assertions to the reverted single-class stroke 2 and pinned the activity group card, the dashboard row wrap, the desktop goal-chip case, the date-picker headers, and the check-in modal spacing; v2.7 added the anchor-navigation census across every surface, the `/tasks` all-tasks view, the `/goals?new=true` wizard deep link, and the dead-ring/mobile-brand pins).
 
 The smoke suite boots the production standalone server, then runs **30 checks**: health, login (valid + wrong password + unauthenticated rejection), all six read endpoints, task creation, invalid-status rejection (400), status check-in round-trip (task status flips + update recorded), deletion, logout invalidation, page render, **path-route serving** (`/goals`, `/goals/<id>`, `/my-tasks`, `/activity`, `/team`, `/settings` — plus a 404 guard on unknown paths), the **clarify endpoint** (3 questions + validation), **team validation** (invite with invalid email, agent without a name), and the **login rate limit** (rapid-fire attempts earn `429 RATE_LIMITED`). It exits non-zero on any failure and cleans up after itself.
 

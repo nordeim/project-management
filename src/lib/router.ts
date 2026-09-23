@@ -14,12 +14,14 @@ export type ViewId =
   | "goals"
   | "goal-detail"
   | "my-tasks"
+  | "tasks"
   | "activity"
   | "team"
   | "settings";
 
 const VIEW_PATHS: Record<string, ViewId> = {
   "/my-tasks": "my-tasks",
+  "/tasks": "tasks",
   "/activity": "activity",
   "/team": "team",
   "/settings": "settings",
@@ -31,6 +33,7 @@ const LEGACY_VIEWS: ViewId[] = [
   "goals",
   "goal-detail",
   "my-tasks",
+  "tasks",
   "activity",
   "team",
   "settings",

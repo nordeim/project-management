@@ -9,7 +9,7 @@
 // matches the live app. The icon mapping lives in the tested activity-icons
 // seam; row dividers are rgba(160,143,126,0.15).
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ArrowRight, Plus } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { ProgressRing } from "@/components/orbital/progress-ring";
@@ -18,7 +18,7 @@ import { ActivityIcon } from "@/components/orbital/views/activity-icon";
 import { greetingFor, relativeTime, type ActivityDTO } from "@/lib/orbital";
 import { dayImageFor } from "@/lib/day-image";
 import { nextPlannedAction } from "@/lib/next-action";
-import { NewGoalDialog } from "@/components/orbital/dialogs/new-goal-dialog";
+import type { ViewId } from "@/lib/router";
 
 function DateCard() {
   const now = new Date();
@@ -67,7 +67,8 @@ function StatColumn({
   value,
   sub,
   subShort,
-  onClick,
+  href,
+  navigate,
 }: {
   label: string;
   /** Compact label shown below sm (reference: "BLOCKED" / "COMPLETED"). */
@@ -76,7 +77,9 @@ function StatColumn({
   sub: string;
   /** Compact sub shown below sm (reference: "26 done", "84% total"). */
   subShort: string;
-  onClick: () => void;
+  /** v2.7 (measured live): the stat wells are real links now. */
+  href: string;
+  navigate: (view: ViewId) => void;
 }) {
   return (
     // v1.8 (measured): MOBILE — fluid columns, no inner padding,
@@ -92,9 +95,15 @@ function StatColumn({
     // aspect-square w-full r10; md+ 88×88 r12. Mobile numerals are FIXED
     // 30px/400; md+ uses clamp(28px,3.5vw,52px)/300 — the live's md floor
     // is 28 (28px at 768, 35.8 at 1024, 50.4 at 1440).
-    <button
-      type="button"
-      onClick={onClick}
+    // v2.7: the well is an <a href> (measured live: Active Goals →
+    // /goals; Blocked + Completed → /my-tasks).
+    <a
+      href={href}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        navigate(href === "/goals" ? "goals" : "my-tasks");
+      }}
       className="flex min-w-0 flex-1 flex-col items-center text-center transition-colors hover:bg-black/[0.02]"
     >
       <div className="flex w-full flex-col items-center md:px-2 md:py-[10px]">
@@ -112,7 +121,7 @@ function StatColumn({
           <span className="hidden md:inline">{sub}</span>
         </p>
       </div>
-    </button>
+    </a>
   );
 }
 
@@ -143,7 +152,7 @@ export function DashboardView() {
   const activity = useOrbital((s) => s.activity);
   const allTasks = useOrbital((s) => s.allTasks);
   const navigate = useOrbital((s) => s.navigate);
-  const [newGoalOpen, setNewGoalOpen] = useState(false);
+  const openNewGoal = useOrbital((s) => s.openNewGoal);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
 
@@ -176,11 +185,23 @@ export function DashboardView() {
           <UserMenuOrLogin />
           {/* v2.2 (measured): the LARGE pill variant — 132×40, pad 11/20,
               12px/600 — distinct from the goals header's 121×35 base pill
-              (the live renders two different New Goal pills). */}
-          <button type="button" className="orb-pill-outline orb-pill-outline-lg self-start" onClick={() => setNewGoalOpen(true)}>
+              (the live renders two different New Goal pills).
+              v2.7 (measured live): the dashboard's New Goal is a real
+              LINK — /goals?new=true (navigates to the goals view AND
+              auto-opens the wizard; the goals header's NEW GOAL button
+              stays a button that opens the wizard in place). */}
+          <a
+            href="/goals?new=true"
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+              e.preventDefault();
+              openNewGoal();
+            }}
+            className="orb-pill-outline orb-pill-outline-lg self-start"
+          >
             <Plus size={13} strokeWidth={2} aria-hidden="true" />
             New Goal
-          </button>
+          </a>
         </div>
       </header>
 
@@ -202,17 +223,20 @@ export function DashboardView() {
         {/* Top-left cell: date card + ring side by side (150px mobile). */}
         <div className="flex min-h-0 flex-row gap-4">
           <DateCard />
-          <button
-            type="button"
-            onClick={() => navigate("goals")}
+          {/* v2.7 (measured live): the completion RING is a PLAIN
+              cursor-pointer div with NO click handler — the live's ring
+              does nothing when clicked (the v1.5 "Open goals" affordance
+              is gone; verified with a full mousedown/mouseup/click
+              sequence). Replicated faithfully: the pointer cursor stays
+              (visual affordance parity) but nothing navigates. */}
+          <div
             // v2.2 (measured): the hero row is TWO EQUAL cards through
             // 767 — the live computes flex 1 1 50% on both (165/166 at
             // 390, 308/308 at 700, gap 16; a basis-0 grow split rendered
             // 314/302 in Chromium, so the live's exact basis is kept);
             // at md the ring becomes the fixed 180×180 (top-aligned in
             // the 200px row) and the date card grows to fill (476).
-            className="orb-panel flex h-[150px] min-w-0 flex-[1_1_50%] items-center justify-center p-[6px] md:h-[180px] md:w-[180px] md:flex-none"
-            aria-label={`${stats?.completionRate ?? 0}% of all tasks done. Open goals.`}
+            className="orb-panel flex h-[150px] min-w-0 flex-[1_1_50%] cursor-pointer items-center justify-center p-[6px] md:h-[180px] md:w-[180px] md:flex-none"
           >
             {/* Inset neumorphic circle (reference, v1.5): a plain CSS well —
                 no SVG progress ring; big light numerals inside. */}
@@ -223,7 +247,7 @@ export function DashboardView() {
               {/* v1.7 (measured): 10px/400, ls 0.6px, #767676. */}
               <span className="mt-[2px] text-[10px] font-normal uppercase tracking-[0.06em] text-[#767676]">done</span>
             </div>
-          </button>
+          </div>
         </div>
 
         {/* Top-right cell: the three-column stats panel (v1.8 mobile
@@ -236,7 +260,8 @@ export function DashboardView() {
             value={stats?.activeGoals ?? 0}
             sub={`${stats?.totalTasks ?? 0} total tasks`}
             subShort={`${stats?.totalTasks ?? 0} tasks`}
-            onClick={() => navigate("goals")}
+            href="/goals"
+            navigate={navigate}
           />
           <StatColumn
             label="Blocked Tasks"
@@ -244,7 +269,8 @@ export function DashboardView() {
             value={stats?.blockedTasks ?? 0}
             sub={`${stats?.doneTasks ?? 0} completed`}
             subShort={`${stats?.doneTasks ?? 0} done`}
-            onClick={() => navigate("my-tasks")}
+            href="/my-tasks"
+            navigate={navigate}
           />
           <StatColumn
             label="Completed Tasks"
@@ -252,7 +278,8 @@ export function DashboardView() {
             value={stats?.doneTasks ?? 0}
             sub={`${stats?.completionRate ?? 0}% of total`}
             subShort={`${stats?.completionRate ?? 0}% total`}
-            onClick={() => navigate("goals")}
+            href="/my-tasks"
+            navigate={navigate}
           />
         </div>
 
@@ -269,13 +296,18 @@ export function DashboardView() {
               <span className="orb-live-dot" aria-hidden="true" />
               <span className="orb-label">Agent Activity</span>
             </h2>
-            <button
-              type="button"
+            {/* v2.7 (measured live): Full log is a real link → /activity. */}
+            <a
+              href="/activity"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                navigate("activity");
+              }}
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
-              onClick={() => navigate("activity")}
             >
               Full log <ArrowRight size={12} strokeWidth={2} />
-            </button>
+            </a>
           </div>
 
           <div className="orb-well mx-[14px] mt-[14px] shrink-0 p-[12px_14px]">
@@ -303,22 +335,33 @@ export function DashboardView() {
           {/* v1.7 (measured): header margin-bottom 20px. */}
           <div className="mb-5 flex shrink-0 items-center justify-between">
             <h2 className="orb-label">Goals</h2>
-            <button
-              type="button"
+            {/* v2.7 (measured live): Full log is a real link → /goals. */}
+            <a
+              href="/goals"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                navigate("goals");
+              }}
               className="flex items-center gap-1 text-[13px] font-medium text-orb-muted hover:text-orb-heading"
-              onClick={() => navigate("goals")}
             >
               Full log <ArrowRight size={12} strokeWidth={2} />
-            </button>
+            </a>
           </div>
           <ul className="space-y-[6px] pb-[18px]">
             {goals.slice(0, 5).map((goal) => {
               const pct = goal.taskCount > 0 ? Math.round((goal.doneCount / goal.taskCount) * 100) : 0;
               return (
                 <li key={goal.id}>
-                  <button
-                    type="button"
-                    onClick={() => navigate("goal-detail", goal.id)}
+                  {/* v2.7 (measured live): the goal wells are real links →
+                      /goals/<id>. */}
+                  <a
+                    href={`/goals/${goal.id}`}
+                    onClick={(e) => {
+                      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                      e.preventDefault();
+                      navigate("goal-detail", goal.id);
+                    }}
                     className="orb-well flex w-full items-center gap-[10px] p-[12px_14px] text-left transition-transform hover:-translate-y-0.5"
                   >
                     <div className="min-w-0 flex-1">
@@ -331,15 +374,13 @@ export function DashboardView() {
                     <ProgressRing value={pct} size={60} thickness={5.5}>
                       <span className="text-[14px] font-medium text-orb-heading">{pct}%</span>
                     </ProgressRing>
-                  </button>
+                  </a>
                 </li>
               );
             })}
           </ul>
         </div>
       </section>
-
-      <NewGoalDialog open={newGoalOpen} onOpenChange={setNewGoalOpen} />
     </div>
   );
 }

@@ -1,13 +1,13 @@
 ---
 name: project-management
-description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 23 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (137 Vitest unit + 44 Playwright browser + 30 curl smoke checks)."
+description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 25 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 60 Playwright browser + 30 curl smoke checks)."
 version: 1.0.0
 last_updated: 2026-09-23
 ---
 
 # ORBITAL — Project Management Workspace: Complete Engineering Skill
 
-> Distilled from sessions 1–23 (v1.0 → v2.6) of cloning and remediating the
+> Distilled from sessions 1–25 (v1.0 → v2.7) of cloning and remediating the
 > reference Base44 app as a self-hosted Next.js unit. Every fact below is
 > codebase-verified; measured values come from computed-style probes against
 > the live reference app (two authenticated browser sessions, 390/768/1440).
@@ -82,8 +82,8 @@ Design philosophy, in priority order:
 | Auth | Node `crypto` | — | scrypt + HMAC stateless cookie (`orbital_session`, 7-day TTL) |
 | AI | z-ai-web-dev-sdk | 0.0.x | Server-side only; deterministic fallbacks |
 | Icons | lucide-react | 0.5.x | `square-check-big` for tasks everywhere |
-| Unit tests | Vitest | 5 | 137 checks, `src/**/*.test.ts` + `tests/**/*.test.ts` |
-| Browser tests | Playwright | 1.63 | 44 checks, `tests/e2e/*.spec.ts`, own port + scratch DB |
+| Unit tests | Vitest | 5 | 138 checks, `src/**/*.test.ts` + `tests/**/*.test.ts` |
+| Browser tests | Playwright | 1.63 | 60 checks, `tests/e2e/*.spec.ts`, own port + scratch DB |
 | Runtime | Bun (or Node ≥ 20) | 1.3+ | Scripts run from repo root — this matters (see §10) |
 
 Environment contract (`.env`, gitignored; see `.env.example`):
@@ -319,7 +319,7 @@ bun run typecheck      # 0 errors (the build won't catch types)
 bun run test           # 137 unit checks
 bun run build          # clean compile + standalone assembly
 ./scripts/smoke-test.sh  # 30 curl checks against the standalone build
-bun run test:e2e       # 44 Playwright checks (needs the build)
+bun run test:e2e       # 60 Playwright checks (needs the build)
 ```
 
 Then: re-probe any changed surface against the live reference at
@@ -358,23 +358,43 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
    are the sanctioned override path.
 7. **Re-measure when parity drifts.** The live app is a moving target —
    the v1.7 mobile-tab reading was correct once and wrong by v2.3.
-   Sessions that skip the re-crawl inherit stale specs.
-8. **Derive UI text from the data it describes, not from a sibling feed
-   (v2.5).** The dashboard's "Next Planned Action" was read off
-   `status_update` activity rows — correct only because the OLD reference
-   data happened to log a blocked check-in. The regenerated live carries
-   zero status updates yet still shows the blocked-task NPA: the seam now
-   takes the task list + goals. Same class of bug as reading layout off
-   screenshots: the input must be the SOURCE of the fact.
-9. **A "duplicate" row can be the spec (v2.5).** The activity view's hero
-   looked like it should be sliced out of the date groups — it renders in
-   BOTH places on the live ("Online · N" == timestamped rows). Verify
-   count invariants against the reference before deduplicating.
-10. **`rounded-xl` is not 12px here.** The shadcn `--radius: 1rem` token
+8. **Anchor navigation and SPA state can coexist (v2.7).** When the
+   reference converts its buttons to real `<a href>` links, mirror the
+   DOM — but keep the SPA: `preventDefault` + the store's `navigate` on
+   plain left clicks, and let modified/middle clicks fall through so the
+   truthful href opens a real tab. Deep-linkable wizard state
+   (`/goals?new=true`) belongs in the STORE (an intent flag read at
+   boot/applyUrlState and cleared on dialog close) — never in a
+   mount-time `useEffect` setState (the `react-hooks/set-state-in-effect`
+   lint rule forbids it, and deriving the dialog's open state from the
+   flag avoids hydration races).
+9. **Replicate the reference's dead seams faithfully (v2.7).** When the
+   live leaves an affordance unwired (the completion ring, the /tasks row
+   clicks — both `cursor: pointer` with inert handlers), the parity-
+   correct clone does the same. Pin the deadness with e2e (click → no
+   navigation, no dialog) so a future live fix surfaces as drift instead
+   of a silent mismatch. Verify suspected-dead controls with a FULL
+   mousedown/mouseup/click sequence before declaring them dead — a plain
+   `.click()` can miss popover triggers (the live's user pill needed the
+   full sequence).
+10. **Re-crawl before every remediation pass.** Specs age between
+    sessions; the sessions that skip the re-crawl inherit stale specs.
+11. **Derive UI text from the data it describes, not from a sibling feed
+    (v2.5).** The dashboard's "Next Planned Action" was read off
+    `status_update` activity rows — correct only because the OLD reference
+    data happened to log a blocked check-in. The regenerated live carries
+    zero status updates yet still shows the blocked-task NPA: the seam now
+    takes the task list + goals. Same class of bug as reading layout off
+    screenshots: the input must be the SOURCE of the fact.
+12. **A "duplicate" row can be the spec (v2.5).** The activity view's hero
+    looked like it should be sliced out of the date groups — it renders in
+    BOTH places on the live ("Online · N" == timestamped rows). Verify
+    count invariants against the reference before deduplicating.
+13. **`rounded-xl` is not 12px here.** The shadcn `--radius: 1rem` token
     override makes Tailwind's `rounded-xl` compute to 20px — the logged-out
     LOG IN pill needed explicit `rounded-[12px]`/`rounded-[10px]` values
     to match the measured reference.
-11. **Prefer library defaults over bespoke micro-styling (v2.6).** The
+14. **Prefer library defaults over bespoke micro-styling (v2.6).** The
     live reference flipped its icon strokes twice in three deploys (v2.4
     split chrome/content at 1.5/2; v2.6 reverted everything to the lucide
     default 2). Custom stroke values on ~33 sites meant 33 edits to
@@ -578,8 +598,8 @@ string | null`, `candidateRoots(): string[]`,
 | Status metadata | `src/lib/orbital.ts` (`*_STATUS_META`) |
 | Neumorphic classes | `src/app/globals.css` `@layer utilities` |
 | DB resolution | `src/lib/db-path.ts` (tested by `tests/db-path.test.ts`) |
-| Unit tests | `src/**/*.test.ts` + `tests/**/*.test.ts` (137) |
-| Browser tests | `tests/e2e/*.spec.ts` (36) — scratch DB `db/e2e.db`, port 3100 |
+| Unit tests | `src/**/*.test.ts` + `tests/**/*.test.ts` (138) |
+| Browser tests | `tests/e2e/*.spec.ts` (60) — scratch DB `db/e2e.db`, port 3100 |
 | Smoke tests | `scripts/smoke-test.sh` (30, curl, port 3000) |
 | Screenshots | `docs/screenshots/*.png` — ALWAYS from the production build |
 | Deployment | `docs/DEPLOYMENT.md` (§4 = database location) |

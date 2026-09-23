@@ -63,9 +63,13 @@ function GoalCard({
     // pad 14px 16px (card h 136 for the seed goal).
     <div className="orb-goal-card w-full text-left transition-transform hover:-translate-y-0.5">
       {/* ---- MOBILE (below lg): compact card ---- */}
-      <button
-        type="button"
-        onClick={() => navigate("goal-detail", goal.id)}
+      <a
+        href={`/goals/${goal.id}`}
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+          e.preventDefault();
+          navigate("goal-detail", goal.id);
+        }}
         className="block w-full p-[14px_16px] text-left md:hidden"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
@@ -159,13 +163,17 @@ function GoalCard({
             )}
           </div>
         </div>
-      </button>
+      </a>
 
       {/* ---- DESKTOP (lg and up): two-column card ---- */}
       <div className="hidden w-full items-stretch md:flex">
-      <button
-        type="button"
-        onClick={() => navigate("goal-detail", goal.id)}
+      <a
+        href={`/goals/${goal.id}`}
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+          e.preventDefault();
+          navigate("goal-detail", goal.id);
+        }}
         className="min-w-0 flex-1 p-[18px_20px] text-left"
         aria-label={`Open goal ${goal.title}, ${goal.doneCount} of ${goal.taskCount} tasks done, ${pct}% complete`}
       >
@@ -215,7 +223,7 @@ function GoalCard({
           ) : null}
         </p>
         {goal.targetDate ? <p className="text-[12px] text-[#767676]">{formatDate(goal.targetDate)}</p> : null}
-      </button>
+      </a>
 
       {/* Right column (reference, v1.6/v1.7): a fixed 120px stats strip —
           the big 42px percentage over the 12px task fraction with the
@@ -274,9 +282,18 @@ function GoalCard({
 export function GoalsView() {
   const goals = useOrbital((s) => s.goals);
   const deleteGoal = useOrbital((s) => s.deleteGoal);
+  const newGoalIntent = useOrbital((s) => s.newGoalIntent);
+  const clearNewGoalIntent = useOrbital((s) => s.clearNewGoalIntent);
   const [filter, setFilter] = useState<"all" | GoalStatus>("all");
   const [newGoalOpen, setNewGoalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GoalDTO | null>(null);
+
+  // v2.7 (measured live): /goals?new=true auto-opens the wizard — both on
+  // the dashboard's New Goal LINK (the store's intent flag — set by
+  // openNewGoal on soft nav, by boot/applyUrlState on hard loads and
+  // popstate) and on a hard deep link. The dialog's open state DERIVES
+  // from the flag (no mount-time state write): closing the dialog clears
+  // the intent. The URL keeps ?new=true exactly like the reference.
 
   const counts = useMemo(() => {
     const map = new Map<string, number>([["all", goals.length]]);
@@ -363,7 +380,13 @@ export function GoalsView() {
         )}
       </div>
 
-      <NewGoalDialog open={newGoalOpen} onOpenChange={setNewGoalOpen} />
+      <NewGoalDialog
+        open={newGoalOpen || newGoalIntent}
+        onOpenChange={(open) => {
+          setNewGoalOpen(open);
+          if (!open) clearNewGoalIntent();
+        }}
+      />
       {editingGoal ? <GoalEditDialog goal={editingGoal} onClose={() => setEditingGoal(null)} /> : null}
     </div>
   );

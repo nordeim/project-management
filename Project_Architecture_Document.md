@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.6
+# ORBITAL — Master Project Architecture Document (PAD) v2.7
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,14 @@
 **Last Updated:** 2026-09-23
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.7
+
+- `[MOD]` **Navigation is ANCHOR-BASED (measured on the re-deployed live, 2026-09-23)**: every view-switch surface renders a real `<a href>` — sidebar nav ×6 + the brand + the TASKS STATUS widget, the mobile tab bar ×4 (MORE stays a `<button>`; the Home icon swaps `layout-grid` → `layout-dashboard`), the 768 pill nav ×6 (its "Tasks" targets `/my-tasks`), the MORE sheet rows ×3, the dashboard stat wells (`/goals`, `/my-tasks` ×2) + goal wells (`/goals/<id>`) + "Full log" ×2 (`/activity`, `/goals`) + the New Goal pill, and the goals-view cards (`/goals/<id>`). The clone keeps the SPA: a shared click contract (`preventDefault` + store `navigate` on plain left clicks; modified/middle clicks fall through so the truthful href opens a real tab).
+- `[ADD]` **The all-tasks view at `/tasks`** (the live's new view): h1 "Tasks" + "{n} total tasks across all goals", the My-Tasks five-chip filter row with workspace-wide counts, and TaskCard-content rows as PLAIN `cursor-pointer` divs — NO action squares, NO open-on-click (the reference's row click is inert — their WIP seam, replicated). Entry point: the mobile MORE sheet's "Tasks" row ONLY; no navigation surface lights up on it. `router.ts`/`next.config.ts` gain the `/tasks` mapping; the store's `allTasks` slice feeds it.
+- `[ADD]` **The `/goals?new=true` deep link**: the dashboard's New Goal link navigates to goals AND auto-opens the wizard — soft nav via the store's `newGoalIntent` flag (`openNewGoal()`), hard loads/popstate via `boot()`/`applyUrlState()` URL parsing; the GoalsView dialog derives its open state from the flag (no mount-time state write — the dialog closes clear the intent), and `syncUrl` keeps `?new=true` in the URL like the reference.
+- `[MOD]` **Dead interaction seams replicated (measured)**: the dashboard completion ring is a PLAIN `cursor-pointer` div with no click handler (the live's ring does nothing on click — the v1.5 "Open goals" affordance is gone; the user pill's Log Out popover still works on both and stays), and the mobile app-bar brand is a plain element (not clickable). The TaskCard button gains `cursor-pointer` (the live's rows show the pointer cursor).
+- `[NOTE]` **Verification**: full gate green — lint 0 · typecheck 0 · **138/138 unit** (the `/tasks` router mapping pinned) · build clean · 30/30 smoke · **60/60 Playwright** (44 + 16 net-new v2.7 checks: the anchor census across every surface, the `/tasks` view, the wizard deep link on soft nav AND hard load, the layout-dashboard Home icon, the dead ring, the inert mobile brand) — plus computed-style re-probes EXACT on every changed surface (sidebar href map, tab census with anchors, `/tasks` chips + rows, MORE sheet hrefs, the wizard auto-open, the ring's DIV/pointer/dead state) and a VLM sanity pass on the regenerated screenshots (16-tasks.png added).
 
 #### Revision Block — v2.6
 

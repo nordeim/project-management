@@ -169,3 +169,33 @@ Work Log:
 
 Stage Summary:
 - v2.6 shipped: every icon renders at the lucide default stroke 2, the dashboard activity rows wrap at gap 12, the activity view groups rows in the deeper-pair card, the desktop goal-chip blocked count is uppercase, the date-picker headers and check-in modal spacing match the live — all pinned by 44 Playwright checks.
+
+---
+Task ID: 1
+Agent: main (Super Z)
+Task: Session 25 — v2.7 survey (workspace refresh + live re-crawl)
+
+Work Log:
+- Pulled 7e9e9f9 (session_24 log + Tailwind-V4 validation report upstream); baseline gate green (137/137 unit · 30/30 smoke · 44/44 e2e); re-seeded custom.db to the pristine 3/31/36 after the smoke residue; confirmed the vestigial tailwind.config.ts is inert (no @config — fully CSS-first v4).
+- Re-crawled the live vs the production clone at 390/768/1440 with fresh authenticated sessions; the live re-deployed since v2.6 and converted ALL view-switch surfaces to real <a href> anchors, added a NEW all-tasks view at /tasks (MORE-sheet entry only, inert rows), swapped the Home icon to layout-dashboard, and left the dashboard ring + mobile brand dead (verified with full mousedown/mouseup/click sequences; the user pill popover still works).
+- Wrote docs/parity-remediation-v2.7.md (F1–F5, WS-1–WS-8) and validated it against the codebase.
+
+Stage Summary:
+- One systemic navigation-semantics change (anchors everywhere), one new view (/tasks), one icon swap, and two dead-seam replications — all computed-style verified on both apps; full non-findings list recorded.
+
+---
+Task ID: 2
+Agent: main (Super Z)
+Task: Session 25 — v2.7 execution (WS-1..WS-5 TDD + gate + re-probe)
+
+Work Log:
+- RED: router unit tests extended for /tasks (2 failing) + 16 new/rewritten Playwright assertions in v27-parity.spec.ts + the mobile-nav/goals/workspace specs updated to the anchor DOM — all failed as expected.
+- WS-1 anchors: orbital-app (TABS/PILL_TABS/MORE rows + the anchorGo contract), sidebar (nav ×6 + brand + TASKS STATUS), goals-view cards, dashboard (StatColumn/goal wells/Full log/New Goal → /goals?new=true).
+- WS-2 /tasks: router + next.config mapping; new tasks-view.tsx (five chips + inert cursor-pointer rows from allTasks). WS-3: LayoutGrid → LayoutDashboard. WS-4: the ring → dead div; the mobile brand → plain element; TaskCard cursor-pointer.
+- The wizard deep link: store newGoalIntent flag (openNewGoal + boot/applyUrlState URL parsing) + the GoalsView dialog DERIVING open from the flag (the useEffect draft tripped the set-state-in-effect lint rule); syncUrl keeps ?new=true.
+- GREEN hardening: goals.spec cleans up its scratch task; the /tasks counts derive from the API; the hard-load wizard test asserts the dialog (the modal hides the background h1); role queries dodge the hidden-variant collisions.
+- Final gate green — lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · 60/60 e2e; re-probes EXACT on every changed surface (sidebar href map, tab census anchors + layout-dashboard, /tasks chips/rows/no-active-tab, MORE sheet hrefs, the wizard auto-open, the dead ring).
+- 14 nav screenshots regenerated + the new 16-tasks.png (VLM-verified); README/AGENTS/CLAUDE/PAD v2.7/SKILL (lessons 8+9)/session_25/worklog aligned; plan marked EXECUTED; committed and pushed via docs/ssh_git_wrapper_v3.py.
+
+Stage Summary:
+- v2.7 shipped: every navigation surface renders the live's real anchor DOM (with SPA click semantics preserved), the all-tasks view serves /tasks with the live's exact chips and inert rows, the New Goal deep link auto-opens the wizard, and the dead seams (ring, mobile brand) are faithfully replicated — all pinned by 60 Playwright checks.

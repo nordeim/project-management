@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
       { source: "/goals", destination: "/" },
       { source: "/goals/:goalId", destination: "/" },
       { source: "/my-tasks", destination: "/" },
+      { source: "/tasks", destination: "/" },
       { source: "/activity", destination: "/" },
       { source: "/team", destination: "/" },
       { source: "/settings", destination: "/" },

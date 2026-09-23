@@ -44,12 +44,12 @@ login
 shot 01-dashboard "/"
 shot 02-goals "/goals"
 shot 03-goal-detail "/goals" "
-(() => { const btn = [...document.querySelectorAll('main button')].find(b => /Product Onboarding Redesign/.test(b.textContent||'') && b.getBoundingClientRect().width > 200 && b.getBoundingClientRect().height > 100); if (btn) btn.click(); return 'ok'; })()"
+(() => { const card = [...document.querySelectorAll('main a[href^=\"/goals/\"]')].find(b => /Product Onboarding Redesign/.test(b.textContent||'') && b.getBoundingClientRect().width > 200 && b.getBoundingClientRect().height > 100); if (card) card.click(); return 'ok'; })()"
 sleep 2
 agent-browser --session "$SESS" screenshot "$OUT/03-goal-detail.png" > /dev/null 2>&1
 echo "captured 03-goal-detail"
 shot 04-task-dialog "/goals" "
-(() => { const btn = [...document.querySelectorAll('main button')].find(b => /Product Onboarding Redesign/.test(b.textContent||'') && b.getBoundingClientRect().width > 200 && b.getBoundingClientRect().height > 100); if (btn) btn.click(); return 'ok'; })()"
+(() => { const card = [...document.querySelectorAll('main a[href^=\"/goals/\"]')].find(b => /Product Onboarding Redesign/.test(b.textContent||'') && b.getBoundingClientRect().width > 200 && b.getBoundingClientRect().height > 100); if (card) card.click(); return 'ok'; })()"
 sleep 2
 agent-browser --session "$SESS" eval "
 (() => { const task = [...document.querySelectorAll('main button')].find(b => /User research interviews/.test(b.textContent||'') && b.getBoundingClientRect().width > 300); if (task) task.click(); return 'ok'; })()" > /dev/null 2>&1
@@ -57,6 +57,7 @@ sleep 2
 agent-browser --session "$SESS" screenshot "$OUT/04-task-dialog.png" > /dev/null 2>&1
 echo "captured 04-task-dialog"
 shot 07-my-tasks "/my-tasks"
+shot 16-tasks "/tasks"
 shot 08-activity "/activity"
 shot 09-team "/team"
 shot 10-settings "/settings"

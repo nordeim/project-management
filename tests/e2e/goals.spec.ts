@@ -47,7 +47,8 @@ test.describe("goals view", () => {
   });
 
   test("goal cards navigate to the detail view", async ({ page }) => {
-    await page.getByRole("button", { name: /Product Onboarding Redesign/ }).first().click();
+    // v2.7: the goal cards are real <a href="/goals/<id>"> links now.
+    await page.getByRole("link", { name: /Product Onboarding Redesign/ }).first().click();
     await expect(page).toHaveURL(/\/goals\/[a-z0-9]+/i);
     await expect(page.getByRole("heading", { name: "Product Onboarding Redesign" })).toBeVisible();
   });
@@ -67,7 +68,7 @@ test.describe("mobile goal cards (v2.4)", () => {
 
   test("the status is bare text and the percentage carries the well chip", async ({ page }) => {
     // Wait for the seeded cards.
-    const firstCard = page.getByRole("button", { name: /Product Onboarding Redesign/ }).first();
+    const firstCard = page.getByRole("link", { name: /Product Onboarding Redesign/ }).first();
     await expect(firstCard).toBeVisible();
 
     // The percentage: a well chip (v2.4) — bg, radius 8, inset pair.
@@ -94,7 +95,7 @@ test.describe("mobile goal cards (v2.4)", () => {
 test.describe("goal detail", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/goals");
-    await page.getByRole("button", { name: /Product Onboarding Redesign/ }).first().click();
+    await page.getByRole("link", { name: /Product Onboarding Redesign/ }).first().click();
     await expect(page.getByRole("heading", { name: "Product Onboarding Redesign" })).toBeVisible();
   });
 
@@ -111,6 +112,12 @@ test.describe("goal detail", () => {
     await submit.click();
     await expect(page.getByRole("dialog")).toBeHidden();
     await expect(page.getByText("E2E verification task").filter({ visible: true }).first()).toBeVisible();
+
+    // Cleanup (v2.7): delete the scratch task so later specs — /tasks
+    // counts, activity feed floors — see the pristine seed counts.
+    const list = (await (await page.request.get("/api/tasks")).json()).data as Array<{ id: string; title: string }>;
+    const scratch = list.find((t) => t.title === "E2E verification task");
+    if (scratch) await page.request.delete(`/api/tasks/${scratch.id}`);
   });
 
   test("deletes confirm inline and remove the goal", async ({ page }) => {

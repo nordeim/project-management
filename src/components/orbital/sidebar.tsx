@@ -10,6 +10,7 @@ import { useOrbital, type ViewId } from "@/components/orbital/store";
 import { LogoMark } from "@/components/orbital/logo";
 import { SidebarClock } from "@/components/orbital/sidebar-clock";
 import { cn } from "@/lib/utils";
+import { toPath } from "@/lib/router";
 import type { ReactNode } from "react";
 
 interface NavItem {
@@ -36,6 +37,16 @@ function isActive(current: ViewId, target: ViewId, goalId: string | null): boole
   return current === target;
 }
 
+/** v2.7 anchor click (measured live): plain left clicks navigate in-app
+ *  (pushState); modified/middle clicks fall through so the truthful href
+ *  opens a real tab. */
+function sidebarAnchorGo(e: React.MouseEvent<HTMLAnchorElement>, navigate: (view: ViewId) => void, view: ViewId, onCollapse?: () => void) {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+  e.preventDefault();
+  navigate(view);
+  onCollapse?.();
+}
+
 export function Sidebar({
   collapsed = false,
   onCollapse,
@@ -54,13 +65,10 @@ export function Sidebar({
   function renderNavItem(item: NavItem) {
     const active = isActive(view, item.id, goalId);
     return (
-      <button
+      <a
         key={item.id}
-        type="button"
-        onClick={() => {
-          navigate(item.id);
-          onCollapse?.();
-        }}
+        href={toPath(item.id)}
+        onClick={(e) => sidebarAnchorGo(e, navigate, item.id, onCollapse)}
         aria-current={active ? "page" : undefined}
         title={collapsed ? item.label : undefined}
         aria-label={collapsed ? item.label : undefined}
@@ -69,6 +77,7 @@ export function Sidebar({
           // text), full content width, 4px gaps between rows; inactive
           // items are 14px/400. The ACTIVE row carries the brighter
           // .orb-nav-active inset pair (255,252,248@0.75 / 180,165,150@0.32).
+          // v2.7: the rows are real <a href> links (measured live).
           "flex w-full items-center rounded-[10px] py-[9px] text-[14px] transition-colors",
           collapsed ? "justify-center px-0" : "gap-3 px-[14px]",
           active
@@ -80,7 +89,7 @@ export function Sidebar({
           {item.icon}
         </span>
         {collapsed ? null : item.label}
-      </button>
+      </a>
     );
   }
 
@@ -88,14 +97,14 @@ export function Sidebar({
     // Icon-only rail: logo, nav icons, clock. Tasks status card is hidden.
     return (
       <div className="flex h-full w-full flex-col items-center px-2 py-5">
-        <button
-          type="button"
-          onClick={() => navigate("dashboard")}
-          className="flex h-11 w-11 items-center justify-center rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+        <a
+          href={toPath("dashboard")}
+          onClick={(e) => sidebarAnchorGo(e, navigate, "dashboard")}
+          className="flex h-11 w-11 items-center justify-center rounded-xl"
           aria-label="Orbital home"
         >
           <LogoMark size={28} />
-        </button>
+        </a>
 
         <nav className="mt-6 flex w-full flex-col gap-1" aria-label="Workspace">
           {workspaceItems.map(renderNavItem)}
@@ -117,15 +126,15 @@ export function Sidebar({
           the content edge (x=50 on the panel at x=24+16) with an 8px gap to
           "ORBITAL" set in ARCHIVO 600 at 13px/ls 2.34px in #2F2823. */}
       <div className="flex items-center justify-between px-4 pb-2 pt-0">
-        <button
-          type="button"
-          onClick={() => navigate("dashboard")}
-          className="flex items-center gap-2 rounded-xl pl-2.5 focus-visible:outline-2 focus-visible:outline-ring"
+        <a
+          href={toPath("dashboard")}
+          onClick={(e) => sidebarAnchorGo(e, navigate, "dashboard")}
+          className="flex items-center gap-2 rounded-xl pl-2.5"
           aria-label="Orbital home"
         >
           <LogoMark size={11} />
           <span className="font-archivo text-[13px] font-semibold uppercase leading-[13px] tracking-[0.18em] text-orb-body">Orbital</span>
-        </button>
+        </a>
         {onCollapse ? (
           <button
             type="button"
@@ -154,12 +163,9 @@ export function Sidebar({
           captions. It sits beside the 80px clock with a 10px gap. */}
       <div className="mt-auto flex items-center gap-[10px] px-4 pb-3">
         <SidebarClock size={80} />
-        <button
-          type="button"
-          onClick={() => {
-            navigate("my-tasks");
-            onCollapse?.();
-          }}
+        <a
+          href={toPath("my-tasks")}
+          onClick={(e) => sidebarAnchorGo(e, navigate, "my-tasks", onCollapse)}
           className="orb-well flex h-[80px] min-w-0 flex-1 flex-col justify-center gap-2 px-3 text-left"
           aria-label={`Tasks status: ${blocked} blocked, ${overdue} overdue. Open My Tasks.`}
         >
@@ -174,7 +180,7 @@ export function Sidebar({
             <span className="text-[11px] font-bold leading-none text-orb-heading">{overdue}</span>
             <span className="text-[11px] font-normal text-[#767676]">Overdue</span>
           </div>
-        </button>
+        </a>
       </div>
     </div>
   );

@@ -6,15 +6,24 @@
 // tab bar (HOME / GOALS / MY TASKS / AGENT / MORE) — MORE opens a bottom
 // sheet with Tasks, Team and Settings. Signed-out visitors see the same
 // shell with a LOG IN button (reference behavior, v1.4).
+//
+// v2.7 (measured live): every view-switch surface is a REAL ANCHOR now —
+// the live re-deployed with <a href> navigation (sidebar, mobile tabs,
+// pill nav, MORE sheet rows, dashboard wells, goal cards, Full log, the
+// New Goal link at /goals?new=true). We render the same anchor DOM while
+// keeping the SPA: plain left clicks call preventDefault + the store's
+// navigate (pushState); modified clicks / middle-click fall through to
+// the browser (real URLs open in new tabs — the href is truthful).
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Activity, ChevronLeft, ChevronRight, LayoutGrid, ListTodo, Menu, Settings, SquareCheckBig, Target, Users, X } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, LayoutDashboard, ListTodo, Menu, Settings, SquareCheckBig, Target, Users, X } from "lucide-react";
 import { useOrbital, type SessionUser } from "@/components/orbital/store";
 import { Sidebar } from "@/components/orbital/sidebar";
 import { DashboardView } from "@/components/orbital/views/dashboard-view";
 import { GoalsView } from "@/components/orbital/views/goals-view";
 import { GoalDetailView } from "@/components/orbital/views/goal-detail-view";
 import { MyTasksView } from "@/components/orbital/views/my-tasks-view";
+import { TasksView } from "@/components/orbital/views/tasks-view";
 import { ActivityView } from "@/components/orbital/views/activity-view";
 import { TeamView } from "@/components/orbital/views/team-view";
 import { SettingsView } from "@/components/orbital/views/settings-view";
@@ -23,10 +32,10 @@ import { UserMenuOrLogin } from "@/components/orbital/user-menu";
 import { sidebarCollapsedStore, toggleSidebarCollapsed } from "@/components/orbital/sidebar-collapse";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import type { ViewId } from "@/lib/router";
+import { toPath, type ViewId } from "@/lib/router";
 
 const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutGrid size={20} strokeWidth={2} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutDashboard size={20} strokeWidth={2} /> },
   { view: "goals", label: "Goals", icon: <Target size={20} strokeWidth={2} /> },
   { view: "my-tasks", label: "My Tasks", icon: <SquareCheckBig size={20} strokeWidth={2} /> },
   { view: "activity", label: "Agent", icon: <Activity size={20} strokeWidth={2} /> },
@@ -38,7 +47,7 @@ const TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
 // 18px glyphs; every live nav uses lucide's square-check-big for the tasks
 // view (the mobile tab bar's My Tasks glyph was swapped to match too).
 const PILL_TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> = [
-  { view: "dashboard", label: "Home", icon: <LayoutGrid size={18} strokeWidth={2} /> },
+  { view: "dashboard", label: "Home", icon: <LayoutDashboard size={18} strokeWidth={2} /> },
   { view: "goals", label: "Goals", icon: <Target size={18} strokeWidth={2} /> },
   { view: "my-tasks", label: "Tasks", icon: <SquareCheckBig size={18} strokeWidth={2} /> },
   { view: "activity", label: "Activity", icon: <Activity size={18} strokeWidth={2} /> },
@@ -49,6 +58,16 @@ const PILL_TABS: Array<{ view: ViewId; label: string; icon: React.ReactNode }> =
 function tabActive(current: ViewId, target: ViewId): boolean {
   if (target === "goals") return current === "goals" || current === "goal-detail";
   return current === target;
+}
+
+/** v2.7 anchor click: plain left clicks do SPA navigation (pushState);
+ *  modified clicks (cmd/ctrl/shift/alt) and middle-clicks fall through to
+ *  the browser so the truthful href opens a new tab — the live's link
+ *  semantics. */
+function anchorGo(e: React.MouseEvent<HTMLAnchorElement>, go: (view: ViewId) => void, view: ViewId) {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+  e.preventDefault();
+  go(view);
 }
 
 export function OrbitalApp({ user }: { user: SessionUser | null }) {
@@ -155,18 +174,17 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             className="sticky top-0 z-50 flex h-[62px] shrink-0 items-center justify-between bg-orb-raised px-5 shadow-[0_4px_16px_rgba(160,143,126,0.18)] md:hidden"
             aria-label="App bar"
           >
-            <button
-              type="button"
-              onClick={() => navigate("dashboard")}
-              className="flex items-center gap-2 rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
-              aria-label="Orbital home"
-            >
+            {/* v2.7 (measured live): the mobile app-bar brand is NOT
+                clickable — the reference header carries no button/link for
+                the mark (the desktop sidebar's brand IS a link; see
+                sidebar.tsx). */}
+            <div className="flex items-center gap-2">
               {/* v1.9 (measured): the mobile brand is the compact variant —
                   a 9px six-dot mark (3px dots) + "ORBITAL" in Archivo
                   12px/600/ls 2.16px #2F2823, 8px apart. */}
               <LogoMark size={9} />
               <span className="font-archivo text-[12px] font-semibold uppercase leading-[18px] tracking-[0.18em] text-orb-body">Orbital</span>
-            </button>
+            </div>
             <UserMenuOrLogin compact />
           </header>
           {/* v2.2 (measured live middle state): at md–lg every view except
@@ -211,6 +229,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
               {view === "goals" ? <GoalsView /> : null}
               {view === "goal-detail" ? <GoalDetailView /> : null}
               {view === "my-tasks" ? <MyTasksView /> : null}
+              {view === "tasks" ? <TasksView /> : null}
               {view === "activity" ? <ActivityView /> : null}
               {view === "team" ? <TeamView /> : null}
               {view === "settings" ? <SettingsView /> : null}
@@ -243,10 +262,10 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             {TABS.map((tab) => {
               const active = tabActive(view, tab.view);
               return (
-                <button
+                <a
                   key={tab.view}
-                  type="button"
-                  onClick={() => go(tab.view)}
+                  href={toPath(tab.view)}
+                  onClick={(e) => anchorGo(e, go, tab.view)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex flex-1 flex-col items-stretch justify-center text-[9px] font-semibold uppercase tracking-[0.05em] transition-colors",
@@ -262,7 +281,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                     {tab.icon}
                     {tab.label}
                   </span>
-                </button>
+                </a>
               );
             })}
             <button
@@ -306,10 +325,10 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
             {PILL_TABS.map((tab) => {
               const active = tabActive(view, tab.view);
               return (
-                <button
+                <a
                   key={tab.view}
-                  type="button"
-                  onClick={() => go(tab.view)}
+                  href={toPath(tab.view)}
+                  onClick={(e) => anchorGo(e, go, tab.view)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex flex-col items-center justify-center gap-[3px] rounded-[12px] px-3 py-2 transition-colors",
@@ -327,7 +346,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                   >
                     {tab.label}
                   </span>
-                </button>
+                </a>
               );
             })}
           </nav>
@@ -366,15 +385,18 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                 <ul className="space-y-[8px]">
                   {(
                     [
-                      { view: "my-tasks", label: "Tasks", icon: <ListTodo size={20} strokeWidth={2} /> },
-                      { view: "team", label: "Team", icon: <Users size={20} strokeWidth={2} /> },
-                      { view: "settings", label: "Settings", icon: <Settings size={20} strokeWidth={2} /> },
+                      // v2.7 (measured live): the MORE sheet rows are real
+                      // links now — "Tasks" targets the NEW all-tasks view
+                      // at /tasks (not /my-tasks).
+                      { view: "tasks", label: "Tasks", href: "/tasks", icon: <ListTodo size={20} strokeWidth={2} /> },
+                      { view: "team", label: "Team", href: "/team", icon: <Users size={20} strokeWidth={2} /> },
+                      { view: "settings", label: "Settings", href: "/settings", icon: <Settings size={20} strokeWidth={2} /> },
                     ] as const
                   ).map((item) => (
                     <li key={item.view}>
-                      <button
-                        type="button"
-                        onClick={() => go(item.view)}
+                      <a
+                        href={item.href}
+                        onClick={(e) => anchorGo(e, go, item.view)}
                         aria-current={view === item.view ? "page" : undefined}
                         className="flex h-[49px] w-full items-center gap-3 text-left text-[16px] font-normal text-orb-body transition-colors hover:text-orb-heading"
                       >
@@ -382,7 +404,7 @@ export function OrbitalApp({ user }: { user: SessionUser | null }) {
                           {item.icon}
                         </span>
                         {item.label}
-                      </button>
+                      </a>
                     </li>
                   ))}
                 </ul>
