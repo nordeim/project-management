@@ -69,10 +69,17 @@ export function ActivityView() {
         {/* v1.9 (measured): the online pill — pad 7px 12px (h ≈ 30.5),
             gap 6px, radius 9999, inset well pair, top aligned with the h1
             (y=48 — no top margin). "Online" is 11px/600 #3A3A3A and the
-            "· N" count is 11px/400 #767676. */}
+            "· N" count is 11px/400 #767676. v2.10 (re-measured): the live
+            restructured the pill into three flex children — [7px dot
+            span][Online span][· N span] — so the text runs "Online· 36"
+            (no space before the separator; the old text-node layout read
+            "Online · 36" at 96 wide). v2.10 (re-probed): the live's
+            "Online" span carries ls 0.66px (w 39 — without it the pill
+            computes ~3px narrow); the count span stays ls-normal. */}
         <p className="orb-well-pill flex shrink-0 items-center gap-[6px] px-3 py-[7px] text-[11px] font-semibold text-orb-heading">
           <span className="orb-live-dot" aria-hidden="true" />
-          Online <span className="font-normal text-[#767676]" aria-hidden="true">· {activity.length}</span>
+          <span className="tracking-[0.66px]">Online</span>
+          <span className="font-normal tracking-normal text-[#767676]" aria-hidden="true">· {activity.length}</span>
         </p>
       </header>
 
@@ -112,11 +119,12 @@ export function ActivityView() {
           {groups.map((group) => (
             <section key={group.key} aria-label={group.label}>
               {/* v2.6 (measured live): the label renders as an inline span
-                  inside a 24px LINE BOX whose margin-bottom is 10px — the
-                  label text sits ~7px lower than a plain block P and the
-                  group card starts 5px lower (the old block P: lh 15,
-                  mb 14). */}
-              <div className="mb-[10px] leading-6">
+                  inside a line box whose margin-bottom is 10px. v2.10
+                  (re-measured): the line box's line-height is 15px (the
+                  v2.6 "24px line box" reading retired — the group card
+                  starts ~2px lower on the live; the label block keeps its
+                  mb 10). */}
+              <div className="mb-[10px] leading-[15px]">
                 <span className="orb-label-sm">{group.label}</span>
               </div>
               {/* v2.6 (measured live): the group's rows are wrapped in ONE
