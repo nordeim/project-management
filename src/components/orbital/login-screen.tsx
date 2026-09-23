@@ -132,7 +132,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
             4px top gradient bar is absolutely positioned), 95% white
             over a 4px backdrop blur, shadow-2xl
             (0 25px 50px -12px 25%), radius 16. */}
-        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.95)] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] backdrop-blur-sm">
+        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.95)] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] backdrop-blur-[4px]">
           {/* the 4px top gradient strip */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200" aria-hidden="true" />
           {/* responsive padding: 32px below sm, 40px from sm, 48/40/40 at md */}
@@ -222,8 +222,16 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                     </div>
                   ) : null}
 
-                  <form onSubmit={submit} className="space-y-5 pt-1" noValidate>
-                    <div className="space-y-[10px]">
+                  {/* v2.10 (re-probed on the live): the form mirrors the
+                      live's DOM exactly — `space-y-4 sm:space-y-5` (no pt),
+                      a FIELDS WRAPPER `space-y-3 sm:space-y-4` holding
+                      `space-y-1.5` field blocks (the 6px label→input gap is
+                      the input wrapper's mt from space-y-1.5 — the label
+                      itself carries no margin), and a `space-y-3` BOTTOM
+                      BLOCK (submit + footer strip, mt 12). */}
+                  <form onSubmit={submit} className="space-y-4 sm:space-y-5" noValidate>
+                    <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-1.5">
                       <Label htmlFor="email" className="text-left text-[14px] font-medium leading-4 text-[#334155]">
                         Email
                       </Label>
@@ -243,7 +251,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                     </div>
 
                     {mode === "forgot" ? null : (
-                      <div className="space-y-[10px]">
+                      <div className="space-y-1.5">
                         <Label htmlFor="password" className="text-left text-[14px] font-medium leading-4 text-[#334155]">
                           Password
                         </Label>
@@ -265,7 +273,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                     )}
 
                     {mode === "signup" ? (
-                      <div className="space-y-[10px]">
+                      <div className="space-y-1.5">
                         <Label htmlFor="confirm" className="text-left text-[14px] font-medium leading-4 text-[#334155]">
                           Confirm Password
                         </Label>
@@ -285,47 +293,58 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                         </div>
                       </div>
                     ) : null}
+                    </div>
 
-                    <Button
-                      type="submit"
-                      disabled={busy}
-                      className="h-12 w-full rounded-[12px] bg-[#0F172A] text-sm font-medium text-white hover:bg-[#1E293B] disabled:opacity-50"
-                    >
-                      {busy
-                        ? "Please wait…"
-                        : mode === "signin"
-                          ? "Sign in"
-                          : mode === "signup"
-                            ? "Create account"
-                            : "Send reset link"}
-                    </Button>
+                    {/* v2.10 (re-probed, F10): the form's BOTTOM BLOCK —
+                        `space-y-3` holding the submit button and the footer
+                        strip (its mt 12 comes from the block's space-y-3,
+                        exactly the live's DOM; the footer moved INSIDE the
+                        form — it was a 32px column sibling below the form
+                        wrapper). */}
+                    <div className="space-y-3">
+                      <Button
+                        type="submit"
+                        disabled={busy}
+                        className="h-12 w-full rounded-[12px] bg-[#0F172A] text-sm font-medium text-white hover:bg-[#1E293B] disabled:opacity-50"
+                      >
+                        {busy
+                          ? "Please wait…"
+                          : mode === "signin"
+                            ? "Sign in"
+                            : mode === "signup"
+                              ? "Create account"
+                              : "Send reset link"}
+                      </Button>
+
+                      {mode === "signin" ? (
+                        /* v2.9 (measured): the footer strip is column-below-sm /
+                            row from sm — "Forgot password?" left, a single "Need
+                            an account? Sign up" button right (the label text
+                            14px/400 #64748B, the action 14px/500 #334155).
+                            v2.10 (F10): inside the form's space-y-3 bottom
+                            block (mt 12). */
+                        <div className="flex w-full flex-col items-center justify-between gap-2 text-[14px] leading-5 sm:flex-row sm:gap-0">
+                          <button
+                            type="button"
+                            className="font-medium text-[#64748B] underline-offset-4 transition-colors hover:text-[#0F172A] hover:underline"
+                            onClick={() => setMode("forgot")}
+                          >
+                            Forgot password?
+                          </button>
+                          <button
+                            type="button"
+                            className="text-[#64748B] underline-offset-4 transition-colors hover:text-[#0F172A]"
+                            onClick={() => setMode("signup")}
+                          >
+                            Need an account?{" "}
+                            <span className="font-medium text-[#334155] hover:underline">Sign up</span>
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   </form>
                 </div>
               </div>
-
-              {mode === "signin" ? (
-                /* v2.9 (measured): the footer strip is column-below-sm /
-                    row from sm — "Forgot password?" left, a single "Need
-                    an account? Sign up" button right (the label text
-                    14px/400 #64748B, the action 14px/500 #334155). */
-                <div className="flex w-full flex-col items-center justify-between gap-2 text-[14px] leading-5 sm:flex-row sm:gap-0">
-                  <button
-                    type="button"
-                    className="font-medium text-[#64748B] underline-offset-4 transition-colors hover:text-[#0F172A] hover:underline"
-                    onClick={() => setMode("forgot")}
-                  >
-                    Forgot password?
-                  </button>
-                  <button
-                    type="button"
-                    className="text-[#64748B] underline-offset-4 transition-colors hover:text-[#0F172A]"
-                    onClick={() => setMode("signup")}
-                  >
-                    Need an account?{" "}
-                    <span className="font-medium text-[#334155] hover:underline">Sign up</span>
-                  </button>
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
