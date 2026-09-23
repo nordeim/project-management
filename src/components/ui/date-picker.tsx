@@ -86,9 +86,13 @@ export function DatePicker({
       <PopoverContent
         align="center"
         avoidCollisions={false}
-        className="w-[262px] rounded-[14px] border border-[#D8D4CF] bg-[#ECEBE9] p-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]"
+        className="z-[210] w-[262px] rounded-[14px] border border-[#D8D4CF] bg-[#ECEBE9] p-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]"
       >
-        <div className="rounded-[16px] bg-[#EEEAE6] p-[16px_18px] shadow-[-8px_-8px_16px_rgba(255,250,244,0.78),8px_8px_18px_rgba(160,143,126,0.31)]">
+        {/* v2.10 (measured): the inner card's -8px pair renders as a clean
+            single declaration on the live — the composed utility emitted
+            v4 zero-alpha prefixes, so the pair moved to the plain
+            .orb-panel-shadow custom class. */}
+        <div className="orb-panel-shadow rounded-[16px] bg-[#EEEAE6] p-[16px_18px]">
         {/* v2.6 (measured live): the month row is a 20px line box (the
             28px chevrons overflow it vertically — h-5 with items-center
             centers them exactly like the live) with a 12px bottom margin;
