@@ -119,13 +119,11 @@ export function ActivityView() {
           {groups.map((group) => (
             <section key={group.key} aria-label={group.label}>
               {/* v2.6 (measured live): the label renders as an inline span
-                  inside a line box whose margin-bottom is 10px. v2.10
-                  (re-measured): the line box's line-height is 15px (the
-                  v2.6 "24px line box" reading retired — the group card
-                  starts ~2px lower on the live; the label block keeps its
-                  mb 10). */}
-              <div className="mb-[10px] leading-[15px]">
-                <span className="orb-label-sm">{group.label}</span>
+                  inside a 24px LINE BOX whose margin-bottom is 10px.
+                  v2.10 (re-probed): the live keeps the 24px parent line box
+                  but the SPAN itself computes lh 15px — pin both exactly. */}
+              <div className="mb-[10px] leading-6">
+                <span className="orb-label-sm leading-[15px]">{group.label}</span>
               </div>
               {/* v2.6 (measured live): the group's rows are wrapped in ONE
                   big radius-14 card carrying the DEEPER pair (like the
