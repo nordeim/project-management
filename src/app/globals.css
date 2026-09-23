@@ -200,6 +200,16 @@
      16.5 label + 6 gap + 35.5 input). The invite dialog uses plain
      12px/500 sentence-case labels instead (its own spec). */
   .orb-label-dlg {
+    /* v2.10 (probed): display block — the shadcn Label base's flex makes
+       the label height the font's ascent/descent box (16.01px) instead of
+       the 16.5px line box the live renders. Emitted after the generated
+       utilities, this wins the same-specificity cascade. */
+    display: block;
+    /* v2.10 (probed): explicit 16.5px box — Chrome quantizes the
+       half-leading to integers, so a 16.01px font box under a 16.5px
+       line-height renders 16.01 tall; the live's label box is 16.5
+       (field row 16.5 + 6 + 35.5 = 58). */
+    height: 16.5px;
     @apply text-[11px] font-semibold uppercase tracking-[0.88px] leading-[16.5px] text-orb-muted mb-[6px];
   }
 
