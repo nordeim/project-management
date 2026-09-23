@@ -194,6 +194,15 @@
     @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-[#767676];
   }
 
+  /* v2.10 (measured on the live): the re-generated standard form dialogs
+     label — same 11/600/uppercase core as .orb-label but at ls 0.88px with
+     a 16.5px line-height and 6px bottom margin (field rows 58px tall:
+     16.5 label + 6 gap + 35.5 input). The invite dialog uses plain
+     12px/500 sentence-case labels instead (its own spec). */
+  .orb-label-dlg {
+    @apply text-[11px] font-semibold uppercase tracking-[0.88px] leading-[16.5px] text-orb-muted mb-[6px];
+  }
+
   /* ---- Neumorphic primitive system (measured from the reference, v1.4;
         re-measured into THREE card tiers in v1.6) ----
      Raised surfaces (#EEEAE6) carry dual outer shadows; inset wells
@@ -659,6 +668,32 @@
      declaration (the utility composed v4 zero-alpha prefixes). */
   .orb-pop-shadow {
     box-shadow: -6px -6px 12px rgba(255, 250, 244, 0.78), 6px 6px 14px rgba(160, 143, 126, 0.31);
+  }
+
+  /* v2.10 (measured): the 768 pill-nav ACTIVE chip's inset well as a plain
+     declaration — the bg + the 0.75/0.32 pair (the utility composed v4
+     zero-alpha prefixes; radius stays on the element). */
+  .orb-chip-active {
+    background-color: #ebe7e2;
+    box-shadow: inset -3px -3px 6px rgba(255, 252, 248, 0.75), inset 3px 3px 6px rgba(180, 165, 150, 0.32);
+  }
+
+  /* v2.10 (measured): the 768 back-strip Dashboard button's raised pair —
+     -3px/-3px 7px 0.78 + 3px 3px 8px 0.22. */
+  .orb-back-btn {
+    box-shadow: -3px -3px 7px rgba(255, 250, 244, 0.78), 3px 3px 8px rgba(160, 143, 126, 0.22);
+  }
+
+  /* v2.10 (measured): the sidebar clock's inset pair (on the 80px circle
+     that also pins radius 50%). */
+  .orb-clock {
+    box-shadow: inset -4px -4px 8px rgba(255, 250, 244, 0.8), inset 4px 4px 8px rgba(160, 143, 126, 0.28);
+  }
+
+  /* v2.10 (measured): the date-picker inner card's large neumorphic pair
+     as a plain declaration (the utility composed v4 prefixes). */
+  .orb-panel-shadow {
+    box-shadow: -8px -8px 16px rgba(255, 250, 244, 0.78), 8px 8px 18px rgba(160, 143, 126, 0.31);
   }
 }
 
