@@ -122,19 +122,18 @@ test.describe("dialog form generation (v2.10)", () => {
     await page.getByRole("button", { name: "Add Task", exact: true }).first().click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
-    const label = await dialog.evaluate((el) => {
-      const l = el.querySelector("label");
-      if (!l) return null;
-      const cs = getComputedStyle(l);
-      return { fs: cs.fontSize, fw: cs.fontWeight, tt: cs.textTransform, ls: cs.letterSpacing, lh: cs.lineHeight, mb: cs.marginBottom, h: Math.round(l.getBoundingClientRect().height) };
-    });
-    expect(label?.fs).toBe("11px");
-    expect(label?.fw).toBe("600");
-    expect(label?.tt).toBe("uppercase");
-    expect(label?.ls).toBe("0.88px");
-    expect(label?.lh).toBe("16.5px");
-    expect(label?.mb).toBe("6px");
-    expect(label?.h).toBe(17);
+    // The dialog's zoom-in-95 animation (200ms) scales the panel mid-flight
+    // (16.5 × 0.97 ≈ 16) — poll until the transform settles before reading
+    // the label box (the pin itself is unchanged: 16.5 → rounds to 17).
+    await expect
+      .poll(async () =>
+        dialog.evaluate((el) => {
+          const l = el.querySelector("label");
+          if (!l) return null;
+          const cs = getComputedStyle(l);
+          return { fs: cs.fontSize, fw: cs.fontWeight, tt: cs.textTransform, ls: cs.letterSpacing, lh: cs.lineHeight, mb: cs.marginBottom, h: Math.round(l.getBoundingClientRect().height) };
+        }), { timeout: 5_000 })
+      .toMatchObject({ fs: "11px", fw: "600", tt: "uppercase", ls: "0.88px", lh: "16.5px", mb: "6px", h: 17 });
     await dialog.getByRole("button", { name: "Cancel" }).click();
   });
 
@@ -200,9 +199,11 @@ test.describe("check-in modal (v2.10)", () => {
   test("below sm the modal anchors at 5% of the viewport (centered from sm)", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     const dialog = await openCheckIn(page);
-    const y = await dialog.evaluate((el) => el.getBoundingClientRect().y);
-    // 5% of 844 = 42.2
-    expect(Math.abs(y - 42.2)).toBeLessThan(1);
+    // 5% of 844 = 42.2 — the zoom-in animation shifts the top edge mid-flight
+    // (scale .9704 → +6.7px), so poll until the transform settles.
+    await expect
+      .poll(async () => dialog.evaluate((el) => Math.round(el.getBoundingClientRect().y * 10) / 10), { timeout: 5_000 })
+      .toBe(42.2);
     await page.keyboard.press("Escape");
   });
 
@@ -389,14 +390,16 @@ test.describe("activity feed (v2.10)", () => {
   test("the Online pill renders the flex-gap dot layout ('Online· N')", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/activity");
-    const pill = await page.evaluate(() => {
-      const p = [...document.querySelectorAll("p, span, div")].find((e) => /^Online\s*·/.test((e.textContent ?? "").trim()) && e.getBoundingClientRect().width > 60 && e.getBoundingClientRect().width < 130);
-      if (!p) return null;
-      return { text: (p.textContent ?? "").replace(/\s+/g, " ").trim(), w: Math.round(p.getBoundingClientRect().width), gap: getComputedStyle(p).gap };
-    });
-    expect(pill?.text).toBe("Online· 36");
-    expect(pill?.w).toBe(100);
-    expect(pill?.gap).toBe("6px");
+    // Poll until the async feed load lands (the count reads '· 0' before the
+    // store's refresh resolves) — the layout pin itself is unchanged.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const p = [...document.querySelectorAll("p, span, div")].find((e) => /^Online\s*·/.test((e.textContent ?? "").trim()) && e.getBoundingClientRect().width > 60 && e.getBoundingClientRect().width < 130);
+          if (!p) return null;
+          return { text: (p.textContent ?? "").replace(/\s+/g, " ").trim(), w: Math.round(p.getBoundingClientRect().width), gap: getComputedStyle(p).gap };
+        }), { timeout: 5_000 })
+      .toMatchObject({ text: "Online· 36", w: 100, gap: "6px" });
   });
 
   test("the date-group label renders at line-height 15", async ({ page }) => {
