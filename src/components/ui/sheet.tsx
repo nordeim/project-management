@@ -36,7 +36,10 @@ function SheetOverlay({
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        // v2.10 (measured): the live's MORE-sheet overlay computes z 200
+        // (panel 201) — a coherent 100/200/201 stacking system over the
+        // z-100 tab bar. The clone's overlay was z-50.
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-[200] bg-black/50",
         className
       )}
       {...props}
