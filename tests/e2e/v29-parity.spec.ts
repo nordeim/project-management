@@ -198,7 +198,9 @@ test.describe("goal-edit dialog close removal (v2.9)", () => {
     await page.getByRole("button", { name: /^Edit goal Product Onboarding/i }).first().click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole("heading", { name: "Edit Goal" })).toBeVisible();
+    // v2.10: the re-generated form dialogs carry a <p> heading (no heading
+    // role semantics) — match by text.
+    await expect(dialog.getByText("Edit Goal", { exact: true })).toBeVisible();
     // The clone's dialog-content close carries data-slot="dialog-close".
     expect(await dialog.locator('[data-slot="dialog-close"]').count()).toBe(0);
     await expect(dialog.getByRole("button", { name: "Cancel" })).toBeVisible();
@@ -235,7 +237,9 @@ test.describe("goal-edit dialog close removal (v2.9)", () => {
     expect(cs.bg).toBe("rgb(235, 231, 226)");
     expect(cs.radius).toBe("10px");
     expect(cs.fs).toBe("13px");
-    expect(cs.opts).toEqual(["Active", "Completed", "Draft", "Paused"]);
+    // v2.10 (F11): the live's option order is Draft | Active | Paused |
+    // Completed — NOT the META's insertion order.
+    expect(cs.opts).toEqual(["Draft", "Active", "Paused", "Completed"]);
     await dialog.getByRole("button", { name: "Cancel" }).click();
   });
 });
