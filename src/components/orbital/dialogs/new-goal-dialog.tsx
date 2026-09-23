@@ -115,10 +115,14 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       {/* v1.9 (measured): the wizard wrapper — 680px, radius 24, pad
           28/28/24 — carrying the conversational chrome (avatar + bubble)
           above the 624px form panel; the scrim is the wizard's own 0.3
-          alpha (standard dialogs use 0.25). */}
+          alpha (standard dialogs use 0.25). v2.10 (measured): the wizard
+          root is the scrim-flex container at z-100 with the panel as its
+          child, and the panel keeps radius 24 at EVERY width (the old
+          sm:-gated r20 below 640 was a misread). */}
       <DialogContent
-        className="max-h-[90vh] gap-0 overflow-y-auto p-[28px_28px_24px] sm:max-w-[680px] sm:rounded-[24px]"
-        overlayClassName="bg-[rgba(46,42,38,0.3)]"
+        scrimFlex
+        className="max-h-[90vh] overflow-y-auto rounded-[24px] sm:max-w-[680px]"
+        overlayClassName="z-[100] bg-[rgba(46,42,38,0.3)]"
         showCloseButton={false}
       >
         <DialogHeader className="sr-only">
@@ -146,7 +150,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             10/16, 13px/400 #3A3A3A). */}
         <div className="flex items-start gap-3">
           <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orb-raised text-[#7C6FA0] shadow-[-4px_-4px_12px_rgba(202,181,245,0.56),4px_4px_13px_rgba(160,143,126,0.29)]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[50%] bg-orb-raised text-[#7C6FA0] shadow-[-4px_-4px_12px_rgba(202,181,245,0.56),4px_4px_13px_rgba(160,143,126,0.29)]"
             aria-hidden="true"
           >
             <Bot size={16} strokeWidth={1.6} />
@@ -178,7 +182,7 @@ export function NewGoalDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 placeholder="e.g., Launch new landing page by end of month"
                 required
                 maxLength={200}
-                className="h-auto py-[9px]"
+                className="h-auto px-[14px] py-[9px]"
               />
             </div>
             <div className="mt-[15px] space-y-[7px]">
