@@ -33,7 +33,9 @@ test.describe("activity feed (v2.5 parity)", () => {
     // the suite may have legitimately added feed rows (the add-task and
     // scratch-goal checks in goals.spec), so the floor — not the exact
     // count — is what stays stable in a full run.
-    const pill = page.locator("p.orb-well-pill").filter({ hasText: "Online" }).first();
+    // v2.10: the pill is a DIV (mirroring the live's DOM; it was a <p>
+    // before the re-probe).
+    const pill = page.locator("div.orb-well-pill").filter({ hasText: "Online" }).first();
     await expect(pill).toBeVisible();
     const pillText = await pill.innerText();
     const online = parseInt((pillText.match(/(\d+)/) ?? ["0"])[0]!, 10);

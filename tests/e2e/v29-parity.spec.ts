@@ -218,28 +218,26 @@ test.describe("goal-edit dialog close removal (v2.9)", () => {
     // #EBE7E2, r10, 13px) — not a shadcn button trigger.
     const select = dialog.locator("#edit-goal-status");
     await expect(select).toBeVisible();
-    const cs = await select.evaluate((el) => {
-      const s = el as HTMLSelectElement;
-      const style = getComputedStyle(s);
-      const r = s.getBoundingClientRect();
-      return {
-        tag: s.tagName,
-        h: Math.round(r.height),
-        w: Math.round(r.width),
-        bg: style.backgroundColor,
-        radius: style.borderRadius,
-        fs: style.fontSize,
-        opts: Array.from(s.options).map((o) => o.textContent ?? ""),
-      };
-    });
-    expect(cs.tag).toBe("SELECT");
-    expect(cs.h).toBe(35);
-    expect(cs.bg).toBe("rgb(235, 231, 226)");
-    expect(cs.radius).toBe("10px");
-    expect(cs.fs).toBe("13px");
-    // v2.10 (F11): the live's option order is Draft | Active | Paused |
-    // Completed — NOT the META's insertion order.
-    expect(cs.opts).toEqual(["Draft", "Active", "Paused", "Completed"]);
+    // The dialog's zoom-in-95 animation (200ms) scales the panel mid-flight
+    // (35 × 0.97 ≈ 34) — poll until the transform settles before reading
+    // the geometry (the pins themselves are unchanged).
+    await expect
+      .poll(async () =>
+        select.evaluate((el) => {
+          const s = el as HTMLSelectElement;
+          const style = getComputedStyle(s);
+          const r = s.getBoundingClientRect();
+          return {
+            tag: s.tagName,
+            h: Math.round(r.height),
+            w: Math.round(r.width),
+            bg: style.backgroundColor,
+            radius: style.borderRadius,
+            fs: style.fontSize,
+            opts: Array.from(s.options).map((o) => o.textContent ?? ""),
+          };
+        }), { timeout: 5_000 })
+      .toMatchObject({ tag: "SELECT", h: 35, bg: "rgb(235, 231, 226)", radius: "10px", fs: "13px", opts: ["Draft", "Active", "Paused", "Completed"] });
     await dialog.getByRole("button", { name: "Cancel" }).click();
   });
 });

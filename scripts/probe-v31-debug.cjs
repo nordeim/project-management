@@ -1,5 +1,6 @@
 // Probe: debug the v30 activity label finder + pill geometry.
-const { chromium } = require("/home/z/my-project/project-management/node_modules/@playwright/test");
+// (ESM import — the repo's ESLint config forbids require() imports; run with bun.)
+import { chromium } from "/home/z/my-project/project-management/node_modules/@playwright/test/index.mjs";
 
 (async () => {
   const browser = await chromium.launch();

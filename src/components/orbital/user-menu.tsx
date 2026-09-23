@@ -69,9 +69,12 @@ export function UserMenuOrLogin({ compact = false }: { compact?: boolean }) {
           </span>
         </button>
       </PopoverTrigger>
-      {/* v2.9 (measured): the popover opens 8px below the pill (the live's
-          top: calc(100% + 8px)) — Radix's default sideOffset is 4. */}
-      <PopoverContent align="end" sideOffset={4} className="orb-pop-shadow w-[160px] rounded-[12px] border-0 bg-orb-raised p-0">
+      {/* v2.10 (F12, re-measured on the live): the popover panel's top sits
+          EXACTLY 8px below the pill's bottom edge (the live measures
+          pill-bottom 92 → popover-top 100; its CSS computes
+          top: calc(100% + 8px)). Radix's sideOffset IS that gap in px —
+          the v2.9 default 4 rendered it 4px too high. */}
+      <PopoverContent align="end" sideOffset={8} className="orb-pop-shadow w-[160px] rounded-[12px] border-0 bg-orb-raised p-0">
         <button
           type="button"
           onClick={async () => {

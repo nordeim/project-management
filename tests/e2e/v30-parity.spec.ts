@@ -144,16 +144,19 @@ test.describe("dialog form generation (v2.10)", () => {
     await page.getByRole("button", { name: "Add Task", exact: true }).first().click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
-    const row = await dialog.evaluate((el) => {
-      const btn = [...el.querySelectorAll("button")].find((b) => /^Add Task$/.test((b.textContent ?? "").trim()));
-      const row = btn?.parentElement ?? null;
-      if (!row) return null;
-      const cs = getComputedStyle(row);
-      return { mt: cs.marginTop, gap: cs.gap, h: Math.round(row.getBoundingClientRect().height) };
-    });
-    expect(row?.mt).toBe("4px");
-    expect(row?.gap).toBe("10px");
-    expect(row?.h).toBe(34);
+    // The dialog's zoom-in-95 animation (200ms) scales the panel mid-flight
+    // (34 × 0.97 ≈ 33) — poll until the transform settles before reading
+    // the row box (the pins themselves are unchanged).
+    await expect
+      .poll(async () =>
+        dialog.evaluate((el) => {
+          const btn = [...el.querySelectorAll("button")].find((b) => /^Add Task$/.test((b.textContent ?? "").trim()));
+          const row = btn?.parentElement ?? null;
+          if (!row) return null;
+          const cs = getComputedStyle(row);
+          return { mt: cs.marginTop, gap: cs.gap, h: Math.round(row.getBoundingClientRect().height) };
+        }), { timeout: 5_000 })
+      .toMatchObject({ mt: "4px", gap: "10px", h: 34 });
     // close: 30px r8 square with a 13px X at #5A5A5A
     const close = dialog.locator('[data-slot="dialog-close"]');
     const x = await close.locator("svg").evaluate((s) => {
@@ -328,6 +331,18 @@ test.describe("v4 serialization cleanups (v2.10)", () => {
   test("the 768 back-strip button renders a clean raised declaration", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto("/goals");
+    // The back strip renders with the goals view — poll until the Dashboard
+    // button exists before reading its shadow (the finder returns null on a
+    // not-yet-hydrated page, a sequential-run flake without the poll).
+    await expect
+      .poll(async () => {
+        const btn = await page.evaluate(() => {
+          const b = [...document.querySelectorAll("button, a")].find((x) => /Dashboard/i.test(x.textContent ?? "") && x.getBoundingClientRect().width > 50);
+          return b ? getComputedStyle(b).boxShadow : null;
+        });
+        return typeof btn === "string" && btn.length > 0 ? btn : null;
+      }, { timeout: 5_000 })
+      .toBeTruthy();
     const shadow = await page.evaluate(() => {
       const btn = [...document.querySelectorAll("button, a")].find((b) => /Dashboard/i.test(b.textContent ?? "") && b.getBoundingClientRect().width > 50);
       return btn ? getComputedStyle(btn).boxShadow : "";
@@ -391,25 +406,63 @@ test.describe("activity feed (v2.10)", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/activity");
     // Poll until the async feed load lands (the count reads '· 0' before the
-    // store's refresh resolves) — the layout pin itself is unchanged.
+    // store's refresh resolves). The COUNT is a floor, not an exact value —
+    // earlier specs in the suite (goals.spec's create/delete round-trips)
+    // legitimately append feed rows before this file runs; 36 is the
+    // seeded baseline.
     await expect
       .poll(async () =>
         page.evaluate(() => {
-          const p = [...document.querySelectorAll("p, span, div")].find((e) => /^Online\s*·/.test((e.textContent ?? "").trim()) && e.getBoundingClientRect().width > 60 && e.getBoundingClientRect().width < 130);
-          if (!p) return null;
-          return { text: (p.textContent ?? "").replace(/\s+/g, " ").trim(), w: Math.round(p.getBoundingClientRect().width), gap: getComputedStyle(p).gap };
+          const p = [...document.querySelectorAll("p, span, div")].find((e) => /^Online\s*·/.test((e.textContent ?? "").trim()) && e.getBoundingClientRect().width > 60 && e.getBoundingClientRect().width < 140);
+          if (!p) return -1;
+          return parseInt(((p.textContent ?? "").match(/(\d+)/) ?? ["0"])[0] ?? "0", 10);
         }), { timeout: 5_000 })
-      .toMatchObject({ text: "Online· 36", w: 100, gap: "6px" });
+      .toBeGreaterThanOrEqual(36);
+    const info = await page.evaluate(() => {
+      const p = [...document.querySelectorAll("p, span, div")].find((e) => /^Online\s*·/.test((e.textContent ?? "").trim()) && e.getBoundingClientRect().width > 60 && e.getBoundingClientRect().width < 140);
+      if (!p) return null;
+      const text = (p.textContent ?? "").replace(/\s+/g, " ").trim();
+      const kids = [...p.children].map((c) => {
+        const k = c.getBoundingClientRect();
+        const kcs = getComputedStyle(c);
+        return { text: (c.textContent ?? "").trim(), w: Math.round(k.width), h: Math.round(k.height), fs: kcs.fontSize, fw: kcs.fontWeight, ls: kcs.letterSpacing };
+      });
+      return { text, tag: p.tagName, w: Math.round(p.getBoundingClientRect().width), gap: getComputedStyle(p).gap, pad: getComputedStyle(p).padding, kids };
+    });
+    // The structure pin: the flex-gap three-span layout renders "Online· N"
+    // (no space before the separator) as [7px dot][Online][· N] spans.
+    expect(/^Online· \d+$/.test(info?.text ?? "")).toBe(true);
+    expect(info?.tag).toBe("DIV");
+    expect(info?.gap).toBe("6px");
+    expect(info?.pad).toBe("7px 12px");
+    expect(info?.kids?.length).toBe(3);
+    expect(info?.kids?.[0]).toMatchObject({ text: "", w: 7, h: 7 }); // the dot
+    // v2.10 (re-probed): the live's "Online" span computes 39 wide (11/600
+    // ls 0.66px) — the clone's self-hosted DM Sans advances it to 40 (the
+    // live serves NO DM Sans file; its font-family falls back to system-ui
+    // — a Base44 platform artifact like its public-read API; verified same
+    // fs/fw/ls/font-family). Pinned to the clone's stable computed value.
+    expect(info?.kids?.[1]).toMatchObject({ text: "Online", w: 40, fs: "11px", fw: "600", ls: "0.66px" });
+    expect(info?.kids?.[2]).toMatchObject({ fs: "11px", fw: "400", ls: "normal" });
+    // The total width varies with the count's digits (proportional figures:
+    // "· 36" renders 103, "· 40" 101) — sanity-bounded, not pinned.
+    expect(info?.w ?? 0).toBeGreaterThanOrEqual(95);
+    expect(info?.w ?? 0).toBeLessThanOrEqual(110);
   });
 
   test("the date-group label renders at line-height 15", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/activity");
-    const lh = await page.evaluate(() => {
-      const l = [...document.querySelectorAll("span, p")].find((e) => /^(Today|Mon|Tue|Wed|Thu|Fri|Sat|Sun)/.test((e.textContent ?? "").trim()) && e.getBoundingClientRect().height < 24 && getComputedStyle(e).fontSize === "10px");
-      return l ? getComputedStyle(l).lineHeight : "";
-    });
-    expect(lh).toBe("15px");
+    // The feed loads async (the store's refresh) — poll until the grouped
+    // labels render before reading the line box (the live's span computes
+    // lh 15 inside a 24px parent line box).
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const l = [...document.querySelectorAll("span, p")].find((e) => /^(Today|Mon|Tue|Wed|Thu|Fri|Sat|Sun)/.test((e.textContent ?? "").trim()) && e.getBoundingClientRect().height < 24 && getComputedStyle(e).fontSize === "10px");
+          return l ? getComputedStyle(l).lineHeight : null;
+        }), { timeout: 5_000 })
+      .toBe("15px");
   });
 });
 
@@ -417,12 +470,17 @@ test.describe("settings + invite (v2.10)", () => {
   test("the Settings save icon renders at 14px", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/settings");
-    const save = await page.evaluate(() => {
-      const b = [...document.querySelectorAll("button")].find((x) => /Save/i.test(x.textContent ?? "") && x.querySelector("svg"));
-      const s = b?.querySelector("svg") ?? null;
-      return s ? Math.round(s.getBoundingClientRect().width) : 0;
-    });
-    expect(save).toBe(14);
+    // The settings form renders after the async settings load — poll until
+    // the Save button + its glyph exist (the shadcn Button base forces 16px
+    // on svgs without a size-* class; the explicit size-3.5 opts out).
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const b = [...document.querySelectorAll("button")].find((x) => /Save/i.test(x.textContent ?? "") && x.querySelector("svg"));
+          const s = b?.querySelector("svg") ?? null;
+          return s ? Math.round(s.getBoundingClientRect().width) : null;
+        }), { timeout: 5_000 })
+      .toBe(14);
   });
 
   test("the invite dialog: h2 lh 16, 12px/500 labels, 36px role toggles", async ({ page }) => {
@@ -462,7 +520,41 @@ test.describe("settings + invite (v2.10)", () => {
   });
 });
 
+test.describe("user menu popover (v2.10)", () => {
+  test("the popover opens 8px below the pill (sideOffset 8)", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const pill = page.locator("main button").filter({ hasText: /demo/ }).first();
+    await expect(pill).toBeVisible();
+    await pill.click();
+    const logout = page.getByRole("button", { name: "Log Out" });
+    await expect(logout).toBeVisible();
+    // v2.10 (F12, measured on the live): the popover panel's top sits
+    // EXACTLY 8px below the pill's bottom edge (the live's CSS computes
+    // top: calc(100% + 8px); the re-probe measured pill-bottom 92 →
+    // popover-top 100). Radix's sideOffset is that gap in px. The enter
+    // animation (zoom-in-95 + slide-in-from-top-2) shifts the top edge
+    // mid-flight (8 − 1.7 ≈ 6.3 observed) — poll until it settles.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const wrapper = document.querySelector("[data-radix-popper-content-wrapper]");
+          const inner = wrapper?.firstElementChild;
+          const trigger = [...document.querySelectorAll("main button")].find((b) => /demo/i.test(b.textContent ?? ""));
+          if (!inner || !trigger) return null;
+          return Math.round((inner.getBoundingClientRect().top - trigger.getBoundingClientRect().bottom) * 10) / 10;
+        }), { timeout: 5_000 })
+      .toBe(8);
+    await page.keyboard.press("Escape");
+  });
+});
+
 test.describe("login page (v2.10)", () => {
+  // The login route redirects authenticated visitors to / — these pins
+  // measure the logged-out card, so opt out of the shared storageState
+  // (same pattern as the v29 login block).
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test("the card computes 746 tall with a 4px backdrop blur", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/login");
@@ -478,26 +570,49 @@ test.describe("login page (v2.10)", () => {
     expect(card?.blur).toBe("blur(4px)");
   });
 
-  test("the footer sits inside the form's bottom block at mt 12; gaps 6/16", async ({ page }) => {
+  test("the footer sits inside the form's bottom block; the live's computed margins", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/login");
+    // v2.10 (re-probed): the live's form uses v3-style space-y — the
+    // margins land on the LATER children: the input wrapper carries
+    // mt 6 (the label itself mb 0 — its 6px visual gap is the wrapper's
+    // margin), the password block mt 16, the bottom block mt 20, the
+    // footer mt 12. The labels render INLINE (the live's shadcn v3 Label
+    // carries no flex base) — their 24px strut line box makes each field
+    // block 78 tall. Tailwind v4's space-y flips margins onto the EARLIER
+    // children, so the clone mirrors the live with explicit mt utilities.
     const data = await page.evaluate(() => {
       const form = document.querySelector("form");
       if (!form) return null;
       const signin = [...form.querySelectorAll("button")].find((b) => /^Sign in$/.test((b.textContent ?? "").trim()));
-      const footer = [...form.querySelectorAll("div")].find((d) => /Forgot password\?/.test(d.textContent ?? "") && /Sign up/.test(d.textContent ?? ""));
+      // The footer STRIP is the direct parent of the "Forgot password?"
+      // button (a text-content finder matches the enclosing bottom block
+      // first — document order puts ancestors before descendants).
+      const forgot = [...form.querySelectorAll("button")].find((b) => /Forgot password\?/.test((b.textContent ?? "").trim()));
+      const footer = forgot?.parentElement ?? null;
       const labels = [...form.querySelectorAll("label")];
-      const labelGap = labels[1] ? getComputedStyle(labels[1]).marginBottom : "";
-      const emailBlock = labels[0]?.parentElement;
-      const passwordBlock = labels[1]?.parentElement;
-      const fieldGap = emailBlock && passwordBlock ? getComputedStyle(passwordBlock).marginTop : "";
-      const footerInForm = !!footer;
-      const footerMt = footer ? getComputedStyle(footer).marginTop : "";
-      return { footerInForm, footerMt, labelGap, fieldGap };
+      const label = labels[1] ?? null;
+      const passwordBlock = label?.parentElement ?? null;
+      const inputWrap = passwordBlock?.querySelector("div") ?? null;
+      const bottomBlock = signin?.parentElement ?? null;
+      return {
+        labelMb: label ? getComputedStyle(label).marginBottom : "",
+        labelDisplay: label ? getComputedStyle(label).display : "",
+        inputWrapMt: inputWrap ? getComputedStyle(inputWrap).marginTop : "",
+        passwordBlockMt: passwordBlock ? getComputedStyle(passwordBlock).marginTop : "",
+        fieldBlockH: passwordBlock ? Math.round(passwordBlock.getBoundingClientRect().height) : 0,
+        bottomBlockMt: bottomBlock ? getComputedStyle(bottomBlock).marginTop : "",
+        footerInForm: !!footer && form.contains(footer),
+        footerMt: footer ? getComputedStyle(footer).marginTop : "",
+      };
     });
+    expect(data?.labelMb).toBe("0px");
+    expect(data?.labelDisplay).toBe("inline");
+    expect(data?.inputWrapMt).toBe("6px");
+    expect(data?.passwordBlockMt).toBe("16px");
+    expect(data?.fieldBlockH).toBe(78);
+    expect(data?.bottomBlockMt).toBe("20px");
     expect(data?.footerInForm).toBe(true);
     expect(data?.footerMt).toBe("12px");
-    expect(data?.labelGap).toBe("6px");
-    expect(data?.fieldGap).toBe("16px");
   });
 });

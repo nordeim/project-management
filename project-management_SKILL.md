@@ -1,13 +1,13 @@
 ---
 name: project-management
-description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 25 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 91 Playwright browser + 30 curl smoke checks)."
+description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 33 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 115 Playwright browser + 30 curl smoke checks)."
 version: 1.0.0
 last_updated: 2026-09-23
 ---
 
 # ORBITAL — Project Management Workspace: Complete Engineering Skill
 
-> Distilled from sessions 1–25 (v1.0 → v2.7) of cloning and remediating the
+> Distilled from sessions 1–33 (v1.0 → v2.10) of cloning and remediating the
 > reference Base44 app as a self-hosted Next.js unit. Every fact below is
 > codebase-verified; measured values come from computed-style probes against
 > the live reference app (two authenticated browser sessions, 390/768/1440).
@@ -319,7 +319,7 @@ bun run typecheck      # 0 errors (the build won't catch types)
 bun run test           # 138 unit checks
 bun run build          # clean compile + standalone assembly
 ./scripts/smoke-test.sh  # 30 curl checks against the standalone build
-bun run test:e2e       # 91 Playwright checks (needs the build)
+bun run test:e2e       # 115 Playwright checks (needs the build)
 ```
 
 Then: re-probe any changed surface against the live reference at
@@ -442,6 +442,27 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
     pin, and disambiguate same-glyph-different-role icons by rendered
     SIZE in the census (calendar@11 renders 1.5 but calendar@13 stays
     2 on the reference — the glyph name alone is not a key).
+18. **Tailwind v4's space-y flips the margin onto the EARLIER child
+    (v2.10).** v3's `space-y-*` wrote `margin-top` on `* + *` (the
+    later siblings); v4 writes `margin-block-end` on
+    `:not(:last-child)` (the earlier ones). Same visual rhythm,
+    DIFFERENT computed layout — so a v3-authored reference and a v4
+    clone disagree on which element carries every gap (the login form:
+    label mb 6 vs input-wrapper mt 6; field mb 16 vs block mt 16), and
+    a wrapper-level space-y silently ADDS to explicit my-* utilities
+    (the google→divider gap grew 12px). When a reference ships
+    space-y-based rhythm and the pin asserts COMPUTED margins, mirror
+    with explicit mt utilities on the later children — and remember an
+    `inline` label's strut line box (the block's fs/lh) inflates the
+    field block by the leading the flex base was hiding (70 → 78).
+19. **Pin the count-independent structure, not the rendered total
+    (v2.10).** An "Online · 36" pill pin broke twice in one suite run:
+    earlier specs legitimately append feed rows (36 → 40), and the
+    total width follows the count's DIGITS (proportional figures:
+    "· 36" renders 103px, "· 40" renders 101px). The stable pins are
+    the child spans (dot 7×7, "Online" 40 @ 11/600/ls 0.66), the gap,
+    and the padding; totals get a floor + a sanity range. Same rule for
+    any data-derived width.
 
 ## §13 Pitfalls to Avoid
 
@@ -638,7 +659,7 @@ string | null`, `candidateRoots(): string[]`,
 | Neumorphic classes | `src/app/globals.css` `@layer utilities` |
 | DB resolution | `src/lib/db-path.ts` (tested by `tests/db-path.test.ts`) |
 | Unit tests | `src/**/*.test.ts` + `tests/**/*.test.ts` (138) |
-| Browser tests | `tests/e2e/*.spec.ts` (91) — scratch DB `db/e2e.db`, port 3100 |
+| Browser tests | `tests/e2e/*.spec.ts` (115) — scratch DB `db/e2e.db`, port 3100 |
 | Smoke tests | `scripts/smoke-test.sh` (30, curl, port 3000) |
 | Screenshots | `docs/screenshots/*.png` — ALWAYS from the production build |
 | Deployment | `docs/DEPLOYMENT.md` (§4 = database location) |

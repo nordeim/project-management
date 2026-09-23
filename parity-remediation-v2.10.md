@@ -287,3 +287,54 @@ re-verified: lint 0 · typecheck 0 · 138/138 unit · build clean · e2e
   the p generation carries no heading semantics) and v29:213 (option
   order → the F11 sequence). v26 radio pins verified geometry-only
   (safe). v29:209 re-checked post-fix for the pollution flake.
+
+## Session-33 completion record (2026-09-24) — PLAN EXECUTED
+
+Sessions 31/32 shipped the wiring (WS-1..WS-7 source changes committed via
+uploads); session 33 completed the remaining spec + verification work with
+fresh live ground-truth probes:
+
+- **Spec fixes (v30)**: button-row/label/check-in/popover reads wrapped in
+  expect.poll (the zoom-in-95 + slide-in animations under-measure mid-flight
+  — 34→33, 17→16, 42.2→49, 8→6.3; pins unchanged); the group-label and
+  settings-save tests poll for their async-rendered surfaces; the login
+  describe opts out of storageState (the authenticated redirect left no form
+  to measure); the back-strip test polls (a sequential-run flake).
+- **Live ground truth re-probed**: login card 746×448 blur 4px; the form's
+  computed margins live on the LATER children (input wrapper mt 6, password
+  block mt 16, bottom block mt 20, footer mt 12) with INLINE labels (the
+  24px strut line box makes each field block 78); the pill is a 101×30.5
+  DIV whose [7px dot][Online 39][· N 19] children carry their own fs (the
+  live serves NO DM Sans file — system-ui fallback; the clone's self-hosted
+  DM Sans advances +2px — documented deviation, span-pinned); the group
+  label span lh 15 inside a 24px parent line box (the clone was already
+  exact — the failure was async timing); the user popover opens EXACTLY 8px
+  below the pill (F12 settled).
+- **Source fixes (TDD red→green)**: `user-menu.tsx` sideOffset 4→8;
+  `login-screen.tsx` restructured to explicit mt utilities mirroring the
+  live's computed layout (v4's space-y margin-flip documented in PAD
+  lesson 18) + `inline leading-5` labels + the google/divider/form sibling
+  structure; `activity-view.tsx` pill P→DIV with per-span classes.
+- **Retired-pin updates**: v25's pill locator (p→div); v29's native-select
+  read polls for the animation settle.
+- **Full gate GREEN**: lint 0 · typecheck 0 · 138/138 unit · build clean ·
+  30/30 smoke · **115/115 Playwright** (114 + the net-new popover-gap pin).
+- **Re-probes EXACT** on every changed surface + the operator's mobile-nav
+  focus: the 390 tab census byte-identical (5 tabs 73.2×53.5 + MORE 81.2,
+  strokes 1.5, hrefs, z 100, radius, rect 771/73.5), the MORE sheet
+  (overlay 200 / panel 201 / rows + hrefs + navigation functional), the 768
+  pill nav (494×70.5 z 100, 6 tabs), the popover gap 8, the login card 746
+  with the full computed-margin set, the pill structure.
+- **Screenshots**: all 16 regenerated from the production build (the wizard
+  pair via capture-wizard.sh against the real AI plan, scratch goal cleaned
+  up, db back to the pristine 3/31/36); VLM sanity unavailable (the chat
+  endpoint is not multimodal + rate-limited) — verified via the 115 green
+  e2e pins + size/entropy sanity instead.
+- **New finding (F13, open)**: the LIVE's `/login` renders the login card
+  for AUTHENTICATED visitors (no redirect); the clone redirects to `/`
+  (pinned by auth.spec + documented since v1.4). Recorded for the next
+  remediation plan.
+- **Docs aligned**: README (v2.10 section, 115 e2e), AGENTS (gate counts +
+  the v2.10 dialog/z-system/space-y facts), CLAUDE (browser layer v2.10
+  pins), PAD (v2.10 revision block + counts), SKILL (sessions 1–33, lessons
+  18–19), worklog, this plan marked EXECUTED.

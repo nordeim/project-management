@@ -137,9 +137,13 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200" aria-hidden="true" />
           {/* responsive padding: 32px below sm, 40px from sm, 48/40/40 at md */}
           <div className="p-8 sm:p-10 md:px-10 md:pb-10 md:pt-12">
-            {/* v2.9 (measured): the content column is CENTERED — items
-                center + text-center, 24/32px vertical rhythm. */}
-            <div className="flex flex-col items-center space-y-6 text-center sm:space-y-8">
+            {/* v2.10 (re-probed on the live): the content column's rhythm —
+                logo → heading → form area, 24px below sm / 32px from sm.
+                Tailwind v4's space-y-* applies margin-block-end to the
+                EARLIER children (v3 put margin-top on the later ones), so
+                the gaps are explicit mt utilities mirroring the live's
+                computed layout. */}
+            <div className="flex flex-col items-center text-center">
               {mode === "signin" ? (
                 <>
                   {/* v2.9 (measured): the logo sits in a relative group
@@ -155,11 +159,15 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                       <LogoPyramid className="h-20 w-20 sm:h-24 sm:w-24" />
                     </div>
                   </div>
-                  <div className="space-y-2 sm:space-y-3">
+                  {/* v2.10 (re-probed): the live's heading block computes the
+                      sub-caption's mt (8px below sm / 12px from sm) — the
+                      explicit mt mirrors it (the v4 space-y flip put it on
+                      the h1's mb instead). */}
+                  <div className="mt-6 sm:mt-8">
                     <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] sm:text-3xl">
                       Welcome to Project Management App
                     </h1>
-                    <p className="text-[16px] font-medium text-[#64748B]">Sign in to continue</p>
+                    <p className="mt-2 text-[16px] font-medium text-[#64748B] sm:mt-3">Sign in to continue</p>
                   </div>
                 </>
               ) : (
@@ -183,9 +191,16 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                 </div>
               )}
 
-              <div className="w-full">
-                <div className="space-y-3">
-                  {mode === "signin" ? (
+              {/* v2.10 (re-probed on the live): the FORM AREA mirrors the
+                  live's DOM — a plain w-full wrapper whose children are the
+                  google-button block, the my-6 divider, and the form as
+                  SIBLINGS (no space-y on the wrapper: the divider's own
+                  my-6 = 24px gaps, exactly the live's computed layout; the
+                  old space-y-3 wrapper added 12px to the google→divider
+                  gap in v4's margin-on-earlier-child order). */}
+              <div className="mt-6 w-full sm:mt-8">
+                {mode === "signin" ? (
+                  <div className="space-y-3">
                     <Button
                       type="button"
                       variant="outline"
@@ -206,36 +221,40 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                       </span>
                       Continue with Google
                     </Button>
-                  ) : null}
+                  </div>
+                ) : null}
 
-                  {/* v2.9 (measured): the "or" divider is an absolute
-                      1px line with the centered uppercase label on a
-                      white chip. */}
-                  {mode === "signin" ? (
-                    <div className="relative my-6" aria-hidden="true">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="h-px w-full bg-[#E2E8F0]" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-white px-3 font-medium tracking-wider text-[#94A3B8]">or</span>
-                      </div>
+                {/* v2.9 (measured): the "or" divider is an absolute
+                    1px line with the centered uppercase label on a
+                    white chip. */}
+                {mode === "signin" ? (
+                  <div className="relative my-6" aria-hidden="true">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="h-px w-full bg-[#E2E8F0]" />
                     </div>
-                  ) : null}
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-3 font-medium tracking-wider text-[#94A3B8]">or</span>
+                    </div>
+                  </div>
+                ) : null}
 
-                  {/* v2.10 (re-probed on the live): the form mirrors the
-                      live's DOM exactly — `space-y-4 sm:space-y-5` (no pt),
-                      a FIELDS WRAPPER `space-y-3 sm:space-y-4` holding
-                      `space-y-1.5` field blocks (the 6px label→input gap is
-                      the input wrapper's mt from space-y-1.5 — the label
-                      itself carries no margin), and a `space-y-3` BOTTOM
-                      BLOCK (submit + footer strip, mt 12). */}
-                  <form onSubmit={submit} className="space-y-4 sm:space-y-5" noValidate>
-                    <div className="space-y-3 sm:space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="email" className="text-left text-[14px] font-medium leading-4 text-[#334155]">
+                {/* v2.10 (re-probed on the live): the form's computed
+                    margins mirror the live's v3-style space-y — Tailwind
+                    v4's space-y-* puts margin-block-end on the EARLIER
+                    child (v3 put margin-top on the later one), so the
+                    rhythm uses explicit mt utilities: the BOTTOM BLOCK
+                    carries mt 16/20 (from sm), the FIELD BLOCKS mt 12/16,
+                    the input wrappers mt 6, the footer mt 12. The labels
+                    render INLINE (the live's shadcn v3 Label has no flex
+                    base — `inline leading-5` opts out of ours) so their
+                    24px strut line box makes each field block 78 tall. */}
+                <form onSubmit={submit} noValidate>
+                    <div>
+                    <div>
+                      <Label htmlFor="email" className="inline text-left text-[14px] font-medium leading-5 text-[#334155]">
                         Email
                       </Label>
-                      <div className="relative">
+                      <div className="relative mt-[6px]">
                         <Mail size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
                         <Input
                           id="email"
@@ -251,11 +270,11 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                     </div>
 
                     {mode === "forgot" ? null : (
-                      <div className="space-y-1.5">
-                        <Label htmlFor="password" className="text-left text-[14px] font-medium leading-4 text-[#334155]">
+                      <div className="mt-3 sm:mt-4">
+                        <Label htmlFor="password" className="inline text-left text-[14px] font-medium leading-5 text-[#334155]">
                           Password
                         </Label>
-                        <div className="relative">
+                        <div className="relative mt-[6px]">
                           <Lock size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
                           <Input
                             id="password"
@@ -273,11 +292,11 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                     )}
 
                     {mode === "signup" ? (
-                      <div className="space-y-1.5">
-                        <Label htmlFor="confirm" className="text-left text-[14px] font-medium leading-4 text-[#334155]">
+                      <div className="mt-3 sm:mt-4">
+                        <Label htmlFor="confirm" className="inline text-left text-[14px] font-medium leading-5 text-[#334155]">
                           Confirm Password
                         </Label>
-                        <div className="relative">
+                        <div className="relative mt-[6px]">
                           <Lock size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
                           <Input
                             id="confirm"
@@ -296,12 +315,12 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                     </div>
 
                     {/* v2.10 (re-probed, F10): the form's BOTTOM BLOCK —
-                        `space-y-3` holding the submit button and the footer
-                        strip (its mt 12 comes from the block's space-y-3,
-                        exactly the live's DOM; the footer moved INSIDE the
-                        form — it was a 32px column sibling below the form
-                        wrapper). */}
-                    <div className="space-y-3">
+                        the submit button + footer strip; the block carries
+                        mt 16 below sm / 20 from sm (the live's form-level
+                        space-y-4/5 computed on THIS block — mirrored with
+                        an explicit mt, not a v4 space-y) and the footer
+                        strip's mt is 12, exactly the live's computed DOM. */}
+                    <div className="mt-4 sm:mt-5">
                       <Button
                         type="submit"
                         disabled={busy}
@@ -321,9 +340,10 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                             row from sm — "Forgot password?" left, a single "Need
                             an account? Sign up" button right (the label text
                             14px/400 #64748B, the action 14px/500 #334155).
-                            v2.10 (F10): inside the form's space-y-3 bottom
-                            block (mt 12). */
-                        <div className="flex w-full flex-col items-center justify-between gap-2 text-[14px] leading-5 sm:flex-row sm:gap-0">
+                            v2.10 (F10): inside the form's bottom block with
+                            its own mt 12 (mirrors the live's computed
+                            space-y-3 on the block). */
+                        <div className="mt-3 flex w-full flex-col items-center justify-between gap-2 text-[14px] leading-5 sm:flex-row sm:gap-0">
                           <button
                             type="button"
                             className="font-medium text-[#64748B] underline-offset-4 transition-colors hover:text-[#0F172A] hover:underline"
@@ -342,8 +362,7 @@ export function LoginCard({ fromUrl }: { fromUrl: string }) {
                         </div>
                       ) : null}
                     </div>
-                  </form>
-                </div>
+                </form>
               </div>
             </div>
           </div>

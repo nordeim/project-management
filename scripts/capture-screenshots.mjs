@@ -10,13 +10,21 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch();
 
 // Sign in once (fresh server — the in-memory rate limiter is clear).
+// Page-based login (the APIRequestContext is flaky under bun): fill the
+// form, wait for the workspace, then read the session cookie from the
+// context.
 const loginCtx = await browser.newContext();
 const lp = await loginCtx.newPage();
-const resp = await lp.request.post(BASE + "/api/auth/login", {
-  data: { email: "demo@orbital.app", password: "Demo1234!" },
-});
-const cookie = (await resp.headers()["set-cookie"] ?? "").split(";")[0];
-console.log("login:", resp.status());
+await lp.goto(BASE + "/login", { waitUntil: "networkidle" });
+await lp.fill('input[id="email"]', "demo@orbital.app");
+await lp.fill('input[id="password"]', "Demo1234!");
+await lp.click('button[type="submit"]');
+await lp.waitForURL(BASE + "/", { timeout: 20_000 });
+const cookies = await loginCtx.cookies(BASE);
+const session = cookies.find((c) => c.name === "orbital_session");
+if (!session) throw new Error("no orbital_session cookie after login");
+const cookie = `orbital_session=${session.value}`;
+console.log("login: ok | cookie:", cookie.slice(0, 24) + "…");
 await loginCtx.close();
 
 async function shot(name, viewport, fn) {

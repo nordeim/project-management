@@ -66,21 +66,25 @@ export function ActivityView() {
           <h1 className="text-[28px] font-normal leading-[1.2] tracking-[-0.01em] text-orb-heading">Agent Activity</h1>
           <p className="mt-1 text-[14px] text-orb-muted">Full transparency — every action the agent takes</p>
         </div>
-        {/* v1.9 (measured): the online pill — pad 7px 12px (h ≈ 30.5),
-            gap 6px, radius 9999, inset well pair, top aligned with the h1
-            (y=48 — no top margin). "Online" is 11px/600 #3A3A3A and the
-            "· N" count is 11px/400 #767676. v2.10 (re-measured): the live
-            restructured the pill into three flex children — [7px dot
+        {/* v1.9 (measured): the online pill aligns with the h1 top (y=48) —
+            items-start on the header row. pad 7px 12px (h ≈ 30.5), gap 6px,
+            radius 9999, inset well pair. "Online" is 11px/600 #3A3A3A and
+            the "· N" count is 11px/400 #767676. v2.10 (re-measured): the
+            live restructured the pill into three flex children — [7px dot
             span][Online span][· N span] — so the text runs "Online· 36"
             (no space before the separator; the old text-node layout read
-            "Online · 36" at 96 wide). v2.10 (re-probed): the live's
-            "Online" span carries ls 0.66px (w 39 — without it the pill
-            computes ~3px narrow); the count span stays ls-normal. */}
-        <p className="orb-well-pill flex shrink-0 items-center gap-[6px] px-3 py-[7px] text-[11px] font-semibold text-orb-heading">
+            "Online · 36" at 96 wide), and the live's "Online" span carries
+            ls 0.66px (the count span stays ls-normal). v2.10 (re-probed):
+            the pill is a DIV (not a <p>), and the live computes 101×30.5 —
+            its width delta vs the clone's 103 is the FONT: the live serves
+            no DM Sans file (font-family falls back to system-ui — a Base44
+            platform artifact); the clone's self-hosted DM Sans advances
+            ~2px wider at identical fs/fw/ls (verified on both). */}
+        <div className="orb-well-pill flex shrink-0 items-center gap-[6px] px-3 py-[7px]">
           <span className="orb-live-dot" aria-hidden="true" />
-          <span className="tracking-[0.66px]">Online</span>
-          <span className="font-normal tracking-normal text-[#767676]" aria-hidden="true">· {activity.length}</span>
-        </p>
+          <span className="text-[11px] font-semibold tracking-[0.66px] text-orb-heading">Online</span>
+          <span className="text-[11px] font-normal tracking-normal text-[#767676]" aria-hidden="true">· {activity.length}</span>
+        </div>
       </header>
 
       {hero ? (

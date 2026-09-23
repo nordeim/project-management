@@ -1,11 +1,24 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.8
+# ORBITAL — Master Project Architecture Document (PAD) v2.10
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
 **Companion Documents:** `README.md` (user-facing), `CLAUDE.md` (agent contract), `AGENTS.md` (operator notes)
-**Last Updated:** 2026-09-23
+**Last Updated:** 2026-09-24
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.10
+
+- `[MOD]` **Dialog form generation re-built (measured on the live)**: the standard form dialogs (add-task / task-edit / goal-edit) render the scrim-flex root — `fixed inset-0 z-[200] flex items-center justify-center p-[24px_16px]` with the per-kind 0.3 scrim — whose CHILD is the relative panel (r20, max-w 500/480, pad 28/28/24, NO panel shadow). Inside: `<p>` 15/600 lh 22.5 mb-20 headings (DialogTitle keeps no base typography — the Radix Slot concatenates classes without tailwind-merge, so the old `text-lg leading-none` base beat the per-use leading in v4 stylesheet order), `flex flex-col gap-[14px]` forms, `.orb-label-dlg` labels (11/600/uppercase/ls 0.88/lh 16.5/mb 6/`display: block` — the shadcn Label flex base would size the box to the font's ascent box, 16 not 17), h-35.5 inputs / h-37.5 dates, mt-4/gap-10 button rows (goal-edit mt-6), the 13px `#5A5A5A` close X, and goal-edit's Draft|Active|Paused|Completed option order with no Title asterisk. The invite dialog carries the 16/500/lh-16/ls-0.4 H2, 12/500 normal-case labels and 36px role toggles.
+- `[MOD]` **Coherent z-system**: tab bar 40→100 · MORE-sheet overlay 50→200 (panel 201) · form-dialog roots 50→200 · wizard scrim 50→100 · date-picker popover 50→210 (it portals to `<body>` while the live's picker lives inside its dialog's stacking context — a documented structural deviation that keeps the picker ABOVE the z-200 dialogs).
+- `[MOD]` **Check-in modal re-anchored**: `top-[5%]` below sm (centered from sm), literal-9999px radio circles with content-width label rows, a 16px note textarea, and the canvas-bg close square.
+- `[MOD]` **Wizard chrome**: r24 at every width, z-100 scrim, 50%-radius bot avatar, 14px title-input pad-x.
+- `[MOD]` **Remaining v4 serialization sites cleaned**: `.orb-chip-active` (768 pill chip), `.orb-back-btn` (back strip), `.orb-clock` + `rounded-[50%]` (sidebar clock), `.orb-panel-shadow` (picker inner card) + r16 chevrons — plain declarations that byte-match the live.
+- `[MOD]` **Login form mirrors the live's COMPUTED margins (the space-y flip)**: Tailwind v4's `space-y-*` applies `margin-block-end` to `:not(:last-child)` — v3 applied margin-top to the later siblings — so the clone's v4 space-y rendered identical VISUAL gaps on the WRONG elements (label mb 6 vs the live's input-wrapper mt 6; field-block mb 16 vs password-block mt 16; the google→divider gap grew 12px under a wrapper space-y). The form now uses explicit mt utilities (input wrapper mt-[6px], field blocks mt-3/sm:mt-4, bottom block mt-4/sm:mt-5, footer mt-3) + `inline leading-5` labels whose 24px strut line box (block fs 16/lh 24) makes each field block 78 tall — the card lands at exactly 746 over the 4px backdrop blur.
+- `[MOD]` **Activity pill**: a DIV carrying [7px dot][Online][· N] flex children, ls 0.66px on "Online" only. The live computes 101×30.5 — its width delta vs the clone's 103 is the FONT: the live serves no DM Sans file (font-family falls back to system-ui — a Base44 platform artifact like its public-read API); the clone's self-hosted DM Sans advances ~2px wider at identical fs/fw/ls. Documented deviation; the e2e pin asserts the child spans (count-independent), not the total width (the count digits are proportional).
+- `[MOD]` **Assorted**: Settings save glyph 14px (explicit `size-3.5` opts out of the shadcn Button's 16px svg base), sidebar brand x50 + p-2 collapse bar, user popover sideOffset 8 (the live measures pill-bottom 92 → popover-top 100 exactly).
+- `[NOTE]` **New finding (open, next session)**: the LIVE's `/login` renders the login card for AUTHENTICATED visitors (no redirect) — the clone redirects to `/` (pinned by auth.spec + documented since v1.4). A verified behavioral drift; removing the clone's redirect would ripple through the auth spec + four docs, so it is recorded for the next remediation plan rather than fixed in-passing.
+- `[NOTE]` **Measurement-artifact class (pinned in the specs with expect.poll)**: the dialogs/popovers animate (zoom-in-95 + slide-in) — mid-flight reads under-measure boxes by the scale factor (label 17→16, check-in 42.2→49, button row 34→33, popover gap 8→6.3). The pins stay at the settled values; the specs poll until the transform finishes.
 
 #### Revision Block — v2.9
 
@@ -709,7 +722,7 @@ v1.4 auth surface (mirrors the reference): unauthenticated visits render the wor
 | Category | Files | Checks | Location | Framework |
 |----------|-------|--------|----------|-----------|
 | End-to-end API smoke | 1 (`scripts/smoke-test.sh`) | 30 | `scripts/` | Bash + curl + python3 (no test framework needed) |
-| Unit (pure domain seams) | 14 (`src/lib/*.test.ts`) | 122 | `src/lib/` | Vitest 5 (`bun run test`) |
+| Unit (pure domain seams) | 15 (`src/lib/*.test.ts`, `tests/db-path.test.ts`) | 138 | `src/lib/` + `tests/` | Vitest 5 (`bun run test`) |
 
 ### 7.2 Test Patterns
 
@@ -719,7 +732,7 @@ The smoke suite boots the **production standalone server** (not dev mode), polls
 
 ### 7.3 Coverage Thresholds
 
-- **Gate (mandatory before push):** `bun run lint` → `bun run typecheck` → `bun run test` (**101/101**) → `bun run build` → `./scripts/smoke-test.sh` with **30/30 PASS**. There is no hosted CI; this local gate is the only gate. The `typecheck` step is not optional: `next.config.ts` sets `ignoreBuildErrors`, so the build alone will not surface type errors.
+- **Gate (mandatory before push):** `bun run lint` → `bun run typecheck` → `bun run test` (**138/138**) → `bun run build` → `./scripts/smoke-test.sh` with **30/30 PASS**. There is no hosted CI; this local gate is the only gate. The `typecheck` step is not optional: `next.config.ts` sets `ignoreBuildErrors`, so the build alone will not surface type errors.
 - Line/branch coverage is not measured — the seam list is small and deliberately complete (see ADR-008).
 
 ### 7.4 Pre-Push Checklist
@@ -727,8 +740,9 @@ The smoke suite boots the **production standalone server** (not dev mode), polls
 - [ ] `bun run lint` exits 0
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run build` compiles clean
-- [ ] `bun run test` → 122/122 PASS
+- [ ] `bun run test` → 138/138 PASS
 - [ ] `./scripts/smoke-test.sh` → 30/30 PASS
+- [ ] `bun run test:e2e` → 115/115 PASS (needs `bun run build` first)
 - [ ] New/changed endpoints write their `ActivityLog` entries (Pattern D)
 - [ ] Schema changes regenerated (`bunx prisma generate`) and reseeded (`db:push` + `db:seed`)
 - [ ] No `.env`, keys, or `db/*.db` staged (`git status` review)
@@ -780,7 +794,7 @@ bun run db:seed            # canonical demo workspace
 bun run dev                # http://localhost:3000
 ```
 
-Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 30/30 PASS; unit layer via `bun run test`, 101/101).
+Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build && ./scripts/smoke-test.sh` (expects 30/30 PASS; unit layer via `bun run test`, 138/138; browser layer 115/115).
 
 ### 9.2 Common Commands
 
@@ -795,7 +809,7 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `bun run db:push` | Apply schema changes to SQLite |
 | `bun run db:seed` | Idempotent reset to demo data |
 | `bunx prisma studio` | Inspect data in a browser (optional convenience) |
-| `bun run test` | Vitest unit suite (101 checks, pure seams) |
+| `bun run test` | Vitest unit suite (138 checks, pure seams) |
 | `./scripts/smoke-test.sh` | 30-check E2E suite against the production build |
 
 ### 9.3 Code Style Rules

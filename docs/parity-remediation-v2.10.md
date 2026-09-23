@@ -239,3 +239,102 @@ the re-probe).
    worklog; mark this plan EXECUTED.
 3. Conventional Commit on `main`, push via `docs/ssh_git_wrapper_v3.py`,
    verify remote == local HEAD, shred the key.
+
+## Session-31 completion audit (2026-09-23, this session)
+
+The prior session's upload captured a PARTIAL state: WS-1 (dialog
+scrimFlex base), WS-2's add-task conversion, WS-4 (wizard), and the
+WS-6 globals.css classes are in; the remaining wiring is not. Baseline
+re-verified: lint 0 · typecheck 0 · 138/138 unit · build clean · e2e
+95/114 (18 v30 pins red + v29:209 flake). Root causes probed live
+(scripts/probe-checkin.mjs):
+
+- **DialogTitle base cascade (v30:85)** — Radix `asChild` Slot
+  CONCATENATES classes (no tailwind-merge), so the base
+  `text-lg leading-none` survives alongside `leading-[22.5px]`; in v4
+  stylesheet order `.leading-none` (line-height:1) wins → lh 15px.
+  Fix: strip base typography from `DialogTitle`; every usage carries
+  explicit classes (the wizard's bare title gets them pinned to its
+  current 18/600/lh18 rendering, which matched the live).
+- **Label height (v30:118)** — the shadcn `Label` base `display:flex`
+  makes the label height the font's ascent/descent box (16.01px) not
+  the 16.5px line box; the live label is block. Fix:
+  `.orb-label-dlg { display: block }`.
+- **Check-in 5% anchor (v30:200)** — FALSE CSS BUG: computed top is
+  42.19px (correct); the test measured mid zoom-in animation
+  (scale .9704 shifts the top edge +6.7px). Fix: expect.poll in the
+  spec (pin value unchanged).
+- **Radio labels (v30:209)** — the inner `<span>` duplicates the
+  label-text matches (8 vs 4). Fix: bare text node.
+- **Online pill (v30:389)** — literal space before "·" (live renders
+  "Online· 36") + the test measured before the async feed load
+  ("· 0"). Fix: span-per-part + poll for data in the spec.
+- **goal-edit/task-edit** still on the old generation (H2 heading,
+  space-y forms, orb-label labels, no scrimFlex) — convert mirroring
+  the completed add-task pattern; goal-edit also takes the F11 option
+  order (draft→active→paused→done), the plain "Title" label, and the
+  mt-6 button row.
+- **WS-5/6/7 wiring** — tab bar z-40→z-[100]; SheetOverlay z-50→
+  z-[200]; date-picker popover z-[210] + `.orb-panel-shadow` inner
+  card + r16 chevrons; pill chip `.orb-chip-active`; back strip
+  `.orb-back-btn`; clock `rounded-[50%]` + `.orb-clock`; sidebar brand
+  row pl-[26px] (mark x50) + collapse bar p-2; activity pill
+  restructure + group label lh 15; Settings Save icon `size-3.5`;
+  invite F2 spec (16/500/lh16/ls-0.4 H2 without the icon circle,
+  12/500 labels, 36px role toggles, mt-8 row); login F10 (footer
+  inside the form at mt 12, gaps 6/16, blur 4px).
+- **Retired pins updated** — v29:201 (heading role → text locator,
+  the p generation carries no heading semantics) and v29:213 (option
+  order → the F11 sequence). v26 radio pins verified geometry-only
+  (safe). v29:209 re-checked post-fix for the pollution flake.
+
+## Session-33 completion record (2026-09-24) — PLAN EXECUTED
+
+Sessions 31/32 shipped the wiring (WS-1..WS-7 source changes committed via
+uploads); session 33 completed the remaining spec + verification work with
+fresh live ground-truth probes:
+
+- **Spec fixes (v30)**: button-row/label/check-in/popover reads wrapped in
+  expect.poll (the zoom-in-95 + slide-in animations under-measure mid-flight
+  — 34→33, 17→16, 42.2→49, 8→6.3; pins unchanged); the group-label and
+  settings-save tests poll for their async-rendered surfaces; the login
+  describe opts out of storageState (the authenticated redirect left no form
+  to measure); the back-strip test polls (a sequential-run flake).
+- **Live ground truth re-probed**: login card 746×448 blur 4px; the form's
+  computed margins live on the LATER children (input wrapper mt 6, password
+  block mt 16, bottom block mt 20, footer mt 12) with INLINE labels (the
+  24px strut line box makes each field block 78); the pill is a 101×30.5
+  DIV whose [7px dot][Online 39][· N 19] children carry their own fs (the
+  live serves NO DM Sans file — system-ui fallback; the clone's self-hosted
+  DM Sans advances +2px — documented deviation, span-pinned); the group
+  label span lh 15 inside a 24px parent line box (the clone was already
+  exact — the failure was async timing); the user popover opens EXACTLY 8px
+  below the pill (F12 settled).
+- **Source fixes (TDD red→green)**: `user-menu.tsx` sideOffset 4→8;
+  `login-screen.tsx` restructured to explicit mt utilities mirroring the
+  live's computed layout (v4's space-y margin-flip documented in PAD
+  lesson 18) + `inline leading-5` labels + the google/divider/form sibling
+  structure; `activity-view.tsx` pill P→DIV with per-span classes.
+- **Retired-pin updates**: v25's pill locator (p→div); v29's native-select
+  read polls for the animation settle.
+- **Full gate GREEN**: lint 0 · typecheck 0 · 138/138 unit · build clean ·
+  30/30 smoke · **115/115 Playwright** (114 + the net-new popover-gap pin).
+- **Re-probes EXACT** on every changed surface + the operator's mobile-nav
+  focus: the 390 tab census byte-identical (5 tabs 73.2×53.5 + MORE 81.2,
+  strokes 1.5, hrefs, z 100, radius, rect 771/73.5), the MORE sheet
+  (overlay 200 / panel 201 / rows + hrefs + navigation functional), the 768
+  pill nav (494×70.5 z 100, 6 tabs), the popover gap 8, the login card 746
+  with the full computed-margin set, the pill structure.
+- **Screenshots**: all 16 regenerated from the production build (the wizard
+  pair via capture-wizard.sh against the real AI plan, scratch goal cleaned
+  up, db back to the pristine 3/31/36); VLM sanity unavailable (the chat
+  endpoint is not multimodal + rate-limited) — verified via the 115 green
+  e2e pins + size/entropy sanity instead.
+- **New finding (F13, open)**: the LIVE's `/login` renders the login card
+  for AUTHENTICATED visitors (no redirect); the clone redirects to `/`
+  (pinned by auth.spec + documented since v1.4). Recorded for the next
+  remediation plan.
+- **Docs aligned**: README (v2.10 section, 115 e2e), AGENTS (gate counts +
+  the v2.10 dialog/z-system/space-y facts), CLAUDE (browser layer v2.10
+  pins), PAD (v2.10 revision block + counts), SKILL (sessions 1–33, lessons
+  18–19), worklog, this plan marked EXECUTED.
