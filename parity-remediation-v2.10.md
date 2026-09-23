@@ -239,3 +239,51 @@ the re-probe).
    worklog; mark this plan EXECUTED.
 3. Conventional Commit on `main`, push via `docs/ssh_git_wrapper_v3.py`,
    verify remote == local HEAD, shred the key.
+
+## Session-31 completion audit (2026-09-23, this session)
+
+The prior session's upload captured a PARTIAL state: WS-1 (dialog
+scrimFlex base), WS-2's add-task conversion, WS-4 (wizard), and the
+WS-6 globals.css classes are in; the remaining wiring is not. Baseline
+re-verified: lint 0 · typecheck 0 · 138/138 unit · build clean · e2e
+95/114 (18 v30 pins red + v29:209 flake). Root causes probed live
+(scripts/probe-checkin.mjs):
+
+- **DialogTitle base cascade (v30:85)** — Radix `asChild` Slot
+  CONCATENATES classes (no tailwind-merge), so the base
+  `text-lg leading-none` survives alongside `leading-[22.5px]`; in v4
+  stylesheet order `.leading-none` (line-height:1) wins → lh 15px.
+  Fix: strip base typography from `DialogTitle`; every usage carries
+  explicit classes (the wizard's bare title gets them pinned to its
+  current 18/600/lh18 rendering, which matched the live).
+- **Label height (v30:118)** — the shadcn `Label` base `display:flex`
+  makes the label height the font's ascent/descent box (16.01px) not
+  the 16.5px line box; the live label is block. Fix:
+  `.orb-label-dlg { display: block }`.
+- **Check-in 5% anchor (v30:200)** — FALSE CSS BUG: computed top is
+  42.19px (correct); the test measured mid zoom-in animation
+  (scale .9704 shifts the top edge +6.7px). Fix: expect.poll in the
+  spec (pin value unchanged).
+- **Radio labels (v30:209)** — the inner `<span>` duplicates the
+  label-text matches (8 vs 4). Fix: bare text node.
+- **Online pill (v30:389)** — literal space before "·" (live renders
+  "Online· 36") + the test measured before the async feed load
+  ("· 0"). Fix: span-per-part + poll for data in the spec.
+- **goal-edit/task-edit** still on the old generation (H2 heading,
+  space-y forms, orb-label labels, no scrimFlex) — convert mirroring
+  the completed add-task pattern; goal-edit also takes the F11 option
+  order (draft→active→paused→done), the plain "Title" label, and the
+  mt-6 button row.
+- **WS-5/6/7 wiring** — tab bar z-40→z-[100]; SheetOverlay z-50→
+  z-[200]; date-picker popover z-[210] + `.orb-panel-shadow` inner
+  card + r16 chevrons; pill chip `.orb-chip-active`; back strip
+  `.orb-back-btn`; clock `rounded-[50%]` + `.orb-clock`; sidebar brand
+  row pl-[26px] (mark x50) + collapse bar p-2; activity pill
+  restructure + group label lh 15; Settings Save icon `size-3.5`;
+  invite F2 spec (16/500/lh16/ls-0.4 H2 without the icon circle,
+  12/500 labels, 36px role toggles, mt-8 row); login F10 (footer
+  inside the form at mt 12, gaps 6/16, blur 4px).
+- **Retired pins updated** — v29:201 (heading role → text locator,
+  the p generation carries no heading semantics) and v29:213 (option
+  order → the F11 sequence). v26 radio pins verified geometry-only
+  (safe). v29:209 re-checked post-fix for the pollution flake.
