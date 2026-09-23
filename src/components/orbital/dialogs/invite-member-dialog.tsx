@@ -81,17 +81,10 @@ export function InviteMemberDialog({
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy && !next) close(); }}>
       <DialogContent className="sm:max-w-[384px] p-6">
+        {/* v2.10 (measured, F2): the live's invite H2 carries NO icon
+            circle — plain 16px/500 lh 16 ls -0.4. */}
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[16px] text-orb-heading">
-            <span
-              className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full",
-                isAgent ? "bg-orb-purple/15 text-orb-purple-deep" : "bg-black/[0.05] text-orb-muted",
-              )}
-              aria-hidden="true"
-            >
-              {isAgent ? <Bot size={15} /> : <Mail size={15} />}
-            </span>
+          <DialogTitle className="text-[16px] font-medium leading-[16px] tracking-[-0.4px] text-orb-heading">
             {isAgent ? "Create AI Agent" : "Invite Team Member"}
           </DialogTitle>
         </DialogHeader>
@@ -100,7 +93,7 @@ export function InviteMemberDialog({
           {isAgent ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="agent-name" className="orb-label">
+                <Label htmlFor="agent-name" className="block text-[12px] font-medium leading-[12px] mb-[6px] text-orb-muted">
                   Name *
                 </Label>
                 <Input
@@ -110,11 +103,11 @@ export function InviteMemberDialog({
                   placeholder="e.g. Project Manager"
                   required
                   maxLength={100}
-                  className=""
+                  className="h-[37.5px] px-[14px] py-[9px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="agent-description" className="orb-label">
+                <Label htmlFor="agent-description" className="block text-[12px] font-medium leading-[12px] mb-[6px] text-orb-muted">
                   Description
                 </Label>
                 <Input
@@ -123,11 +116,11 @@ export function InviteMemberDialog({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What does this agent do?"
                   maxLength={200}
-                  className=""
+                  className="h-[37.5px] px-[14px] py-[9px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="agent-instructions" className="orb-label">
+                <Label htmlFor="agent-instructions" className="block text-[12px] font-medium leading-[12px] mb-[6px] text-orb-muted">
                   Instructions
                 </Label>
                 <Textarea
@@ -144,7 +137,7 @@ export function InviteMemberDialog({
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="invite-email" className="orb-label">
+                <Label htmlFor="invite-email" className="block text-[12px] font-medium leading-[12px] mb-[6px] text-orb-muted">
                   Email
                 </Label>
                 <Input
@@ -155,11 +148,11 @@ export function InviteMemberDialog({
                   placeholder="colleague@company.com"
                   required
                   maxLength={200}
-                  className=""
+                  className="h-[37.5px] px-[14px] py-[9px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="orb-label">Role</Label>
+                <Label className="block text-[12px] font-medium leading-[12px] mb-[6px] text-orb-muted">Role</Label>
                 <div className="grid grid-cols-2 gap-2" role="group" aria-label="Role">
                   {(["member", "lead"] as const).map((option) => {
                     const active = role === option;
@@ -170,10 +163,8 @@ export function InviteMemberDialog({
                         onClick={() => setRole(option)}
                         aria-pressed={active}
                         className={cn(
-                          "h-11 rounded-2xl border text-[14px] font-medium capitalize transition-colors",
-                          active
-                            ? "border-orb-purple/50 bg-orb-purple/10 text-orb-purple-deep"
-                            : " text-orb-muted hover:bg-black/[0.04]",
+                          "h-[36px] rounded-[10px] bg-orb-well px-0 py-2 text-[13px] capitalize transition-colors",
+                          active ? "font-medium text-orb-heading" : "font-normal text-[#767676] hover:text-orb-heading",
                         )}
                       >
                         {option}
@@ -185,7 +176,9 @@ export function InviteMemberDialog({
             </>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-1">
+          {/* v2.10 (measured, F2): the invite button row sits 8px under
+              the form. */}
+          <div className="mt-[8px] flex items-center justify-end gap-[10px]">
             <Button
               type="button"
               className="h-[36px] rounded-[10px] bg-orb-well px-4 py-2 text-[13px] font-normal text-orb-muted shadow-[inset_-2px_-2px_5px_rgba(255,250,244,0.68),inset_2px_2px_5px_rgba(160,143,126,0.24)] transition-colors hover:text-orb-heading"

@@ -84,21 +84,30 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
             className="grid grid-cols-2 gap-2"
           >
             {OPTIONS.map((option) => (
-              <Label
+              /* v2.10 (measured on the live, F3): the labels are
+                 content-width TEXT-ONLY <label> elements (58/51/69/34
+                 wide at 14/500/20) with the radio as a SIBLING — not
+                 wrappers around the button. The htmlFor wiring keeps
+                 text-click activation (buttons are labelable). */
+              <div
                 key={option}
-                htmlFor={`update-${option}`}
-                className={cn(
-                  "flex w-max cursor-pointer items-center gap-2.5 text-[14px] font-medium leading-5 transition-colors",
-                  status === option ? "text-orb-heading" : "text-orb-body",
-                )}
+                className="flex w-max cursor-pointer items-center gap-2.5"
               >
                 <RadioGroupItem
                   id={`update-${option}`}
                   value={option}
                   className="rounded-[9999px] border-black/25 text-[16px] font-normal text-[#2F2823]"
                 />
-                <span>{UPDATE_STATUS_META[option].label}</span>
-              </Label>
+                <Label
+                  htmlFor={`update-${option}`}
+                  className={cn(
+                    "cursor-pointer text-[14px] font-medium leading-5 transition-colors",
+                    status === option ? "text-orb-heading" : "text-orb-body",
+                  )}
+                >
+                  {UPDATE_STATUS_META[option].label}
+                </Label>
+              </div>
             ))}
           </RadioGroup>
 
