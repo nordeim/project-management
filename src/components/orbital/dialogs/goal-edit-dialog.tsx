@@ -6,11 +6,15 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useOrbital } from "@/components/orbital/store";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { GOAL_STATUS_META, type GoalDTO, type GoalStatus } from "@/lib/orbital";
+
+// v2.10 (measured on the live, F11): the status select's option order is
+// Draft | Active | Paused | Completed — NOT the META's insertion order.
+const GOAL_EDIT_OPTION_ORDER: GoalStatus[] = ["draft", "active", "paused", "done"];
 
 function toDateInput(iso: string | null): string {
   if (!iso) return "";
@@ -53,18 +57,29 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
       {/* v2.9 (measured on the live): the Edit Goal dialog carries NO
           close square — its only controls are the status select, Cancel
           and Save (add-task/task-edit keep the 30px close). */}
-      <DialogContent showCloseButton={false} className="sm:max-w-[480px]" overlayClassName="bg-[rgba(46,42,38,0.3)]">
-        <DialogHeader>
-          {/* v2.9 (measured): the live's Edit Goal heading is a plain
-              15px/600 "Edit Goal" — no icon circle (their panel carries
-              zero svgs). */}
-          <DialogTitle className="text-[15px] font-semibold text-orb-heading">Edit Goal</DialogTitle>
-        </DialogHeader>
+      {/* v2.10 (measured): the form dialogs render the panel INSIDE the
+          scrim — one fixed flex root at z-200 with this panel as its
+          relative child. */}
+      <DialogContent
+        showCloseButton={false}
+        scrimFlex
+        className="sm:max-w-[480px]"
+        overlayClassName="z-[200] bg-[rgba(46,42,38,0.3)]"
+      >
+        {/* v2.10 (measured): the heading is a <p> 15/600 lh 22.5 with a
+            20px bottom margin (no heading semantics, no icon circle —
+            the live's panel carries zero svgs). */}
+        <DialogTitle asChild>
+          <p className="mb-5 text-[15px] font-semibold leading-[22.5px] text-orb-heading">Edit Goal</p>
+        </DialogTitle>
 
-        <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-goal-title" className="orb-label">
-              Title *
+        {/* v2.10 (measured): the form is a flex column with a 14px gap. */}
+        <form onSubmit={submit} className="flex flex-col gap-[14px]">
+          <div>
+            {/* v2.10 (measured, F11): the Title label carries NO
+                asterisk on the live (add-task keeps its asterisk). */}
+            <Label htmlFor="edit-goal-title" className="orb-label-dlg">
+              Title
             </Label>
             <Input
               id="edit-goal-title"
@@ -72,12 +87,12 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={200}
-              className=""
+              className="h-[35.5px]"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="edit-goal-description" className="orb-label">
+          <div>
+            <Label htmlFor="edit-goal-description" className="orb-label-dlg">
               Description
             </Label>
             <Textarea
@@ -91,28 +106,29 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="edit-goal-status" className="orb-label">
+            <div>
+              <Label htmlFor="edit-goal-status" className="orb-label-dlg">
                 Status
               </Label>
               {/* v2.9 (measured): the live's status control is a NATIVE
                   select (216×35, bg #EBE7E2, r10, 13px, UA arrow) — not a
-                  shadcn button trigger. */}
+                  shadcn button trigger. v2.10 (F11): option order
+                  Draft | Active | Paused | Completed. */}
               <select
                 id="edit-goal-status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as GoalStatus)}
                 className="orb-select"
               >
-                {(Object.keys(GOAL_STATUS_META) as GoalStatus[]).map((s) => (
+                {GOAL_EDIT_OPTION_ORDER.map((s) => (
                   <option key={s} value={s}>
                     {GOAL_STATUS_META[s].label}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-goal-target" className="orb-label">
+            <div>
+              <Label htmlFor="edit-goal-target" className="orb-label-dlg">
                 Target Date
               </Label>
               <Input
@@ -120,12 +136,14 @@ export function GoalEditDialog({ goal, onClose }: { goal: GoalDTO; onClose: () =
                 type="date"
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
-                className="h-[38px]"
+                className="h-[37.5px]"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-1">
+          {/* v2.10 (measured): the goal-edit button row sits 6px under
+              the form with a 10px gap. */}
+          <div className="mt-[6px] flex items-center justify-end gap-[10px]">
             <Button
               type="button"
               className="orb-btn-cancel-std"
