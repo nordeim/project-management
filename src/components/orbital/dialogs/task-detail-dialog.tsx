@@ -36,8 +36,16 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
   return (
     <Dialog open onOpenChange={(next) => !next && onClose()}>
       {/* Reference spec (v1.5): the check-in modal is a 448px / radius-16
-          panel — smaller than the 500px form dialogs. */}
-      <DialogContent className="sm:max-w-[448px] rounded-[16px] p-6">
+          panel — smaller than the 500px form dialogs. v2.10 (measured):
+          below sm the panel anchors at 5% of the viewport height (y 42.2
+          at 844 — the live's mobile spec); from sm it centers vertically
+          like before (y 246 at 900). The check-in keeps the classic
+          overlay+content split at z-50 (the live measured z 50, not the
+          form dialogs' 200). */}
+      <DialogContent
+        className="top-[5%] translate-y-0 sm:max-w-[448px] sm:top-1/2 sm:-translate-y-1/2 rounded-[16px] p-6"
+        closeClassName="bg-orb-raised"
+      >
         <DialogHeader>
           {/* v1.7 (measured): 16px/500 — quieter than 17px/600. */}
           <DialogTitle className="text-left text-[16px] font-medium leading-[16px] tracking-[-0.4px] text-orb-heading">{task.title}</DialogTitle>
@@ -65,7 +73,11 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
           <p className="mb-[12px] text-[12px] font-semibold uppercase tracking-[0.96px] leading-[18px] text-orb-muted">Post Status Update</p>
           {/* Reference (v1.5): plain radio labels in a 2-col grid — no card
               wrappers, no borders; 14px fw 500 charcoal text. v2.6: lh 20
-              (the live's radio block is 48px = 2 rows of 24). */}
+              (the live's radio block is 48px = 2 rows of 24). v2.10
+              (measured): the labels are CONTENT-WIDTH blocks (w-max —
+              59/52/69/34px on the live), and the 16px circles pin the
+              literal 9999px radius with #2F2823 (v4's rounded-full
+              serializes as 33554432px). */}
           <RadioGroup
             value={status ?? undefined}
             onValueChange={(v) => setStatus(v as UpdateStatus)}
@@ -76,25 +88,30 @@ export function TaskDetailDialog({ task, onClose }: { task: TaskDTO; onClose: ()
                 key={option}
                 htmlFor={`update-${option}`}
                 className={cn(
-                  "flex cursor-pointer items-center gap-2.5 text-[14px] font-medium leading-5 transition-colors",
+                  "flex w-max cursor-pointer items-center gap-2.5 text-[14px] font-medium leading-5 transition-colors",
                   status === option ? "text-orb-heading" : "text-orb-body",
                 )}
               >
-                <RadioGroupItem id={`update-${option}`} value={option} className="border-black/25" />
-                {UPDATE_STATUS_META[option].label}
+                <RadioGroupItem
+                  id={`update-${option}`}
+                  value={option}
+                  className="rounded-[9999px] border-black/25 text-[16px] font-normal text-[#2F2823]"
+                />
+                <span>{UPDATE_STATUS_META[option].label}</span>
               </Label>
             ))}
           </RadioGroup>
 
           {/* Reference (v1.5): bordered transparent textarea — 1px
-              #D8D4CF, radius 14, 80px tall (not a well). */}
+              #D8D4CF, radius 14, 80px tall (not a well). v2.10
+              (measured): the note text renders at 16px (was 14). */}
           <Textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add a note (optional)..."
             rows={3}
             maxLength={1000}
-            className="mt-4 h-20 rounded-[14px] border border-[#D8D4CF] bg-transparent px-3 py-2 text-[14px] text-orb-body placeholder:text-orb-muted focus-visible:border-orb-purple/60 focus-visible:ring-0"
+            className="mt-4 h-20 rounded-[14px] border border-[#D8D4CF] bg-transparent px-3 py-2 text-[16px] text-orb-body placeholder:text-orb-muted focus-visible:border-orb-purple/60 focus-visible:ring-0"
             aria-label="Status update note"
           />
 
