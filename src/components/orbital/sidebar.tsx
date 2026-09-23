@@ -124,8 +124,10 @@ export function Sidebar({
     <div className="flex h-full w-full flex-col">
       {/* v1.9 (measured): brand row — an 11px six-dot mark inset 10px from
           the content edge (x=50 on the panel at x=24+16) with an 8px gap to
-          "ORBITAL" set in ARCHIVO 600 at 13px/ls 2.34px in #2F2823. */}
-      <div className="flex items-center justify-between px-4 pb-2 pt-0">
+          "ORBITAL" set in ARCHIVO 600 at 13px/ls 2.34px in #2F2823.
+          v2.10 (re-measured): the row's left pad is 26 so the anchor
+          computes x50 (the v1.9/v2.9 px-4 rendered x40). */}
+      <div className="flex items-center justify-between pl-[26px] pr-4 pb-2 pt-0">
         <a
           href={toPath("dashboard")}
           onClick={(e) => sidebarAnchorGo(e, navigate, "dashboard")}
