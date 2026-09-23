@@ -45,7 +45,11 @@ export function SidebarClock({ size = 80 }: { size?: number }) {
 
   return (
     <div
-      className="flex shrink-0 items-center justify-center rounded-full bg-orb-well shadow-[inset_-4px_-4px_8px_rgba(255,250,244,0.8),inset_4px_4px_8px_rgba(160,143,126,0.28)]"
+      // v2.10 (measured): the live's clock circle computes radius 50% and a
+      // clean single inset declaration — rounded-full serializes as
+      // calc(infinity*1px) and the composed utility emitted v4 zero-alpha
+      // prefixes, so the pair moved to the plain .orb-clock custom class.
+      className="orb-clock flex shrink-0 items-center justify-center rounded-[50%] bg-orb-well"
       style={{ width: size, height: size }}
       role="img"
       aria-label={now ? `Current time ${now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Clock"}
