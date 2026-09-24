@@ -48,3 +48,33 @@ Work Log:
 
 Stage Summary:
 - v2.10 complete: gate green (115 e2e), re-probes EXACT, screenshots regenerated, docs aligned — pending commit + SSH-wrapper push to main.
+
+---
+Task ID: v2.11-session-35-plan
+Agent: main (Super Z)
+Task: Session 35 — plan the F13 closure (authenticated /login renders the card on the live) after a fresh live survey + baseline gate.
+
+Work Log:
+- Pulled ef91267 (session-33/34 shipped state; docs/session_34.md added, root parity-remediation-v2.10.md retired into docs/). Read AGENTS/CLAUDE/README/PAD/SKILL + session_33/34 + parity-remediation-v2.10 + worklog.
+- Baseline gate GREEN on the pulled state: lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · 115/115 Playwright. Infra verified: .env DATABASE_URL="file:../db/custom.db" (repo db seeded 3/31/36; the shell DATABASE_URL parent-workspace trap re-neutralized with explicit per-command overrides), db/ at repo root (.gitkeep tracked), vitest + playwright configs functional.
+- LIVE SURVEY (authenticated, 390/768/1440): F13 re-confirmed — the live's /login renders the full login card for AUTHENTICATED visitors (URL stays /login; card byte-identical to logged-out; re-sign-in lands on /). Mobile navigation (operator's focus) EXACT: 390 tab census byte-identical (4 anchors 73.2×53.5 stroke 1.5 + MORE 81.2; nav z100 r20; active inset chip), MORE sheet 200/201 with functional row navigation, 768 pill nav 494.3×70.5 z100 6 chips. No other drift: desktop anchor census, view h1s ×6, activity pill [dot][Online][· 36] pad 7/12 gap 6, wizard ?new=true auto-open (scrim z100 0.3 flex), app-bar pill, New Goal pill 132.3×40.
+- NEW finding F14 (recorded, NOT fixed): the live's desktop user pill is a plain DIV with inline styles (Base44 artifact); the clone's Radix PopoverTrigger <button> computes byte-equal geometry (r12 pad 11/16 well bg inset 0.68/0.24 name 12/500 #6E6E6E). Kept as a deliberate a11y deviation (same class as aria-current).
+
+Stage Summary:
+- Plan written: docs/parity-remediation-v2.11.md — WS-1 source fix (drop the authed redirect in src/app/login/page.tsx), WS-2 TDD (invert auth.spec:52, RED then GREEN, v30:553 comment), WS-3 docs (README/AGENTS/CLAUDE/PAD/SKILL/session_35/worklog/plan), WS-4 verify + screenshots + ship via SSH wrapper. All fix sites validated against source before writing the plan.
+
+---
+Task ID: v2.11-session-35-execution
+Agent: main (Super Z)
+Task: Execute the v2.11 plan (TDD) and ship — close F13.
+
+Work Log:
+- RED: auth.spec:52 inverted to the live's behavior (authed visit renders the card at /login; re-sign-in lands on /) — verified failing on the unmodified build (1 failed / 4 passed).
+- GREEN: src/app/login/page.tsx renders LoginCard unconditionally (getSessionUser + redirect dropped; safeFromUrl + force-dynamic kept; no client change needed). v30 login-block comment refreshed (storageState opt-out stays).
+- Full gate GREEN: lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · 115/115 Playwright.
+- Paired re-probe on the standalone server (:3000, explicit env): authenticated /login renders the card on the clone exactly as on the live; re-sign-in lands on / (sidebar + greeting). Behavioral parity closed.
+- Screenshots 16/16 regenerated (capture-screenshots.mjs + capture-wizard.sh real-AI pair; scratch goal cleaned; db pristine 3/31/36); VLM unavailable — dimension/size sanity + green pins stand in.
+- Docs aligned: README (v2.11 paragraph + architecture + auth bullet), AGENTS, CLAUDE, PAD (v2.11 revision block, F13 RESOLVED, §6.3, file table), SKILL (sessions 1–35, §8, lesson 20), session_35, the v2.11 plan EXECUTED record, this worklog.
+
+Stage Summary:
+- v2.11 complete: F13 closed with full behavioral parity, gate green (115 e2e), mobile nav re-verified byte-identical, screenshots regenerated, docs aligned — pending commit + SSH-wrapper push to main.

@@ -1,9 +1,9 @@
 // /login — the reference app's real auth route (v1.4). Renders the login
-// card for signed-out visitors and bounces already-authenticated ones back
-// to the workspace they came from (from_url, default "/").
+// card for EVERY visitor (v2.11, F13 — measured on the live 2026-09-24:
+// authenticated visitors get the full card, NOT a redirect; signing in
+// from that state lands on the workspace via the client flow in
+// login-screen.tsx). `?from_url=` is still honored after sign-in.
 
-import { redirect } from "next/navigation";
-import { getSessionUser } from "@/lib/auth";
 import { LoginCard } from "@/components/orbital/login-screen";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +19,6 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ from_url?: string }>;
 }) {
-  const user = await getSessionUser();
   const { from_url } = await searchParams;
-  if (user) redirect(safeFromUrl(from_url));
   return <LoginCard fromUrl={safeFromUrl(from_url)} />;
 }

@@ -1,13 +1,13 @@
 ---
 name: project-management
-description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 33 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 115 Playwright browser + 30 curl smoke checks)."
+description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 35 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 115 Playwright browser + 30 curl smoke checks)."
 version: 1.0.0
 last_updated: 2026-09-23
 ---
 
 # ORBITAL — Project Management Workspace: Complete Engineering Skill
 
-> Distilled from sessions 1–33 (v1.0 → v2.10) of cloning and remediating the
+> Distilled from sessions 1–35 (v1.0 → v2.11) of cloning and remediating the
 > reference Base44 app as a self-hosted Next.js unit. Every fact below is
 > codebase-verified; measured values come from computed-style probes against
 > the live reference app (two authenticated browser sessions, 390/768/1440).
@@ -255,6 +255,10 @@ the pipeline carry `ai: true` and render the solid `#EEEAE6` AI chip (r6, pad 1/
 - "Continue with Google" renders for parity but degrades to an explanatory
   toast — no OAuth credentials in a self-hosted clone (documented
   deviation).
+- `/login` renders the `LoginCard` for EVERY visitor — authenticated ones
+  included (v2.11/F13, measured on the live: no redirect; re-sign-in lands
+  on the workspace via the client flow). The v1.4–v2.10 authed redirect
+  was a behavioral drift, closed and pinned in `auth.spec.ts`.
 - Validation is hand-rolled in route handlers (no Zod — pruned in v1.2 by
   design): trim, length caps, enum membership, referential checks, email
   format. Unknown ids → 404; auth gaps → 401; bad input → 400 with a
@@ -463,6 +467,19 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
     the child spans (dot 7×7, "Online" 40 @ 11/600/ls 0.66), the gap,
     and the padding; totals get a floor + a sanity range. Same rule for
     any data-derived width.
+
+20. **Behavioral parity includes AUTH-STATE routing — probe every route
+    both ways (v2.11).** The clone's `/login` had redirected
+    authenticated visitors to `/` since v1.4, and nobody noticed for
+    ten revisions because every probe and spec measured the LOGGED-OUT
+    surface only. The live renders the full card to authenticated
+    visitors (no redirect — measured as F13). The survey rule: for
+    every route, visit it BOTH signed-out AND signed-in against the
+    reference and diff the behavior (URL, render, nav), not just the
+    logged-out geometry. Same class as lesson 17's "read the computed
+    value": the measurement must cover the full state space the
+    reference occupies, and a redirect that fires only in one auth
+    state is invisible to a logged-out-only census.
 
 ## §13 Pitfalls to Avoid
 

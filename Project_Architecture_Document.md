@@ -1,4 +1,4 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.10
+# ORBITAL — Master Project Architecture Document (PAD) v2.11
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
@@ -6,6 +6,12 @@
 **Last Updated:** 2026-09-24
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.11
+
+- `[MOD]` **F13 closed — the authenticated `/login` behavioral drift**: the LIVE renders the full login card for AUTHENTICATED visitors (URL stays on `/login`, card byte-identical to the logged-out one; signing in from that state lands on the workspace). The clone had redirected authenticated visitors to `/` since v1.4 (pinned by auth.spec, documented across four docs). `src/app/login/page.tsx` now renders the `LoginCard` unconditionally — the page is session-independent (no `getSessionUser()` call), `safeFromUrl` + `force-dynamic` stay, `?from_url=` is honored after sign-in, and the client flow (`POST /api/auth/login` → `router.replace(fromUrl)` + `router.refresh()`) already produced the live's land-on-workspace behavior for authenticated re-sign-ins. The auth.spec pin inverted: authenticated visit → the card renders at `/login`; re-sign-in → `/` (115 e2e total).
+- `[NOTE]` **F14 recorded (not fixed)**: the live's desktop user pill is a plain inline-styled DIV (pad 11/16 · `var(--radius-button)` · well bg · the 0.68/0.24 inset pair · cursor pointer · user-select none — a Base44 platform artifact). The clone keeps its Radix `PopoverTrigger` `<button>` with byte-equal computed geometry as a deliberate a11y deviation (the same class of keep as `aria-current="page"`).
+- `[NOTE]` **Verification**: full gate green — lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · **115/115 Playwright** — plus a paired re-probe of the changed surface (authenticated `/login` renders the card on BOTH apps; re-sign-in lands on `/` on both) and the mobile-navigation focus re-verified byte-identical (390 tab census, MORE sheet 200/201 with functional rows, 768 pill nav 494.3×70.5). All 16 screenshots regenerated from the production build.
 
 #### Revision Block — v2.10
 
@@ -17,7 +23,7 @@
 - `[MOD]` **Login form mirrors the live's COMPUTED margins (the space-y flip)**: Tailwind v4's `space-y-*` applies `margin-block-end` to `:not(:last-child)` — v3 applied margin-top to the later siblings — so the clone's v4 space-y rendered identical VISUAL gaps on the WRONG elements (label mb 6 vs the live's input-wrapper mt 6; field-block mb 16 vs password-block mt 16; the google→divider gap grew 12px under a wrapper space-y). The form now uses explicit mt utilities (input wrapper mt-[6px], field blocks mt-3/sm:mt-4, bottom block mt-4/sm:mt-5, footer mt-3) + `inline leading-5` labels whose 24px strut line box (block fs 16/lh 24) makes each field block 78 tall — the card lands at exactly 746 over the 4px backdrop blur.
 - `[MOD]` **Activity pill**: a DIV carrying [7px dot][Online][· N] flex children, ls 0.66px on "Online" only. The live computes 101×30.5 — its width delta vs the clone's 103 is the FONT: the live serves no DM Sans file (font-family falls back to system-ui — a Base44 platform artifact like its public-read API); the clone's self-hosted DM Sans advances ~2px wider at identical fs/fw/ls. Documented deviation; the e2e pin asserts the child spans (count-independent), not the total width (the count digits are proportional).
 - `[MOD]` **Assorted**: Settings save glyph 14px (explicit `size-3.5` opts out of the shadcn Button's 16px svg base), sidebar brand x50 + p-2 collapse bar, user popover sideOffset 8 (the live measures pill-bottom 92 → popover-top 100 exactly).
-- `[NOTE]` **New finding (open, next session)**: the LIVE's `/login` renders the login card for AUTHENTICATED visitors (no redirect) — the clone redirects to `/` (pinned by auth.spec + documented since v1.4). A verified behavioral drift; removing the clone's redirect would ripple through the auth spec + four docs, so it is recorded for the next remediation plan rather than fixed in-passing.
+- `[NOTE]` **Finding F13 (RESOLVED in v2.11)**: the LIVE's `/login` renders the login card for AUTHENTICATED visitors (no redirect) — the clone redirected to `/` (pinned by auth.spec + documented since v1.4). Closed by the v2.11 revision: the page now renders the card unconditionally and the auth.spec pin asserts the live's behavior.
 - `[NOTE]` **Measurement-artifact class (pinned in the specs with expect.poll)**: the dialogs/popovers animate (zoom-in-95 + slide-in) — mid-flight reads under-measure boxes by the scale factor (label 17→16, check-in 42.2→49, button row 34→33, popover gap 8→6.3). The pins stay at the settled values; the specs poll until the transform finishes.
 
 #### Revision Block — v2.9
@@ -699,7 +705,7 @@ Deliberately restrained, all CSS-based: the mobile bottom tab bar, the MORE bott
 
 Single-workspace model with no RBAC: any authenticated user has full read/write access to all goals, tasks, team, and settings. Registration (`/api/auth/register`) is open; email is unique, password minimum length enforced (8). "My Tasks" resolves through the `Person` row linked to the login user (`Person.userId`), not through a role. Adding RBAC would mean a role column on `User` plus a check in `requireSession` — deliberately out of scope for v1.0 (see §10).
 
-v1.4 auth surface (mirrors the reference): unauthenticated visits render the workspace shell with a LOG IN header button (the store skips data fetches while `user` is null — reads/mutations stay session-gated, so nothing leaks); `/login` is a real route serving the `LoginCard` (sign-in / sign-up / forgot states, `?from_url=` return handling, authenticated visits redirect to `/`). "Continue with Google" is rendered for visual parity but carries no credentials — it degrades to an explanatory toast, the same degrade-not-fail doctrine as the AI features. The reference's public-read API behavior is a Base44 platform artifact and a documented deviation.
+v1.4 auth surface (mirrors the reference): unauthenticated visits render the workspace shell with a LOG IN header button (the store skips data fetches while `user` is null — reads/mutations stay session-gated, so nothing leaks); `/login` is a real route serving the `LoginCard` (sign-in / sign-up / forgot states, `?from_url=` return handling) to EVERY visitor — authenticated ones included (v2.11/F13, measured on the live: no redirect; re-sign-in lands on the workspace). "Continue with Google" is rendered for visual parity but carries no credentials — it degrades to an explanatory toast, the same degrade-not-fail doctrine as the AI features. The reference's public-read API behavior is a Base44 platform artifact and a documented deviation.
 
 ### 6.4 Threat Model
 
@@ -858,7 +864,7 @@ Demo login: `demo@orbital.app` / `Demo1234!`. Full verification: `bun run build 
 | `src/components/orbital/views/goal-detail-view.tsx` | 217 | Goal detail: centered stat cards, inline ADD TASK, header inline delete confirm |
 | `src/components/orbital/views/settings-view.tsx` | 231 | Settings: 2-column layout (Workspace + Hours / AI Assistant), well inputs |
 | `src/components/orbital/dialogs/new-goal-dialog.tsx` | 291 | 3-step AI wizard: describe (+ DatePicker) → clarifying questions → generate |
-| `src/app/login/page.tsx` | 26 | Real `/login` route: auth-card shell, `?from_url` handling, authed redirect |
+| `src/app/login/page.tsx` | 20 | Real `/login` route: auth-card shell for every visitor (no authed redirect — v2.11/F13), `?from_url` handling |
 | `src/components/ui/date-picker.tsx` | 139 | Custom date picker: well trigger + popover calendar on the `calendar.ts` seam |
 | `src/lib/calendar.test.ts` | 121 | Month-grid specs: boundaries, leap February, 6-row invariant, `isSameDay` |
 | `src/lib/calendar.ts` | 70 | Pure month-grid math (`monthGrid`, `isSameDay`) — unit tested |

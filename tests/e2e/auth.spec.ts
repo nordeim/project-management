@@ -49,12 +49,25 @@ test.describe("login route", () => {
     await expect(page.locator("aside")).toBeVisible();
   });
 
-  test("authenticated visits redirect /login back to the workspace", async ({ page }) => {
+  test("authenticated visits render the login card (the live's behavior — no redirect)", async ({ page }) => {
+    // F13/v2.11 (measured on the live 2026-09-24): the reference renders
+    // the FULL login card for authenticated visitors — the URL stays on
+    // /login, the card is byte-identical to the logged-out one, and
+    // signing in from that state lands on the workspace. The clone
+    // redirected authenticated visitors to / from v1.4 to v2.10; that
+    // drift is now closed (the page renders the card unconditionally).
     const res = await page.request.post("/api/auth/login", {
       data: { email: "demo@orbital.app", password: "Demo1234!" },
     });
     expect(res.ok()).toBeTruthy();
     await page.goto("/login");
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByRole("heading", { name: "Welcome to Project Management App" })).toBeVisible();
+    // Re-signing in from the authenticated state lands on the workspace
+    // (the live's flow: POST → router lands on from_url, default "/").
+    await page.getByLabel("Email").fill("demo@orbital.app");
+    await page.getByLabel("Password").fill("Demo1234!");
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
   });
 });

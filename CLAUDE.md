@@ -43,7 +43,7 @@ ORBITAL is a faithful clone of the reference Base44 project-management app, rebu
 
 ### Next.js 16 Specifics
 
-- App Router; `src/app/page.tsx` (force-dynamic) passes a **nullable user** to the client shell — the workspace renders for unauthenticated visitors with empty states + LOG IN; `src/app/login/page.tsx` is a real route rendering the `LoginCard`. The view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/tasks`, `/activity`, `/team`, `/settings`) are `rewrites()` in `next.config.ts` onto `/` — keep them in sync with `src/lib/router.ts`; `/login` must stay excluded from the rewrites.
+- App Router; `src/app/page.tsx` (force-dynamic) passes a **nullable user** to the client shell — the workspace renders for unauthenticated visitors with empty states + LOG IN; `src/app/login/page.tsx` is a real route rendering the `LoginCard` for EVERY visitor (v2.11/F13: the live renders the card for authenticated users too — no redirect; re-sign-in lands on the workspace via the client flow, pinned in auth.spec). The view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/tasks`, `/activity`, `/team`, `/settings`) are `rewrites()` in `next.config.ts` onto `/` — keep them in sync with `src/lib/router.ts`; `/login` must stay excluded from the rewrites.
 - All server logic lives in route handlers under `src/app/api/`; there are no server actions.
 - Client components are explicit: `orbital-app.tsx`, all views, dialogs, and the store carry `"use client"`.
 - `next/font` loads DM Sans / DM Mono; do not import fonts any other way.

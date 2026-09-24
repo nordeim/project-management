@@ -550,9 +550,10 @@ test.describe("user menu popover (v2.10)", () => {
 });
 
 test.describe("login page (v2.10)", () => {
-  // The login route redirects authenticated visitors to / — these pins
-  // measure the logged-out card, so opt out of the shared storageState
-  // (same pattern as the v29 login block).
+  // These pins measure the LOGGED-OUT card, so they opt out of the shared
+  // storageState (same pattern as the v29 login block). v2.11 (F13): /login
+  // renders the card for authenticated visitors too — the behavioral pin
+  // lives in auth.spec; the geometry below is state-independent.
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test("the card computes 746 tall with a 4px backdrop blur", async ({ page }) => {
