@@ -78,3 +78,32 @@ Work Log:
 
 Stage Summary:
 - v2.11 complete: F13 closed with full behavioral parity, gate green (115 e2e), mobile nav re-verified byte-identical, screenshots regenerated, docs aligned — pending commit + SSH-wrapper push to main.
+
+---
+Task ID: v2.12-session-37-plan
+Agent: main (Super Z)
+Task: Session 37 — pull 964ed32, full gate, fresh paired live/clone survey (mobile-nav focus), Tailwind v4 code audit, then the v2.12 verification-pass plan.
+
+Work Log:
+- Pulled 964ed32 (docs-only delta since v2.11's 5758062 — session_36.md). Read AGENTS/CLAUDE/README/PAD/SKILL + session_35/36 + parity-remediation-v2.11 + worklog.
+- Baseline gate GREEN: lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · 115/115 Playwright. Infra verified: .env DATABASE_URL="file:../db/custom.db" (shell trap re-neutralized with explicit per-command overrides), db/ at repo root, vitest + playwright functional, .env.example current + tracked.
+- PAIRED LIVE/CLONE SURVEY (authenticated, 390/768/1440): mobile tab census byte-identical on BOTH apps (nav [0,770.5,390,73.5] z100 r20; 4 anchors 73.2×53.5 stroke 1.5 + MORE 81.2); MORE sheet (overlay 200 / panel 201 [0,541,390,303] r24; rows /tasks /team /settings) opens + navigates on both; 768 pill nav 494.3×70.5 z100 r20 6 chips (min-w 52 r12); desktop sidebar census + New Goal pill 132.3×40 r12 + F14 user pill (DIV 149×44 pad 11/16 r12, unchanged keep); all six h1s; activity pill 99.7×30.5 pad 7/12 gap 6 [dot 7][Online 38][· 36 18.6]; wizard deep link (scrim z100 rgba(46,42,38,0.3) flex, panel 680 r24 pad 28/28/24); add-task dialog paired-probed (panel 500 r20 pad 28/28/24 scrim z200, inputs 35.5/72/35/37.5 — clone settled-identical, raw deltas = the documented zoom-in-95 mid-animation artifact); login card 448×746 r16 blur 4px; F13 surface stable on both (authed /login renders card).
+- Tailwind v4 code audit: NO regressions — login space-y = documented v3-mirror sites; rounded-xl = documented shadcn --radius traps; v30 settles animation reads with .poll(). No new drift anywhere; F1–F13 closed, F14 the only open (deliberate a11y keep).
+- Process notes: P-1 reseed invalidates browser sessions (fresh user ids — observed "All (0)" with stale cookie vs healthy DB); P-2 smoke-test persists 4 activity rows in db/custom.db (36→40). Both recorded in SKILL lesson 21.
+- Artifacts: db/custom.db reseeded pristine 3/31/36; 16/16 screenshots regenerated from the current build (wizard pair real-AI, 12 tasks, scratch cleaned, DB re-verified); .env.example verified.
+
+Stage Summary:
+- Plan written: docs/parity-remediation-v2.12.md — a verification pass. WS-1 no source changes (parity complete, evidence documented). WS-2 artifacts refresh (done). WS-3 docs (session_37, SKILL 1–37 + lesson 21, worklog). WS-4 fast-gate re-verify + commit + SSH-wrapper push. All claims validated against source before writing.
+
+---
+Task ID: v2.12-session-37-execution
+Agent: main (Super Z)
+Task: Execute the v2.12 verification pass — docs alignment, fast-gate re-verify, commit + push via SSH wrapper.
+
+Work Log:
+- Docs: docs/parity-remediation-v2.12.md (plan + EXECUTED record), docs/session_37.md, SKILL.md (header 1–37 + lesson 21 P-1/P-2), this worklog. README/PAD/AGENTS/CLAUDE verified accurate — unchanged.
+- Fast gate re-verified on the shipped tree: lint 0 · typecheck 0 · 138/138 unit (source untouched since the 115/115 e2e run).
+- Conventional Commit :memo: docs: v2.12 verification pass on main; push via docs/ssh_git_wrapper_v3.py (key outside repo, shredded after); remote HEAD verified == local.
+
+Stage Summary:
+- v2.12 shipped: parity complete (F1–F13 closed, F14 deliberate keep), no drift on the live since v2.11, artifacts refreshed, docs aligned.

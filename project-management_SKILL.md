@@ -7,7 +7,7 @@ last_updated: 2026-09-23
 
 # ORBITAL — Project Management Workspace: Complete Engineering Skill
 
-> Distilled from sessions 1–35 (v1.0 → v2.11) of cloning and remediating the
+> Distilled from sessions 1–37 (v1.0 → v2.12) of cloning and remediating the
 > reference Base44 app as a self-hosted Next.js unit. Every fact below is
 > codebase-verified; measured values come from computed-style probes against
 > the live reference app (two authenticated browser sessions, 390/768/1440).
@@ -480,6 +480,20 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
     value": the measurement must cover the full state space the
     reference occupies, and a redirect that fires only in one auth
     state is invisible to a logged-out-only census.
+
+21. **A reseed invalidates every live browser session (v2.12).**
+    `bun run db:seed` wipes the `user` table and re-creates it with
+    fresh ids, so any session cookie minted before the reseed points
+    at a user that no longer exists. The symptom is misleading: the
+    shell renders normally but every view comes up EMPTY ("All (0)",
+    no goals, no tasks) because `requireSession()` fails silently on
+    each store fetch — the DB itself is fine (3/31/36 via
+    `check-db-state.mjs`). The rule: after ANY reseed, re-login before
+    probing the UI, and never diagnose "empty views + healthy DB" as
+    a data bug until the cookie has been refreshed. Same session also
+    re-confirmed: `./scripts/smoke-test.sh` leaves its round-trip
+    rows in `db/custom.db`'s activity feed (36 → 40) — reseed before
+    regenerating screenshots.
 
 ## §13 Pitfalls to Avoid
 
