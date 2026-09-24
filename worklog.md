@@ -107,3 +107,32 @@ Work Log:
 
 Stage Summary:
 - v2.12 shipped: parity complete (F1–F13 closed, F14 deliberate keep), no drift on the live since v2.11, artifacts refreshed, docs aligned.
+
+---
+Task ID: v2.13-session-39-plan
+Agent: main (Super Z)
+Task: Session 39 — pull aebf989, full gate, second paired live/clone survey (mobile-nav focus), Tailwind v4 audit, then the v2.13 verification-pass plan.
+
+Work Log:
+- Pulled aebf989 (docs-only delta since v2.12's cc0e8ca — session_38.md, the operator's log upload). Re-validated infra: .env DATABASE_URL="file:../db/custom.db" (shell trap re-neutralized), db/ at repo root, vitest + playwright functional, .env.example tracked.
+- Baseline gate GREEN: lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke · 115/115 Playwright.
+- PAIRED LIVE/CLONE SURVEY (authenticated, 390/768/1440): mobile tab census byte-identical on BOTH apps (nav [0,770.5,390,73.5] z100 r20; 4 anchors 73.2×53.5 stroke 1.5 + MORE 81.2); MORE sheet (overlay 200 / panel 201 [0,541,390,303] r24; rows /tasks /team /settings) opens + navigates on both; 768 pill nav 494.3×70.5 z100 r20 6 chips (min-w 52 r12); desktop sidebar census + New Goal pill 132.3×40 r12 + F14 user pill (DIV 149×44 pad 11/16 r12); all six h1s (Team ×3 = three-state subtrees, expected); activity pill 99.7×30.5 pad 7/12 gap 6; wizard deep link (scrim z100 rgba(46,42,38,0.3) flex, panel [380,174,680,552] r24 pad 28/28/24); add-task dialog paired (panel 500 r20 pad 28/28/24 scrim z200, inputs 35.5/72/35/37.5); login card 448×746 r16 blur 4px; F13 surface stable; mobile app bar 390×62 r 0 0 20 20 + pill 129.1×34 pad 7/12 r10.
+- N-2 re-confirmed: live Team view empty state (0 members/agents) = documented data delta since v1.7/session 19, NOT drift.
+- Tailwind v4 audit: no regressions (login space-y = v3-mirror sites; rounded-xl = shadcn trap comments; v30 .poll() settles).
+- Artifacts: db reseeded pristine 3/31/36 after smoke; 16/16 screenshots regenerated (wizard pair real-AI, scratch cleaned, DB re-verified); dimensions all OK; .env.example verified.
+
+Stage Summary:
+- Plan written: docs/parity-remediation-v2.13.md — second verification pass, WS-1 no source changes (parity complete). All claims validated against source/probes before writing.
+
+---
+Task ID: v2.13-session-39-execution
+Agent: main (Super Z)
+Task: Execute the v2.13 verification pass — docs alignment, fast-gate re-verify, commit + push via SSH wrapper.
+
+Work Log:
+- Docs: docs/parity-remediation-v2.13.md (plan + EXECUTED record), docs/session_39.md, SKILL.md (header 1–39), this worklog. README/PAD/AGENTS/CLAUDE verified accurate — unchanged.
+- Fast gate re-verified on the shipped tree: lint 0 · typecheck 0 · 138/138 unit (source untouched since the 115/115 e2e run).
+- Conventional Commit :memo: docs: v2.13 verification pass on main; push via docs/ssh_git_wrapper_v3.py (key outside repo, shredded after); remote HEAD verified == local.
+
+Stage Summary:
+- v2.13 shipped: parity complete (F1–F13 closed, F14 deliberate keep), second consecutive clean survey, artifacts refreshed, docs aligned.

@@ -7,7 +7,7 @@ last_updated: 2026-09-23
 
 # ORBITAL — Project Management Workspace: Complete Engineering Skill
 
-> Distilled from sessions 1–37 (v1.0 → v2.12) of cloning and remediating the
+> Distilled from sessions 1–39 (v1.0 → v2.13) of cloning and remediating the
 > reference Base44 app as a self-hosted Next.js unit. Every fact below is
 > codebase-verified; measured values come from computed-style probes against
 > the live reference app (two authenticated browser sessions, 390/768/1440).
