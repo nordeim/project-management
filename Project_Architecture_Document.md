@@ -1,11 +1,28 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.11
+# ORBITAL — Master Project Architecture Document (PAD) v2.14
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
 **Companion Documents:** `README.md` (user-facing), `CLAUDE.md` (agent contract), `AGENTS.md` (operator notes)
-**Last Updated:** 2026-09-24
+**Last Updated:** 2026-09-26
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.14
+
+- `[NOTE]` **Parity verification (third consecutive clean paired survey)**: zero drift on every pinned surface (mobile tab census, MORE sheet + navigation, 768 pill nav, desktop sidebar/New Goal/F14 surfaces, six view h1s, activity pill, wizard deep link, add-task dialog, login card, F13 authed `/login`); F1–F13 stay closed, F14 stays the only recorded deviation (the deliberate a11y keep). The survey ran through a new self-contained paired probe (`scripts/paired-probe-v214.mjs`) that boots the production server as a child process — background servers do not survive between shell invocations in the sandbox.
+- `[MOD]` **`scripts/smoke-test.sh` pins its own `DATABASE_URL`**: an inherited ABSOLUTE shell value (the sandbox exports a parent-workspace path that does not exist) passes through `resolveProcessDatabaseUrl` untouched and boots the server against a missing database — reproduced as 12/30 smoke failures in session 41. The script now pins `DATABASE_URL="file:../db/custom.db"` before the server boot (the same discipline `playwright.config.ts` always carried); the gate is immune to shell env traps without per-command neutralization.
+- `[MOD]` **The v2.6 check-in panel-height pin settles through `expect.poll`** (`tests/e2e/v26-parity.spec.ts`): the last bare `evaluate` on an animation-affected surface — the modal's zoom-in-95 animation scales 353→~342 mid-flight, under the 345 floor (observed as a 1/114 first-run flake, green on re-run; pins unchanged, 10/10 repeated runs green after).
+- `[MOD]` **`scripts/capture-all.sh` — one-invocation screenshot regeneration**: reseeds to pristine, boots the standalone server (pinned env), captures the 14 standard shots + the wizard pair with a real AI plan, cleans the scratch goal, verifies 3/31/36, shuts down — the whole capture pass shares one process tree. `scripts/capture-wizard.sh` re-asserts its 1440×900 viewport AFTER the first page open (a racing implicit browser launch could drop the resize, leaving 1280×577 shots).
+- `[NOTE]` **Docs aligned**: README Playwright count (115, was stale at 73), SKILL §18 z-map (the v2.10 system: 50/100/200/201/210, was the retired 40/50 map), SKILL sessions 1–41 + lesson 22 (pin the env INSIDE the script), PAD §4.1 seeded ActivityLog rows (36 since the v2.5 seed regeneration, was 22).
+- `[NOTE]` **Verification**: full gate green on the shipped tree — lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke (from the trap-carrying shell, no per-command override) · 115/115 Playwright; 16/16 screenshots regenerated.
+
+#### Revision Block — v2.13
+
+- `[NOTE]` **Verification pass** (session 39, 2026-09-24): the live byte-stable for the second consecutive survey — no drift on any pinned surface (mobile navigation re-verified byte-identical and functional on both apps); N-2 re-confirmed (the live's Team-view empty state is the reference account's data, not chrome); NO source changes warranted; 16 screenshots regenerated; infra re-verified (`.env` `DATABASE_URL="file:../db/custom.db"`, db/ at the repo root, vitest + playwright functional, `.env.example` tracked). Tracked in `docs/parity-remediation-v2.13.md`.
+
+#### Revision Block — v2.12
+
+- `[NOTE]` **Verification pass** (session 37, 2026-09-23): the first clean paired survey — zero drift; P-1 (reseed invalidates browser sessions — fresh user ids) and P-2 (smoke run leaves 4 activity rows, 36→40) recorded as process notes; 16 screenshots regenerated; no source changes warranted. Tracked in `docs/parity-remediation-v2.12.md`.
 
 #### Revision Block — v2.11
 
@@ -603,7 +620,7 @@ erDiagram
 | `Goal` | 3 | title, description, status (2 active + 1 done), targetDate, sortOrder |
 | `Task` | 31 | title, description, status (26 done, 2 blocked, 3 pending), deadline, assigneeId, estimatedHours, `createdByAi`, sortOrder |
 | `TaskUpdate` | 0 | Check-ins: status + optional note, newest first. The seed sets task statuses directly rather than synthesizing history; rows accrue through real use |
-| `ActivityLog` | 22 | The feed: type, message, detail, task/goal refs, createdAt |
+| `ActivityLog` | 36 | The feed: type, message, detail, task/goal refs, createdAt (36 since the v2.5 seed regeneration; the pre-v2.5 seed wrote 22) |
 | `WorkspaceSetting` | 1 | Fixed `singleton` id: name, workStart/workEnd, pingFrequency, aiTone |
 
 ### 4.2 Data Models — Status Vocabularies

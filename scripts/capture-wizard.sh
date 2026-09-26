@@ -17,6 +17,11 @@ agent-browser --session "$SESS" set viewport 1440 900 >/dev/null 2>&1 || true
 
 # ---- login ----
 agent-browser --session "$SESS" open "$BASE/login" >/dev/null 2>&1
+# Re-assert the viewport AFTER the page exists: `set viewport` on a session
+# whose implicit browser launch is still racing can be dropped, leaving the
+# window at its default size (observed as 1280x577 shots in session 41 —
+# the committed set is 1440x900). With a page open, the resize always lands.
+agent-browser --session "$SESS" set viewport 1440 900 >/dev/null 2>&1 || true
 sleep 3
 agent-browser --session "$SESS" eval "
 const setVal = (input, value) => {

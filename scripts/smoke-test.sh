@@ -20,6 +20,13 @@ sleep 1
 rm -f "$CJ" /tmp/smoke-*.json
 
 # ---- 1. boot server ----
+# Pin the DB URL explicitly: a relative `file:` URL resolves against
+# prisma/schema.prisma (via src/lib/db-path.ts) exactly like the CLI, while
+# an inherited absolute DATABASE_URL (e.g. a parent-workspace path exported
+# by the operator's shell) passes through untouched and the server boots
+# against a database that does not exist (Error code 14). The Playwright
+# webServer pins its own value the same way (playwright.config.ts).
+DATABASE_URL="file:../db/custom.db" \
 bun .next/standalone/server.js > /tmp/smoke-server.log 2>&1 < /dev/null &
 SRV=$!
 disown $SRV 2>/dev/null || true

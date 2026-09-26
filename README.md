@@ -114,6 +114,10 @@ The page at `/` resolves the session and hands a **nullable user** to the client
 
 **v2.11 — the authenticated-login behavioral pass (measured on the reference):** the reference's `/login` renders the full auth card for AUTHENTICATED visitors too — the URL stays on `/login` (no redirect), the card is byte-identical to the logged-out one, and signing in from that state lands on the workspace. The clone had redirected authenticated visitors to `/` since v1.4 (a drift first recorded as F13 in v2.10's plan); `src/app/login/page.tsx` now renders the `LoginCard` unconditionally — the page is session-independent, `?from_url=` stays honored after sign-in, and the behavioral pin lives in the auth spec (authenticated visit → card renders; re-sign-in → workspace). Also recorded (not fixed): the reference's desktop user pill is a plain inline-styled DIV (a Base44 platform artifact) — the clone keeps its Radix `<button>` trigger with byte-equal computed geometry (r12 · pad 11/16 · the 0.68/0.24 inset pair · 12/500 `#6E6E6E` name) as a deliberate a11y deviation, the same class of keep as `aria-current="page"`.
 
+**v2.12/v2.13 — verification passes:** two consecutive paired live/clone surveys found zero drift (F1–F13 closed; F14 the only recorded deviation — the deliberate a11y keep above); the mobile navigation focus was re-verified byte-identical and functional on both apps each time; screenshots regenerated; no source changes warranted. Tracked in `docs/parity-remediation-v2.12.md` / `docs/parity-remediation-v2.13.md`.
+
+**v2.14 — the infrastructure-hardening pass:** parity still complete (third consecutive clean paired survey, zero drift), so the changes target robustness instead of pixels: `./scripts/smoke-test.sh` now pins its own `DATABASE_URL` before booting the standalone server (an inherited absolute shell value previously booted it against a non-existent parent-workspace database — 12/30 failures until per-command neutralization; the script is now immune, same discipline the Playwright webServer always had); the v2.6 check-in panel-height pin settles its zoom-in-95 animation read through `expect.poll` (the last bare `evaluate` on an animation-affected surface — observed as a 1/114 first-run flake, green on re-run; pins unchanged); `./scripts/capture-all.sh` regenerates the whole screenshot set in ONE invocation (reseeds, boots the server, captures the 14 standard shots + the wizard pair with a real AI plan, cleans the scratch goal, verifies pristine 3/31/36 — background servers do not survive between shell invocations in the sandbox); and the capture-wizard viewport is re-asserted after the first page open (a racing implicit browser launch could drop the 1440×900 resize, leaving 1280×577 shots). Documentation aligned: the README's Playwright count (115), the SKILL's z-index map (the v2.10 system: 50/100/200/201/210) and sessions 1–41 + lesson 22, the PAD's seeded ActivityLog rows (36).
+
 ## File Hierarchy
 
 ```
@@ -261,7 +265,7 @@ Primitive classes in `globals.css`: `.orb-raised` / `.orb-raised-lg` (panels), `
 
 ```bash
 bun run test              # unit tests — 138 checks on the pure domain seams
-bun run test:e2e           # Playwright — 73 browser checks (needs `bun run build` first)
+bun run test:e2e           # Playwright — 115 browser checks (needs `bun run build` first)
 ./scripts/smoke-test.sh    # curl E2E — 30 checks against the production build
 ```
 

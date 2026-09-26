@@ -17,7 +17,8 @@ Single Next.js 16 app (App Router) that clones the reference PM workspace: a wor
 | Prisma client after schema change | `bunx prisma generate` |
 | Recreate DB from schema | `bun run db:push` |
 | Seed demo workspace | `bun run db:seed` |
-| End-to-end smoke suite | `./scripts/smoke-test.sh` (needs `bun run build` first) |
+| End-to-end smoke suite | `./scripts/smoke-test.sh` (needs `bun run build` first; pins its own `DATABASE_URL` — immune to shell env traps) |
+| Regenerate docs screenshots | `./scripts/capture-all.sh` (needs a build; reseeds, boots, captures all 16 shots incl. the wizard pair, cleans up, verifies pristine — one invocation) |
 
 **Gate order before every push:** `bun run lint` → `bun run typecheck` → `bun run test` (138) → `bun run build` → `./scripts/smoke-test.sh` (30 checks, all must pass) → `bun run test:e2e` (115 Playwright checks — boots the standalone server on :3100 against its own `db/e2e.db`). There is no hosted CI; the local gate is the only gate. `next.config.ts` sets `ignoreBuildErrors` — the explicit `typecheck` step is what catches type errors; never skip it.
 

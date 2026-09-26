@@ -1,13 +1,13 @@
 ---
 name: project-management
-description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 35 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 115 Playwright browser + 30 curl smoke checks)."
+description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 41 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 115 Playwright browser + 30 curl smoke checks)."
 version: 1.0.0
-last_updated: 2026-09-23
+last_updated: 2026-09-26
 ---
 
 # ORBITAL — Project Management Workspace: Complete Engineering Skill
 
-> Distilled from sessions 1–39 (v1.0 → v2.13) of cloning and remediating the
+> Distilled from sessions 1–41 (v1.0 → v2.14) of cloning and remediating the
 > reference Base44 app as a self-hosted Next.js unit. Every fact below is
 > codebase-verified; measured values come from computed-style probes against
 > the live reference app (two authenticated browser sessions, 390/768/1440).
@@ -495,6 +495,27 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
     rows in `db/custom.db`'s activity feed (36 → 40) — reseed before
     regenerating screenshots.
 
+22. **Pin the environment INSIDE the script, not per-command (v2.14).**
+    The sandbox shell exports an absolute `DATABASE_URL` pointing into
+    a parent-workspace path that does not exist; a script that boots
+    the standalone server WITHOUT pinning its own value inherits it,
+    `resolveProcessDatabaseUrl` passes absolute URLs through
+    untouched, and every authenticated endpoint fails with "Error
+    code 14: Unable to open the database file" — reproduced as 12/30
+    smoke failures in session 41 after three sessions of per-command
+    neutralization. The rule: any script that boots the server (or
+    runs Prisma directly) pins `DATABASE_URL` explicitly — the same
+    discipline `playwright.config.ts` always had, now carried by
+    `smoke-test.sh` and `capture-all.sh`. Companion rule: agent-tool
+    background servers do not SURVIVE between shell invocations in
+    this sandbox, so multi-step capture flows must run in ONE
+    invocation (`scripts/capture-all.sh` boots, captures, cleans,
+    reseeds, and shuts down in a single process tree); and a
+    `set viewport` issued while the session's implicit browser launch
+    is still racing can be DROPPED — re-assert the viewport after the
+    first `open` (observed as 1280×577 wizard shots vs the committed
+    1440×900).
+
 ## §13 Pitfalls to Avoid
 
 - Don't add `sm:` growth to the mobile shell — the live keeps the fixed
@@ -595,14 +616,19 @@ asymmetric below 1280 (`minmax(0,1fr) / minmax(438px,1fr)`).
 
 ## §18 Z-Index Layer Map
 
+Current since v2.10 (the pre-v2.10 40/50 map is retired):
+
 | Layer | z-index | Element |
 |---|---|---|
 | Canvas glow | 0 (fixed, pointer-events-none) | `.orbital-app` glow div |
 | Content | 1 (`relative z-[1]`) | shell + main |
-| Bottom tab bar / pill nav | 40 (fixed) | mobile chrome |
-| App bar | 50 (sticky) | mobile header |
-| MORE sheet / dialogs | 50 (Radix portal) | Sheet, Dialog |
+| Check-in / task-detail dialog | 50 (Radix portal overlay + content) | default `Dialog` tier |
+| Bottom tab bar / pill nav | 100 (fixed) | mobile + tablet chrome |
+| Wizard scrim | 100 | `new-goal-dialog` overlay |
 | Toasts | 100 | Toaster viewport |
+| Form dialogs (add-task / task-edit / goal-edit) | 200 (scrim) | scrimFlex overlays |
+| MORE sheet | 200 (overlay) / 201 (panel) | mobile sheet |
+| Date-picker popover | 210 | above every dialog |
 
 ## §19 Color & Token Reference (Complete)
 

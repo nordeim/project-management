@@ -136,3 +136,36 @@ Work Log:
 
 Stage Summary:
 - v2.13 shipped: parity complete (F1–F13 closed, F14 deliberate keep), second consecutive clean survey, artifacts refreshed, docs aligned.
+
+---
+Task ID: v2.14-session-41-plan
+Agent: main (Super Z)
+Task: Session 41 — clone b0ce1d9, full gate, third paired live/clone survey (mobile-nav focus), Tailwind v4 audit, then the v2.14 infrastructure-hardening plan.
+
+Work Log:
+- Cloned b0ce1d9 (docs-only delta since v2.13's 1dc196f — session_40.md, the operator's log upload). Read AGENTS/CLAUDE/README/PAD/SKILL + session_39/40 + parity-remediation-v2.13 + worklog; reviewed the scandihaven repo's tech-stack patterns and both skills catalogs.
+- Infra rebuilt from scratch: .env from .env.example (DATABASE_URL="file:../db/custom.db"), bun install 480 pkgs, prisma generate, db:push + db:seed (pristine 3/31/36, explicit env — the shell trap still active). Vitest + Playwright configs verified functional.
+- Baseline gate: lint 0 · typecheck 0 · 138/138 unit · build clean · smoke 12/30 until the env was pinned per-command (G-1: smoke-test.sh never pinned DATABASE_URL; the inherited absolute parent-workspace path booted the server against a non-existent DB — "Error code 14", every authed endpoint 401) · e2e 114/115 first run (G-2: the v2.6 check-in panel-height pin read the modal mid-animation — zoom-in-95 scales 353→~342 under the 345 floor; immediate re-run 115/115).
+- PAIRED LIVE/CLONE SURVEY (authenticated, 390/768/1440; live via agent-browser, clone via the new self-contained scripts/paired-probe-v214.mjs — boots the production server as a child process because the sandbox reaps background servers between shell invocations): mobile tab census byte-identical on BOTH apps (nav [0,770.5,390,73.5] z100 r20; 4 anchors 73.2×53.5 stroke 1.5 + MORE 81.2; labels Home/Goals/My Tasks/Agent; active chip inset r14); MORE sheet (overlay 200 rgba(0,0,0,0.2) / panel 201 [0,541,390,303] r24 pad 20/20/40; rows /tasks /team /settings) opens + navigates on both; 768 pill nav 494.3×70.5 z100 r20 6 chips (min-w 52 r12); desktop sidebar census + New Goal pill 132.3×40 r12 pad 11/20 + F14 user pill unchanged (DIV keep, geometry byte-equal); all six h1s; activity pill pad 7/12 gap 6 [dot][Online][· N] (clone 40 vs live 36 = P-2); wizard deep link (scrim z100 rgba(46,42,38,0.3) flex, panel [380,174,680,552] r24 pad 28/28/24); add-task dialog (clone panel 500 r20 pad 28/28/24 scrim z200 flex); login card 448×746 r16 blur 4px; F13 stable on both.
+- N-2 re-confirmed: live Team view empty state = documented data delta since v1.7, NOT drift.
+- Tailwind v4 audit: no regressions (cursor base rule present; chips on literal 9999px; chrome shadows plain declarations; remaining shadow-[…] fully qualified; circle-semantics rounded-full sites not byte-compared).
+- Remediation plan written: docs/parity-remediation-v2.14.md — G-1 smoke env pin, G-2 check-in poll, G-3..G-6 stale docs (README 73→115, SKILL z-map, PAD 22→36 rows, SKILL frontmatter sessions), G-7 self-contained captures. All fix sites validated against source before writing.
+
+Stage Summary:
+- Plan validated against source; executing: G-1/G-2 fixes (TDD: RED 12/30 smoke from the trap shell / the observed 1/114 flake) → GREEN (30/30 no override; 10/10 repeats + 115/115) → capture-all.sh → full gate → screenshots → docs → commit+push via SSH wrapper.
+
+---
+Task ID: v2.14-session-41-execution
+Agent: main (Super Z)
+Task: Execute the v2.14 plan — infrastructure fixes, artifact refresh, docs alignment, full gate, ship.
+
+Work Log:
+- G-1: smoke-test.sh pins DATABASE_URL="file:../db/custom.db" before the server boot (comment explains the trap). RED documented (12/30 from the trap shell); GREEN verified: 30/30 with the trap active, no per-command override.
+- G-2: tests/e2e/v26-parity.spec.ts check-in pin converted to the v30 settle pattern (readSpec helper + expect.poll on the combined pin condition; pins unchanged). 10/10 repeated single-test runs green; full e2e 115/115.
+- G-7: scripts/capture-all.sh created (reseed → boot pinned-env server → 14 standard shots → wizard pair real-AI → scratch cleanup → pristine verify → shutdown, ONE invocation). capture-wizard.sh re-asserts viewport 1440×900 after the first open — first pass produced 1280×577 wizard shots (racing implicit browser launch dropped the resize); after the fix 1440×900 as committed. paired-probe-v214.mjs kept as the reusable survey probe.
+- Artifacts: 16/16 screenshots regenerated via capture-all.sh (mobile 390×844, tablet 768×1024, login 1280×800 by design, rest 1440×900 — dims verified); DB pristine 3/31/36 verified after; .env.example tracked + current.
+- Docs: README (v2.12/v2.13 verification paragraphs + v2.14 paragraph + 115 count), PAD (v2.14/v2.13/v2.12 revision blocks, header v2.14 + 2026-09-26, §4.1 ActivityLog 36), SKILL (header sessions 1–41, frontmatter 41 sessions + last_updated, §18 z-map → the v2.10 system, lesson 22), AGENTS (smoke row notes the env pin; new capture-all row), session_41.md, the v2.14 plan EXECUTED record, this worklog.
+- Full gate on the fixed tree: lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke (trap shell, no override) · 115/115 Playwright.
+
+Stage Summary:
+- v2.14 complete: parity confirmed (third consecutive clean paired survey, zero drift, F14 the only keep), infrastructure hardened (env-pin immunity, poll settle, one-invocation captures), docs aligned — shipped via commit on main + SSH-wrapper push.

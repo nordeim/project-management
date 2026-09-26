@@ -220,32 +220,45 @@ test.describe("check-in modal (v2.6)", () => {
     await expect(modal).toBeVisible();
     await expect(modal.getByText("Post Status Update")).toBeVisible();
 
-    const spec = await modal.evaluate((el) => {
-      // The dialog content itself carries role=dialog — include it in the
-      // panel search (querySelectorAll misses the element itself).
-      const candidates = [el, ...el.querySelectorAll("div")].filter((d) => {
-        const r = d.getBoundingClientRect();
-        return r.width > 350 && r.width < 520 && r.height > 200;
+    // The modal's zoom-in-95 animation (200ms) scales the panel mid-flight
+    // (353 × 0.97 ≈ 342 — under the 345 floor; observed as a 1/114
+    // first-run flake in session 41, green on immediate re-run). Same
+    // artifact class as the v30 dialog pins: poll until the SETTLED pins
+    // all match before asserting (the pins themselves are unchanged).
+    const readSpec = () =>
+      modal.evaluate((el) => {
+        // The dialog content itself carries role=dialog — include it in the
+        // panel search (querySelectorAll misses the element itself).
+        const candidates = [el, ...el.querySelectorAll("div")].filter((d) => {
+          const r = d.getBoundingClientRect();
+          return r.width > 350 && r.width < 520 && r.height > 200;
+        });
+        // The panel is the TALLEST candidate (the form div inside it is
+        // ~238 after the v2.6 spacing; the panel ~353).
+        const panel = candidates.sort((a, b) => b.getBoundingClientRect().height - a.getBoundingClientRect().height)[0];
+        if (!panel) return null;
+        const radios = [...panel.querySelectorAll("label")].filter((l) => /On Track|Blocked|Need Help|Done/.test(l.textContent ?? ""));
+        // The radio GROUP container (the 2-row grid), not the first label.
+        const radioGroup = radios[0]?.closest('[role="radiogroup"]');
+        const note = panel.querySelector("textarea");
+        const button = [...panel.querySelectorAll("button")].find((b) => /Post Update/.test(b.textContent ?? ""));
+        const rg = radioGroup?.getBoundingClientRect();
+        const n = note?.getBoundingClientRect();
+        const b = button?.getBoundingClientRect();
+        return {
+          panelH: Math.round(panel.getBoundingClientRect().height),
+          radiosH: radios[0] && radios[1] ? Math.round(radios[1].getBoundingClientRect().y - radios[0].getBoundingClientRect().y) : 0,
+          noteGap: n && rg ? Math.round(n.y - (rg.y + rg.height)) : -1,
+          buttonGap: b && n ? Math.round(b.y - (n.y + n.height)) : -1,
+        };
       });
-      // The panel is the TALLEST candidate (the form div inside it is
-      // ~238 after the v2.6 spacing; the panel ~353).
-      const panel = candidates.sort((a, b) => b.getBoundingClientRect().height - a.getBoundingClientRect().height)[0];
-      if (!panel) return null;
-      const radios = [...panel.querySelectorAll("label")].filter((l) => /On Track|Blocked|Need Help|Done/.test(l.textContent ?? ""));
-      // The radio GROUP container (the 2-row grid), not the first label.
-      const radioGroup = radios[0]?.closest('[role="radiogroup"]');
-      const note = panel.querySelector("textarea");
-      const button = [...panel.querySelectorAll("button")].find((b) => /Post Update/.test(b.textContent ?? ""));
-      const rg = radioGroup?.getBoundingClientRect();
-      const n = note?.getBoundingClientRect();
-      const b = button?.getBoundingClientRect();
-      return {
-        panelH: Math.round(panel.getBoundingClientRect().height),
-        radiosH: radios[0] && radios[1] ? Math.round(radios[1].getBoundingClientRect().y - radios[0].getBoundingClientRect().y) : 0,
-        noteGap: n && rg ? Math.round(n.y - (rg.y + rg.height)) : -1,
-        buttonGap: b && n ? Math.round(b.y - (n.y + n.height)) : -1,
-      };
-    });
+    await expect
+      .poll(async () => {
+        const s = await readSpec();
+        return s !== null && s.panelH >= 345 && s.panelH <= 361 && s.noteGap === 16 && s.buttonGap === 16;
+      }, { timeout: 5_000 })
+      .toBe(true);
+    const spec = await readSpec();
     expect(spec).not.toBeNull();
     expect(spec!.panelH).toBeGreaterThanOrEqual(345);
     expect(spec!.panelH).toBeLessThanOrEqual(361);
