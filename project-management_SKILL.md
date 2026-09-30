@@ -1,13 +1,13 @@
 ---
 name: project-management
-description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 41 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 115 Playwright browser + 30 curl smoke checks)."
+description: "ORBITAL — AI project management workspace (Next.js 16 + React 19 + Tailwind CSS 4 + Prisma/SQLite). Complete engineering reference distilled from 43 build/remediation sessions: SPA-with-path-URLs architecture, neumorphic three-tier design system, three-state responsive chrome, hand-rolled cookie auth with rate limiting, AI task planning with degrade-never-fail fallbacks, the SQLite db-path resolution seam (incl. the Next standalone chdir trap), and the full test pyramid (138 Vitest unit + 115 Playwright browser + 30 curl smoke checks)."
 version: 1.0.0
-last_updated: 2026-09-26
+last_updated: 2026-09-30
 ---
 
 # ORBITAL — Project Management Workspace: Complete Engineering Skill
 
-> Distilled from sessions 1–41 (v1.0 → v2.14) of cloning and remediating the
+> Distilled from sessions 1–43 (v1.0 → v2.15) of cloning and remediating the
 > reference Base44 app as a self-hosted Next.js unit. Every fact below is
 > codebase-verified; measured values come from computed-style probes against
 > the live reference app (two authenticated browser sessions, 390/768/1440).
@@ -64,7 +64,7 @@ Design philosophy, in priority order:
 4. **Pure seams, tested.** Routing, sanitization, rate limiting, path
    resolution — all logic that could break silently lives in `src/lib/*.ts`
    with Vitest specs. Route handlers are thin DB wrappers.
-5. **SPA with real URLs.** One workspace page, six path rewrites, zero
+5. **SPA with real URLs.** One workspace page, seven path rewrites, zero
    per-view routes. Browser back/forward works via the History API.
 
 ## §2 Tech Stack & Environment
@@ -110,10 +110,10 @@ alternative for exotic service managers).
 
 Config files that carry non-obvious weight:
 
-- `next.config.ts` — the six path rewrites (`/goals`, `/goals/:goalId`,
-  `/my-tasks`, `/activity`, `/team`, `/settings` → `/`) MUST stay in sync
-  with `src/lib/router.ts`; `/login` stays excluded. `ignoreBuildErrors` is
-  set — `bun run typecheck` is the real type gate.
+- `next.config.ts` — the seven path rewrites (`/goals`, `/goals/:goalId`,
+  `/my-tasks`, `/tasks`, `/activity`, `/team`, `/settings` → `/`) MUST stay
+  in sync with `src/lib/router.ts`; `/login` stays excluded. `ignoreBuildErrors`
+  is set — `bun run typecheck` is the real type gate.
 - `vitest.config.ts` — includes `tests/**/*.test.ts` (the db-path seam)
   and never matches Playwright's `*.spec.ts`.
 - `playwright.config.ts` — setup project + storageState (see §15), webServer
@@ -515,6 +515,21 @@ wrapper runbook (`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`) —
     is still racing can be DROPPED — re-assert the viewport after the
     first `open` (observed as 1280×577 wizard shots vs the committed
     1440×900).
+
+23. **When a count changes, grep EVERY doc for the old number in the
+    same commit (v2.15).** v2.7 added `/tasks` as the seventh path
+    rewrite, and AGENTS/CLAUDE/README were corrected — but the PAD's
+    ADR-001 Decision, the PAD's §2 Application layer, the SKILL's §1
+    philosophy, and the SKILL's §3 config notes all kept saying "six"
+    through three subsequent docs passes (v2.10, v2.12, v2.14 — each
+    fixed OTHER stale spots while checking only the docs it was
+    editing). Count-claims drift independently across doc copies;
+    the repair is a repo-wide `grep -rn "<old number>"` over the doc
+    set whenever a count changes (rewrites, routes, test totals,
+    model counts), in the SAME commit as the change that moved the
+    number. Same class as lesson 10's "re-crawl before every
+    remediation pass", applied to documentation instead of the live
+    app: stale specs inherit silently.
 
 ## §13 Pitfalls to Avoid
 

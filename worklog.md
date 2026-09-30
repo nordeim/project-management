@@ -169,3 +169,36 @@ Work Log:
 
 Stage Summary:
 - v2.14 complete: parity confirmed (third consecutive clean paired survey, zero drift, F14 the only keep), infrastructure hardened (env-pin immunity, poll settle, one-invocation captures), docs aligned — shipped via commit on main + SSH-wrapper push.
+
+---
+Task ID: v2.15-session-43-plan
+Agent: main (Super Z)
+Task: Session 43 — clone b9167d5, full gate, fourth paired live/clone survey (mobile-nav focus), Tailwind v4 + code-quality audit, then the v2.15 verification-pass + rewrite-count-repair plan.
+
+Work Log:
+- Cloned b9167d5 (docs-only delta since v2.14's 9237449 — session_42.md, the operator's raw-transcript log upload). Read AGENTS/CLAUDE/README/PAD/SKILL + session_41/42 + parity-remediation-v2.14 + worklog; reviewed both repos' skills catalogs (clone-app-pat-pro / agent-browser / tdd / tailwind-patterns) and the scandihaven tech-stack patterns.
+- Infra rebuilt from scratch: .env from .env.example (DATABASE_URL="file:../db/custom.db"), bun install 480 pkgs, prisma generate, db:push + db:seed (pristine 3/31/36, explicit env — the shell trap re-confirmed active in this sandbox).
+- Baseline gate GREEN first try: lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke from the trap-carrying shell with NO per-command override (v2.14 G-1 immunity re-proven) · 115/115 Playwright.
+- LIVE SURVEY (authenticated, agent-browser at 390/768/1440 after re-asserting the viewport per lesson 22): mobile tab census byte-identical (nav [0,770.5,390,73.5] z100 r20-top pad 8/8/12; four anchors 73.2×53.5 stroke 1.5 svg 20 + MORE 81.2×53.5; active inset chip r14); MORE sheet (overlay z200 rgba(0,0,0,0.2), panel z201 [0,541,390,303] r24-top pad 20/20/40, close 32×32 r10) opens and navigates (URL→/tasks, h1 Tasks); 768 pill nav 494.3×70.5 z100 r20 pad 10/16 gap 4 six chips min-w52 r12; desktop aside [24,24,240,860] sticky h39; New Goal pill 132.3×40 r12 pad 11/20; six h1s; activity pill 99.7×30.5 pad 7/12 [dot 7][Online][· 36]; wizard deep link scrim z100 rgba(46,42,38,0.3) + panel [380,174,680,552] r24 pad 28/28/24; F13 authed /login renders card 448×746 r16 blur(4px). N-2 re-confirmed (Team empty state = data delta).
+- CLONE paired probe (scripts/paired-probe-v214.mjs, self-contained child-process server): every surface EQUAL (tabbar/sheet/pill/aside/pill/h1s/wizard/login/add-task all match; documented artifacts only — DM-Sans font-advance 494.9 vs 494.3, zoom-in-95 551 vs 552, P-2 count 40 vs 36).
+- Tailwind v4 audit: clean (cursor base rule; literal rounded-[9999px] chips; circle-semantics rounded-full; fully-qualified shadow-[…] compositions; no sm: growth). Code-quality sweep: no TODO/console.log/any/skipped tests; security seams verified.
+- Findings: G-1 four stale "six rewrites" doc claims (PAD:287 ADR-001, PAD:390 §2, SKILL:67 §1, SKILL:113 §3 — /tasks made it seven in v2.7); G-2 DB drift 36→40 (P-2); G-3 SKILL frontmatter sessions 41→43; G-4 session doc set.
+
+Stage Summary:
+- Plan written: docs/parity-remediation-v2.15.md — a verification pass (parity complete, fourth consecutive clean survey) + the four-spot rewrite-count repair. All fix sites validated against next.config.ts (7 rewrites) before execution.
+
+---
+Task ID: v2.15-session-43-execution
+Agent: main (Super Z)
+Task: Execute the v2.15 plan — G-1/G-3 doc fixes, lesson 23, G-2 reseed, G-4 session docs, fast-gate re-verify, commit + push via SSH wrapper.
+
+Work Log:
+- G-1: PAD ADR-001 Decision ("seven view paths" + /tasks in the list), ADR-001 History (v2.7 note), PAD §2 Application layer ("seven view-path rewrites"), SKILL §1 #5 + §3 config notes ("seven path rewrites" + /tasks). Repo-wide grep re-run: zero stale "six" claims remain.
+- G-3: SKILL frontmatter last_updated 2026-09-30, description "43 build/remediation sessions", header quote "sessions 1–43 (v1.0 → v2.15)"; §12 lesson 23 added ("when a count changes, grep EVERY doc for the old number in the same commit" — the root cause of G-1's survival across three docs passes).
+- G-2: DB reseeded with explicit env pin; pristine 3/31/36 verified via scripts/check-db-state.mjs.
+- G-4: docs/session_43.md (structured log), PAD v2.15 revision block + header bump, README v2.15 paragraph, the plan's EXECUTED record, this worklog.
+- Fast gate on the edited tree: lint 0 · typecheck 0 · 138/138 unit (docs-only delta; the opening full gate — 30/30 smoke trap-shell + 115/115 e2e — proves the untouched source tree).
+- Conventional Commit :memo: docs: v2.15 on main; push via docs/ssh_git_wrapper_v3.py (key outside repo, shredded after); remote HEAD verified == local.
+
+Stage Summary:
+- v2.15 complete: parity confirmed (fourth consecutive clean paired survey, zero drift, F14 the only keep), mobile navigation verified byte-identical + functional on both apps, the four stale rewrite-count claims repaired at every site, lesson 23 distilled, gate green, DB pristine — shipped as a docs-only pass.

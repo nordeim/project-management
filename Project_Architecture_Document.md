@@ -1,11 +1,19 @@
-# ORBITAL — Master Project Architecture Document (PAD) v2.14
+# ORBITAL — Master Project Architecture Document (PAD) v2.15
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
 **Companion Documents:** `README.md` (user-facing), `CLAUDE.md` (agent contract), `AGENTS.md` (operator notes)
-**Last Updated:** 2026-09-26
+**Last Updated:** 2026-09-30
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
+
+#### Revision Block — v2.15
+
+- `[NOTE]` **Parity verification (fourth consecutive clean paired survey — session 43, 2026-09-30)**: zero drift on every pinned surface, re-verified live (agent-browser, 390/768/1440, authenticated) AND on the clone's production build (`scripts/paired-probe-v214.mjs`): the mobile tab census (nav [0,770.5,390,73.5] z100 r20-top, four anchors 73.2×53.5 stroke 1.5 + MORE 81.2×53.5, active inset chip r14), the MORE sheet (overlay z200 `rgba(0,0,0,0.2)`, panel z201 [0,541,390,303] r24-top pad 20/20/40, rows → `/tasks`·`/team`·`/settings`, navigation functional on both apps), the 768 pill nav (494.3×70.5 z100 r20 pad 10/16 gap 4, six chips min-w52 r12), the desktop sidebar ([24,24,240,860] sticky, h39 rows), the New Goal pill (132.3×40 r12 pad 11/20), all six view h1s, the activity pill (99.7×30.5 pad 7/12 gap 6), the wizard deep link (scrim z100 `rgba(46,42,38,0.3)`, panel [380,174,680,552] r24 pad 28/28/24), the login card (448×746 r16 blur 4px), F13 (authenticated `/login` renders the card). Mobile navigation — the operator's named focus — confirmed byte-identical and functional on BOTH apps. F1–F13 closed, F14 the deliberate a11y keep.
+- `[MOD]` **ADR-001 + §2 rewrite-count claims repaired (docs-only)**: the PAD's ADR-001 Decision, ADR-001 History, and §2 Application layer said "six" view paths/rewrites — stale since v2.7 added `/tasks` as the seventh; AGENTS/CLAUDE/README were already correct. Now "seven" with `/tasks` in both parenthetical lists + a v2.7 History note. Root cause recorded as SKILL lesson 23: count-claims drift independently across doc copies — grep every doc for the old number in the SAME commit a count changes.
+- `[NOTE]` **Tailwind v4 audit (code-level, five checks)**: no regressions — the `button, [role="button"] { cursor: pointer }` base rule holds (`globals.css`); filter chips keep literal `rounded-[9999px]`; every remaining `rounded-full` site is circle-semantics only; the remaining `shadow-[…]` compositions carry fully-qualified rgba values; no `sm:` growth in the mobile shell.
+- `[NOTE]` **Code-quality sweep clean**: no TODO/FIXME, no `console.log`, no `any` in `src/`, no skipped tests; security seams verified (scrypt + `timingSafeEqual` + HMAC + the fixed-window rate limiter); 16 route handlers as documented; rewrites ↔ `router.ts` in sync.
+- `[NOTE]` **Verification**: full gate green on the pulled tree — lint 0 · typecheck 0 · 138/138 unit · build clean · 30/30 smoke **from the trap-carrying shell with no per-command override** (the v2.14 G-1 immunity re-proven) · 115/115 Playwright; DB reseeded pristine 3/31/36 after the run (P-2 discipline). No source changes warranted. Tracked in `docs/parity-remediation-v2.15.md`.
 
 #### Revision Block — v2.14
 
@@ -284,11 +292,11 @@ ORBITAL is a self-hosted AI project management workspace — a functional clone 
 **ADR-001: Single-page app with path-based URLs (rewrites + History API)**
 
 - **Context:** The reference app is a browser SPA — sidebar/bottom-tab navigation, view switches without page reloads, deep-linkable URLs at real paths (`/goals/<id>`), working browser back/forward. A conventional multi-page Next.js app would change the UX contract and add route transitions the original does not have.
-- **Decision:** One page (`src/app/page.tsx`, `force-dynamic`) resolves the session server-side, then renders the client shell. The six view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/activity`, `/team`, `/settings`) are mapped onto `/` with `rewrites()` in `next.config.ts`; view state syncs with `location.pathname` through `src/lib/router.ts` (`parseUrl` / `toPath`) using `history.pushState`, and a `popstate` listener re-derives state on back/forward. Legacy `?view=…&goal=…` links still resolve for pre-v1.1 deep links.
+- **Decision:** One page (`src/app/page.tsx`, `force-dynamic`) resolves the session server-side, then renders the client shell. The seven view paths (`/goals`, `/goals/:goalId`, `/my-tasks`, `/tasks`, `/activity`, `/team`, `/settings`) are mapped onto `/` with `rewrites()` in `next.config.ts`; view state syncs with `location.pathname` through `src/lib/router.ts` (`parseUrl` / `toPath`) using `history.pushState`, and a `popstate` listener re-derives state on back/forward. Legacy `?view=…&goal=…` links still resolve for pre-v1.1 deep links.
 - **Rationale:** Preserves the reference UX and URL contract exactly (the address bar shows the same paths as the original) while keeping a server-rendered auth gate and one client bundle. Unknown paths still 404 at the HTTP layer — the rewrites are an explicit allow-list, not a blanket proxy.
 - **Consequences:** The rewrite list and `router.ts` must stay in sync (both cite each other); every navigation is a real history entry. Trade-off: the whole app ships as one client bundle — no per-view code splitting.
 - **Alternatives Rejected:** Query-param URLs (`?view=goals` — v1.0 behavior; the reference app uses paths, and `replaceState` broke back/forward); Next.js pages per view (breaks SPA feel, duplicates the store's navigation); react-router inside Next (duplicates the router Next already provides).
-- **History:** v1.0 shipped `?view=` query params with `replaceState`; revised in v1.1 after fresh capture of the live app confirmed path URLs.
+- **History:** v1.0 shipped `?view=` query params with `replaceState`; revised in v1.1 after fresh capture of the live app confirmed path URLs. v2.7 added `/tasks` (the live's all-tasks view) as the seventh rewrite — doc count claims updated to match in v2.15.
 
 **ADR-002: Prisma + SQLite with `db push` (no migrations)**
 
@@ -387,7 +395,7 @@ flowchart TB
 
 - **Client layer** — a standard browser; no PWA/service worker. All interactivity is client-side after the initial server-rendered shell.
 - **Edge layer** — optional; any static file server or CDN in front of the Node process. The app itself has no edge middleware.
-- **Application layer** — one Node process serving the page (plus its six view-path rewrites) and 16 API routes. Stateless between requests (sessions are cookie-carried), so horizontal scaling is trivial behind a load balancer.
+- **Application layer** — one Node process serving the page (plus its seven view-path rewrites) and 16 API routes. Stateless between requests (sessions are cookie-carried), so horizontal scaling is trivial behind a load balancer.
 - **Data layer** — a single SQLite file on local disk. Write concurrency is serialized by SQLite; this is the layer to swap (Postgres) if the workspace outgrows a single team.
 - **External services** — only the AI planner call, invoked inline during `generate-tasks` with a deterministic fallback; its absence never blocks a request.
 
